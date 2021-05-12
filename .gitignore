@@ -1,3 +1,6 @@
 *.pdf
 *.exe
 *.o
+doc/*
+!doc/*.tex
+!doc/*.bib
