@@ -4,6 +4,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
 
 \title{Implementazione CUDA dell'algoritmo di Bellman-Ford}
 \author{Filippo Barbari}
@@ -28,10 +29,29 @@
 	\section{Analisi dell'algoritmo}
 	
 	\section{Design}
+	Varie versioni dell'algoritmo:
+	\begin{itemize}
+		\item \texttt{bf0}: memorizzare il grafo come array di archi e parallelizzare il ciclo interno ovvero il "per ogni arco del grafo" (usare un thread per ogni arco). In realtà questa versione si ramifica in altre 4 sotto-versioni che variano in base al meccanismo utilizzato per gestire le scritture concorrenti sul vettore \texttt{D}.
+		\begin{itemize}
+			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto, in ogni caso è da verificare.
+			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo.
+			\item \texttt{bf0-min}: usare l'istruzione CUDA \texttt{atomicMin}.
+			\item \texttt{bf0-cas}: usare l'istruzione CUDA \texttt{atomicCAS}.
+		\end{itemize}
+	
+		\item \texttt{bf1}: memorizzare il grafo come lista di adiacenza (in realtà non serve) e parallelizzare il ciclo interno. Per ogni nodo $u$ si creano tanti thread quanti sono i nodi $v$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco uscente $(u,v)$ aggiornando \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
+		
+		\item \texttt{bf2}: memorizzare il grafo come lista di adiacenza (in realtà non serve) e parallelizzare il ciclo interno. Per ogni nodo $v$ si creano tanti thread quanti sono i nodi $u$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco entrante $(u,v)$ mantenendo un valore parziale, infine si opera una min-reduction per determinare \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
+	\end{itemize}
 	
 	\section{Implementazione}
 	
 	\section{Valutazione delle prestazioni}
+	Fonte dei test:
+	\begin{itemize}
+		\item \url{https://www.moreno.marzolla.name/teaching/LabASD/handouts/bellman-ford.html}
+		\item \url{http://users.diag.uniroma1.it/challenge9/download.shtml}
+	\end{itemize}
 	
 	\section{Conclusioni}
 	
