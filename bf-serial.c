@@ -5,7 +5,7 @@
     gcc -std=c99 -Wall -Wpedantic bf-serial.c -o bf-serial
 
     Per eseguire:
-    ./bf-serial < test/graph.txt
+    ./bf-serial < test/graph.txt > solution.txt
 */
 
 #include <stdio.h>
@@ -51,6 +51,26 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
     }
 
     return graph;
+}
+
+/*
+    Stampa la soluzione di Bellman-Ford su stdin.
+
+    L'output è formattato come segue:
+
+    numero_di_nodi
+    nodo_sorgente
+    nodo_0 distanza_al_nodo_0
+    nodo_1 distanza_al_nodo_1
+    nodo_2 distanza_al_nodo_2
+    ...
+*/
+void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dist) {
+    printf("%u\n%u\n", n_nodes, source);
+
+    for(unsigned int i=0; i<n_nodes; i++) {
+        printf("%u %u\n", i, dist[i]);
+    }
 }
 
 /*
@@ -106,9 +126,9 @@ int main ( void ) {
 
     fprintf(stderr, "\n");
 
-    for(unsigned int i=0; i<10; i++) {
-        fprintf(stderr, "D[%u]: %u\n", i, result[i]);
-    }
+    fprintf(stderr, "Dumping solution...");
+    dump_solution(nodes, 0, result);
+    fprintf(stderr, "done\n");
 
     free(graph);
     free(result);
