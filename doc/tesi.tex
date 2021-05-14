@@ -36,13 +36,16 @@
 			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto, in ogni caso è da verificare.
 			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo.
 			\item \texttt{bf0-min}: usare l'istruzione CUDA \texttt{atomicMin}.
-			\item \texttt{bf0-cas}: usare l'istruzione CUDA \texttt{atomicCAS}.
+			\item \texttt{bf0-cas}: usare l'istruzione CUDA \texttt{atomicCAS}. Come dovrei usarla?
 		\end{itemize}
+		In alternativa, la versione \texttt{bf0-minred} utilizza una min-reduction per evitare aggiornamenti concorrenti.
 	
 		\item \texttt{bf1}: memorizzare il grafo come lista di adiacenza (in realtà non serve) e parallelizzare il ciclo interno. Per ogni nodo $u$ si creano tanti thread quanti sono i nodi $v$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco uscente $(u,v)$ aggiornando \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
 		
 		\item \texttt{bf2}: memorizzare il grafo come lista di adiacenza (in realtà non serve) e parallelizzare il ciclo interno. Per ogni nodo $v$ si creano tanti thread quanti sono i nodi $u$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco entrante $(u,v)$ mantenendo un valore parziale, infine si opera una min-reduction per determinare \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
 	\end{itemize}
+
+	In ogni caso, per ognuna di queste versioni, bisognerebbe provare la versione shared memory e le versione AoS e SoA. Per ottimizzare gli accessi si potrebbe provare a sortare gli archi in base all'esigenza.
 	
 	\section{Implementazione}
 	
