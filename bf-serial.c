@@ -95,14 +95,20 @@ unsigned int* bellman_ford ( Edge* graph, unsigned int n_nodes, unsigned int n_e
     D[source] = 0;
 
     for(unsigned int i=0; i<n_nodes-1; i++) {
+        if(i%1000 == 0) {
+            fprintf(stderr, "%u / %u iterazioni completate\n", i, n_nodes-1);
+        }
         /*
         if(i%1000 == 0) {
             fprintf(stderr, "It. %u / %u\n", i, n_nodes-1);
         }
         */
         for(unsigned int e=0; e<n_edges; e++) {
-            if(D[graph[e].start_node] + graph[e].weight < D[graph[e].end_node]) {
-                D[graph[e].end_node] = D[graph[e].start_node] + graph[e].weight;
+            const unsigned int u = graph[e].start_node;
+            const unsigned int v = graph[e].end_node;
+            // controllo overflow-safe
+            if(D[v] > D[u] && D[v]-D[u] > graph[e].weight){
+                D[v] = D[u] + graph[e].weight;
             }
         }
     }
@@ -120,7 +126,7 @@ int main ( void ) {
     graph = read_graph(&nodes, &edges);
     fprintf(stderr, "done\n");
 
-    fprintf(stderr, "Computing Bellman-Ford...");
+    fprintf(stderr, "Computing Bellman-Ford...\n");
     result = bellman_ford(graph, nodes, edges, 0);
     fprintf(stderr, "done\n");
 

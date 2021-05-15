@@ -26,7 +26,7 @@
     Con 1 viene invocato V-1 volte un kernel che esegue un singolo passo dell'algoritmo;
     con 0 viene invocato una sola volta un kernel che esegue tutto l'algoritmo.
 */
-#define KERNEL_SINGLE_STEP 0
+#define KERNEL_SINGLE_STEP 1
 
 typedef struct {
     unsigned int start_node;
@@ -104,20 +104,32 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
         #if KERNEL_SINGLE_STEP == 0
         for(unsigned int i=0; i<n_nodes-1; i++) {
             // relax the edge (u,v)
-            if(distances[ graph[idx].start_node ] + graph[idx].weight < distances[ graph[idx].end_node ]) {
-                while(!atomicCAS(&mutex[ graph[idx].end_node ], 0, 1)) ;
+            const unsigned int u = graph[idx].start_node;
+            const unsigned int v = graph[idx].end_node;
+            // controllo overflow-safe
+            if(distances[v] > distances[u] && distances[v]-distances[u] > graph[idx].weight) {
+                while(!atomicCAS(&mutex[ v ], 0, 1)) ;
 
                 //mutex[ graph[idx].end_node ] = 1;
-                if(distances[ graph[idx].start_node ] + graph[idx].weight < distances[ graph[idx].end_node ]) {
-                    distances[ graph[idx].end_node ] = distances[ graph[idx].start_node ] + graph[idx].weight;
+                if(distances[v] > distances[u] && distances[v]-distances[u] > graph[idx].weight) {
+                    distances[v] = distances[u] + graph[idx].weight;
                 }
-                mutex[ graph[idx].end_node ] = 0;
+                mutex[v] = 0;
             }
         }
         #elif KERNEL_SINGLE_STEP == 1
         // relax the edge (u,v)
-        if(distances[ graph[idx].start_node ] + graph[idx].weight < distances[ graph[idx].end_node ]) {
-            distances[ graph[idx].end_node ] = distances[ graph[idx].start_node ] + graph[idx].weight;
+        const unsigned int u = graph[idx].start_node;
+        const unsigned int v = graph[idx].end_node;
+        // controllo overflow-safe
+        if(distances[v] > distances[u] && distances[v]-distances[u] > graph[idx].weight) {
+            while(!atomicCAS(&mutex[ v ], 0, 1)) ;
+
+            //mutex[ graph[idx].end_node ] = 1;
+            if(distances[v] > distances[u] && distances[v]-distances[u] > graph[idx].weight) {
+                distances[v] = distances[u] + graph[idx].weight;
+            }
+            mutex[v] = 0;
         }
         #endif
     }

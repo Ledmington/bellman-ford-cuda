@@ -94,10 +94,10 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(idx < n_edges) {
-        for(unsigned int i=0; i<n_nodes-1; i++) {
-            // relax the edge (u,v)
-            atomicMin(&distances[ graph[idx].end_node ], distances[ graph[idx].start_node ] + graph[idx].weight);
-        }
+        // relax the edge (u,v)
+        const unsigned int u = graph[idx].start_node;
+        const unsigned int v = graph[idx].end_node;
+        atomicMin(&distances[v], distances[u] + graph[idx].weight);
     }
 }
 
@@ -124,7 +124,9 @@ unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n
     assert(h_distances);
 
     for(unsigned int i=0; i<n_nodes; i++) {
-        h_distances[i] = 0xffffffff;
+        // TODO: change this to a valid infinity
+        h_distances[i] = 0x00ffffff; // this doesn't overflow
+        //h_distances[i] = 0xffffffff; // this creates overflow
     }
     h_distances[source] = 0;
 
@@ -136,9 +138,11 @@ unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n
     cudaSafeCall( cudaMalloc((void**)&d_graph, sz_graph) );
     cudaSafeCall( cudaMemcpy(d_graph, h_graph, sz_graph, cudaMemcpyHostToDevice) );
 
-    // kernel invocation
-    cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances);
-    cudaCheckError();
+    for(unsigned int i=0; i<n_nodes-1; i++) {
+        // kernel invocation
+        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances);
+        cudaCheckError();
+    }
 
     // copy-back of the result
     cudaSafeCall( cudaMemcpy(h_distances, d_distances, sz_distances, cudaMemcpyDeviceToHost) );

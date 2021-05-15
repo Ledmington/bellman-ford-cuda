@@ -33,8 +33,8 @@
 	\begin{itemize}
 		\item \texttt{bf0}: memorizzare il grafo come array di archi e parallelizzare il ciclo interno ovvero il "per ogni arco del grafo" (usare un thread per ogni arco). In realtà questa versione si ramifica in altre 4 sotto-versioni che variano in base al meccanismo utilizzato per gestire le scritture concorrenti sul vettore \texttt{D}.
 		\begin{itemize}
-			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto, in ogni caso è da verificare.
-			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo.
+			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto. La versione "single-step" produce il risultato corretto sul grafo di Roma, quella non "single-step" produce un risultato di poco diverso (in tutto qualche centinaio di nodi hanno un valore errato).
+			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo. Sul grafo di Roma, la versione "single-step" produce il risultato corretto, quella non "single-step" produce un risultato molto diverso.
 			\item \texttt{bf0-min}: usare l'istruzione CUDA \texttt{atomicMin}.
 			\item \texttt{bf0-cas}: usare l'istruzione CUDA \texttt{atomicCAS}. Come dovrei usarla?
 		\end{itemize}
