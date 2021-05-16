@@ -5,6 +5,15 @@
 \usepackage[utf8]{inputenc}
 \usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\usepackage[linesnumbered, ruled, titlenotnumbered]{algorithm2e}
+
+\addbibresource{tesi.bib}
 
 \title{Implementazione CUDA dell'algoritmo di Bellman-Ford}
 \author{Filippo Barbari}
@@ -24,11 +33,66 @@
 	\listoftables
 	\newpage
 	
-	\section{Introduzione}
+	\listofalgorithms
+	\newpage
 	
-	\section{Analisi dell'algoritmo}
+	\section{Introduzione}
+	L'obiettivo di questa tesi consiste in...
+	
+	\subsection{Struttura della tesi}
+	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano (?) un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perchè. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nella repo. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle misure più comuni che è possibile misurare su GPU (throughput, bandwidth...?) e si discuteranno.
+	
+	\section{Calcolo parallelo}
+	\label{section:storia}
+	
+	\section{Analisi}
+	\label{section:analisi}
+	\subsection{Notazione}
+	\subsection{Single-Source Shortest Path problem}
+	\subsection{Algoritmo di Bellman-Ford}
+	
+	\begin{algorithm}[H]
+		\SetAlgorithmName{Bellman-Ford}{}{}
+		\KwIn{G, w, s}
+		\KwResult{FALSE se il grafo G contiene cicli di costo negativo, FALSE altrimenti}
+		Initialize-Single-Source(G,s)\;
+		\For{i=1 \textbf{to} |G.V| - 1}{
+			\ForEach{edge (u,v) $\in$ G.E}{
+				Relax(u,v,w)\;
+			}
+		}
+		\ForEach{edge (u,v) $\in$ G.E}{
+			\If{v.d > u.d + w(u,v)}{
+				\Return FALSE\;
+			}
+		}
+		\Return TRUE\;
+		\caption{L'algoritmo di Bellman-Ford}
+	\end{algorithm}
+
+	\begin{algorithm}[H]
+		\SetAlgorithmName{Initialize-Single-Source}{}{}
+		\KwIn{G, s}
+		\ForEach{vertex v $\in$ G.V}{
+			v.d = $\infty$\;
+			v.$\pi$ = NIL\;
+		}
+		s.d = 0\;
+		\caption{La procedura di inizializzazione di un grafo}
+	\end{algorithm}
+
+	\begin{algorithm}[H]
+		\SetAlgorithmName{Relax}{}{}
+		\KwIn{u, v, w}
+		\If{v.d > u.d + w(u,v)}{
+			v.d = u.d + w(u,v)\;
+			v.$\pi$ = u\;
+		}
+		\caption{La procedura Relax}
+	\end{algorithm}
 	
 	\section{Design}
+	\label{section:design}
 	Varie versioni dell'algoritmo:
 	\begin{itemize}
 		\item \texttt{bf0}: memorizzare il grafo come array di archi e parallelizzare il ciclo interno ovvero il "per ogni arco del grafo" (usare un thread per ogni arco). In realtà questa versione si ramifica in altre 4 sotto-versioni che variano in base al meccanismo utilizzato per gestire le scritture concorrenti sul vettore \texttt{D}.
@@ -36,7 +100,7 @@
 			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto. La versione "single-step" produce il risultato corretto sul grafo di Roma, quella non "single-step" produce un risultato di poco diverso (in tutto qualche centinaio di nodi hanno un valore errato).
 			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo. Sul grafo di Roma, la versione "single-step" produce il risultato corretto, quella non "single-step" produce un risultato molto diverso.
 			\item \texttt{bf0-min}: usare l'istruzione CUDA \texttt{atomicMin}.
-			\item \texttt{bf0-cas}: usare l'istruzione CUDA \texttt{atomicCAS}. Come dovrei usarla?
+			\item \texttt{bf0-cas}: usare l'istruzione CUDA \texttt{atomicCAS}. Come dovrei usarla? Come posso usare una funzione che esegue \verb|if(x==old) x=value| per eseguire \verb|if(a+x<b) b=a+x|?
 		\end{itemize}
 		In alternativa, la versione \texttt{bf0-minred} utilizza una min-reduction per evitare aggiornamenti concorrenti.
 	
@@ -48,8 +112,12 @@
 	In ogni caso, per ognuna di queste versioni, bisognerebbe provare la versione shared memory e le versione AoS e SoA. Per ottimizzare gli accessi si potrebbe provare a sortare gli archi in base all'esigenza.
 	
 	\section{Implementazione}
+	\label{section:impl}
 	
 	\section{Valutazione delle prestazioni}
+	\label{section:perf}
+	\subsection{Throughput}
+	\subsection{Bandwidth}
 	Fonte dei test:
 	\begin{itemize}
 		\item \url{https://www.moreno.marzolla.name/teaching/LabASD/handouts/bellman-ford.html}
@@ -57,5 +125,8 @@
 	\end{itemize}
 	
 	\section{Conclusioni}
+	\label{section:end}
+	
+	\printbibliography
 	
 \end{document}
