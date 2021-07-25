@@ -1,15 +1,33 @@
 /*
-    Implementazione CUDA dell'algoritmo di Bellman-Ford.
-    Versione BF0-mutex:
+    CUDA implementation of the Bellman-Ford's algorithm
+    Copyright (C) 2021  Filippo Barbari
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+/*
+    CUDA implementation of the Bellman-Ford's algorithm.
+
+    Version BF0-mutex:
     - il grafo è memorizzato come una lista di archi pesati,
     - la parallelizzazione è effettuata su ciclo che itera gli archi
          (il "ciclo interno"),
     - si utilizzano mutex sotto forma di un array di unsigned int
 
-    Per compilare:
+    To compile:
     nvcc -arch=<cuda_capability> bf0-mutex.cu -o bf0-mutex
 
-    Per eseguire:
+    To run:
     ./bf0-mutex < test/graph.txt > solution.txt
 */
 

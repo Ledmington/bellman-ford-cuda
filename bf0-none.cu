@@ -1,15 +1,33 @@
 /*
-    Implementazione CUDA dell'algoritmo di Bellman-Ford.
-    Versione BF0-none:
+    CUDA implementation of the Bellman-Ford's algorithm
+    Copyright (C) 2021  Filippo Barbari
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+/*
+    CUDA implementation of the Bellman-Ford's algorithm.
+
+    Version BF0-none:
     - il grafo è memorizzato come una lista di archi pesati,
     - la parallelizzazione è effettuata su ciclo che itera gli archi
          (il "ciclo interno"),
     - non sono utilizzati meccanismi di mutua esclusione
 
-    Per compilare:
+    To compile:
     nvcc -arch=<cuda_capability> bf0-none.cu -o bf0-none
 
-    Per eseguire:
+    To run:
     ./bf0-none < test/graph.txt > solution.txt
 */
 
@@ -26,7 +44,7 @@
     Con 1 viene invocato V-1 volte un kernel che esegue un singolo passo dell'algoritmo;
     con 0 viene invocato una sola volta un kernel che esegue tutto l'algoritmo.
 */
-#define KERNEL_SINGLE_STEP 0
+#define KERNEL_SINGLE_STEP 1
 
 typedef struct {
     unsigned int start_node;
@@ -61,7 +79,7 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
         graph[i].weight = (unsigned int)tmp;
 
         if(graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
-            fprintf(stderr, "ERRORE alla riga %u:\nIndice del nodo non valido.\n\n", i+1);
+            fprintf(stderr, "ERROR at line %u: invalid node index\n\n", i+1);
             exit(EXIT_FAILURE);
         }
     }
@@ -131,7 +149,7 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
 unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n_edges, unsigned int source ) {
     if(h_graph == NULL) return NULL;
     if(source >= n_nodes) {
-        fprintf(stderr, "ERRORE: il nodo sorgente %u non esiste\n\n", source);
+        fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
         exit(EXIT_FAILURE);
     }
 
@@ -186,19 +204,28 @@ int main ( void ) {
     unsigned int nodes, edges;
     unsigned int *result;
 
+    clock_t program_start, program_end, compute_start, compute_end;
+
+    program_start = clock();
+
     fprintf(stderr, "Reading input graph...");
     graph = read_graph(&nodes, &edges);
     fprintf(stderr, "done\n");
+
+    fprintf(stderr, "\nGraph data:\n");
+    fprintf(stderr, "%u nodes\n", nodes);
+    fprintf(stderr, "%u arcs\n", edges);
+    fprintf(stderr, "%f MBytes of RAM used\n\n", (float)(sizeof(Edge)*edges)/(float)(1024*1024));
 
     #if KERNEL_SINGLE_STEP == 0
     fprintf(stderr, "Computing Bellman-Ford (no single step)...");
     #elif KERNEL_SINGLE_STEP == 1
     fprintf(stderr, "Computing Bellman-Ford (single step)...");
     #endif
+    compute_start = clock();
     result = bellman_ford(graph, nodes, edges, 0);
-    fprintf(stderr, "done\n");
-
-    fprintf(stderr, "\n");
+    compute_end = clock();
+    fprintf(stderr, "done\n\n");
 
     fprintf(stderr, "Dumping solution...");
     dump_solution(nodes, 0, result);
@@ -206,6 +233,12 @@ int main ( void ) {
 
     free(graph);
     free(result);
+
+    program_end = clock();
+
+    fprintf(stderr, "\nTotal execution time: %.3f seconds\n", (float)(program_end-program_start) / (float)CLOCKS_PER_SEC);
+    fprintf(stderr, "Actual execution time: %.3f seconds\n", (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC);
+
 
     return EXIT_SUCCESS;
 }

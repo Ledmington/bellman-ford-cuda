@@ -1,10 +1,27 @@
 /*
-    Implementazione seriale su CPU dell'algoritmo di Bellman-Ford.
+    Serial implementation of the Bellman-Ford's algorithm
+    Copyright (C) 2021  Filippo Barbari
 
-    Per compilare:
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+/*
+    Serial CPU implementation of the Bellman-Ford's algorithm.
+
+    To compile:
     gcc -std=c99 -Wall -Wpedantic bf-serial.c -o bf-serial
 
-    Per eseguire:
+    To run:
     ./bf-serial < test/graph.txt > solution.txt
 */
 
@@ -47,7 +64,7 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
         graph[i].weight = (unsigned int)tmp;
 
         if(graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
-            fprintf(stderr, "ERRORE alla riga %u: indice del nodo non valido.\n\n", i+1);
+            fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i+1);
             exit(EXIT_FAILURE);
         }
     }
@@ -84,7 +101,7 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
 unsigned int* bellman_ford ( Edge* graph, unsigned int n_nodes, unsigned int n_edges, unsigned int source ) {
     if(graph == NULL) return NULL;
     if(source >= n_nodes) {
-        fprintf(stderr, "ERRORE: il nodo sorgente %u non esiste\n\n", source);
+        fprintf(stderr, "ERROR: source node %u does not exist.\n\n", source);
         exit(EXIT_FAILURE);
     }
 
@@ -98,7 +115,7 @@ unsigned int* bellman_ford ( Edge* graph, unsigned int n_nodes, unsigned int n_e
 
     for(unsigned int i=0; i<n_nodes-1; i++) {
         if(i%1000 == 0) {
-            fprintf(stderr, "%u / %u iterazioni completate\n", i, n_nodes-1);
+            fprintf(stderr, "%u / %u completed iterations\n", i, n_nodes-1);
         }
 
         for(unsigned int e=0; e<n_edges; e++) {
@@ -124,32 +141,32 @@ int main ( void ) {
 
     program_start = clock();
 
-    fprintf(stderr, "Lettura grafo di input...");
+    fprintf(stderr, "Reading input graph...");
     graph = read_graph(&nodes, &edges);
-    fprintf(stderr, "OK\n");
+    fprintf(stderr, "done\n");
 
-    fprintf(stderr, "\nDati del grafo:\n");
-    fprintf(stderr, "%u nodi\n", nodes);
-    fprintf(stderr, "%u archi\n", edges);
-    fprintf(stderr, "%f MBytes di RAM utilizzata\n\n", (float)(sizeof(Edge)*edges)/(float)(1024*1024));
+    fprintf(stderr, "\nGraph data:\n");
+    fprintf(stderr, "%u nodes\n", nodes);
+    fprintf(stderr, "%u arcs\n", edges);
+    fprintf(stderr, "%f MBytes of RAM used\n\n", (float)(sizeof(Edge)*edges)/(float)(1024*1024));
 
-    fprintf(stderr, "Esecuzione Bellman-Ford...\n");
+    fprintf(stderr, "Computing Bellman-Ford...\n");
     compute_start = clock();
     result = bellman_ford(graph, nodes, edges, 0);
     compute_end = clock();
-    fprintf(stderr, "OK\n\n");
+    fprintf(stderr, "done\n\n");
 
-    fprintf(stderr, "Scrittura soluzione...");
+    fprintf(stderr, "Dumping solution...");
     dump_solution(nodes, 0, result);
-    fprintf(stderr, "OK\n");
+    fprintf(stderr, "done\n");
 
     free(graph);
     free(result);
 
     program_end = clock();
 
-    fprintf(stderr, "\nTempo totale di esecuzione: %.3f secondi\n", (float)(program_end-program_start) / (float)CLOCKS_PER_SEC);
-    fprintf(stderr, "Tempo di calcolo effettivo: %.3f secondi\n", (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC);
+    fprintf(stderr, "\nTotal execution time: %.3f seconds\n", (float)(program_end-program_start) / (float)CLOCKS_PER_SEC);
+    fprintf(stderr, "Actual execution time: %.3f seconds\n", (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC);
 
     return EXIT_SUCCESS;
 }
