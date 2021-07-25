@@ -3,6 +3,7 @@
 *.o
 *.exp
 *.lib
+*.out
 doc/*
 !doc/*.tex
 !doc/*.bib

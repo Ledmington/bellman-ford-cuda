@@ -2,7 +2,7 @@
     Implementazione CUDA dell'algoritmo di Bellman-Ford.
     Versione BF0-min:
     - il grafo è memorizzato come una lista di archi pesati,
-    - la parallelizzazione è effettuata su ciclo che itera gli archi
+    - la parallelizzazione è effettuata sul ciclo che itera gli archi
          (il "ciclo interno"),
     - si utilizza atomicMin per l'aggiornamento atomico
 
@@ -50,8 +50,8 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
     assert(graph);
 
     for(unsigned int i=0; i<*n_edges; i++) {
-        float tmp;
-        scanf("%u %u %f", &graph[i].start_node, &graph[i].end_node, &tmp);
+        float tmp_weight;
+        scanf("%u %u %f", &graph[i].start_node, &graph[i].end_node, &tmp_weight);
         graph[i].weight = (unsigned int)tmp;
 
         if(graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
@@ -125,7 +125,8 @@ unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n
 
     for(unsigned int i=0; i<n_nodes; i++) {
         // TODO: change this to a valid infinity
-        h_distances[i] = 0x00ffffff; // this doesn't overflow
+        h_distances[i] = UINT_MAX; // this creates overflow but it's correct
+        //h_distances[i] = 0x00ffffff; // this doesn't overflow
         //h_distances[i] = 0xffffffff; // this creates overflow
     }
     h_distances[source] = 0;
@@ -140,7 +141,7 @@ unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n
 
     for(unsigned int i=0; i<n_nodes-1; i++) {
         // kernel invocation
-        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances);
+        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>> (n_nodes, n_edges, d_graph, d_distances);
         cudaCheckError();
     }
 

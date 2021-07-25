@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <limits.h>
+#include <time.h>
 
 typedef struct {
     unsigned int start_node;
@@ -45,7 +47,7 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
         graph[i].weight = (unsigned int)tmp;
 
         if(graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
-            fprintf(stderr, "ERRORE alla riga %u:\nIndice del nodo non valido.\n\n", i+1);
+            fprintf(stderr, "ERRORE alla riga %u: indice del nodo non valido.\n\n", i+1);
             exit(EXIT_FAILURE);
         }
     }
@@ -54,7 +56,7 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
 }
 
 /*
-    Stampa la soluzione di Bellman-Ford su stdin.
+    Stampa la soluzione di Bellman-Ford su stdout.
 
     L'output è formattato come segue:
 
@@ -90,7 +92,7 @@ unsigned int* bellman_ford ( Edge* graph, unsigned int n_nodes, unsigned int n_e
     assert(D);
 
     for(unsigned int i=0; i<n_nodes; i++) {
-        D[i] = 0xffffffff;
+        D[i] = UINT_MAX;
     }
     D[source] = 0;
 
@@ -98,11 +100,7 @@ unsigned int* bellman_ford ( Edge* graph, unsigned int n_nodes, unsigned int n_e
         if(i%1000 == 0) {
             fprintf(stderr, "%u / %u iterazioni completate\n", i, n_nodes-1);
         }
-        /*
-        if(i%1000 == 0) {
-            fprintf(stderr, "It. %u / %u\n", i, n_nodes-1);
-        }
-        */
+
         for(unsigned int e=0; e<n_edges; e++) {
             const unsigned int u = graph[e].start_node;
             const unsigned int v = graph[e].end_node;
@@ -122,22 +120,36 @@ int main ( void ) {
     unsigned int nodes, edges;
     unsigned int *result;
 
-    fprintf(stderr, "Reading input graph...");
+    clock_t program_start, program_end, compute_start, compute_end;
+
+    program_start = clock();
+
+    fprintf(stderr, "Lettura grafo di input...");
     graph = read_graph(&nodes, &edges);
-    fprintf(stderr, "done\n");
+    fprintf(stderr, "OK\n");
 
-    fprintf(stderr, "Computing Bellman-Ford...\n");
+    fprintf(stderr, "\nDati del grafo:\n");
+    fprintf(stderr, "%u nodi\n", nodes);
+    fprintf(stderr, "%u archi\n", edges);
+    fprintf(stderr, "%f MBytes di RAM utilizzata\n\n", (float)(sizeof(Edge)*edges)/(float)(1024*1024));
+
+    fprintf(stderr, "Esecuzione Bellman-Ford...\n");
+    compute_start = clock();
     result = bellman_ford(graph, nodes, edges, 0);
-    fprintf(stderr, "done\n");
+    compute_end = clock();
+    fprintf(stderr, "OK\n\n");
 
-    fprintf(stderr, "\n");
-
-    fprintf(stderr, "Dumping solution...");
+    fprintf(stderr, "Scrittura soluzione...");
     dump_solution(nodes, 0, result);
-    fprintf(stderr, "done\n");
+    fprintf(stderr, "OK\n");
 
     free(graph);
     free(result);
+
+    program_end = clock();
+
+    fprintf(stderr, "\nTempo totale di esecuzione: %.3f secondi\n", (float)(program_end-program_start) / (float)CLOCKS_PER_SEC);
+    fprintf(stderr, "Tempo di calcolo effettivo: %.3f secondi\n", (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC);
 
     return EXIT_SUCCESS;
 }

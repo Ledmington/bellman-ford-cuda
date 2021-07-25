@@ -39,11 +39,19 @@ sorting=ynt
 	\section{Introduzione}
 	L'obiettivo di questa tesi consiste in...
 	
-	\subsection{Struttura della tesi}
 	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano (?) un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perchè. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nella repo. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle misure più comuni che è possibile misurare su GPU (throughput, bandwidth...?) e si discuteranno.
 	
 	\section{Calcolo parallelo}
 	\label{section:storia}
+	Qui si parla della storia del calcolo parallelo, perchè è necessario, perchè si sta sviluppando così tanto e perchè le GPU sono diventate cosi importanti.
+	
+	\section{GPU e CUDA}
+	\label{section:cuda}
+	Qui si parla di cos'è CUDA e come funziona. Si parla anche della struttura della memoria di una GPU CUDA e di come funziona lo scheduling.
+	
+	\section{Metriche di valutazione}
+	\label{section:metriche}
+	Qui si parla delle metriche di valutazione adottate in questo progetto, si spiega che cosa misurano e cosa significano.
 	
 	\section{Analisi}
 	\label{section:analisi}
@@ -94,16 +102,16 @@ sorting=ynt
 	
 	\section{Design}
 	\label{section:design}
-	Varie versioni dell'algoritmo:
+	Qui si propongono alcune versioni parallele dell'algoritmo (e si etichettano per distinguerle tra loro) basandosi sull'analisi effettuata nel capitolo precedente
+	
 	\begin{itemize}
 		\item \texttt{bf0}: memorizzare il grafo come array di archi e parallelizzare il ciclo interno ovvero il "per ogni arco del grafo" (usare un thread per ogni arco). In realtà questa versione si ramifica in altre 4 sotto-versioni che variano in base al meccanismo utilizzato per gestire le scritture concorrenti sul vettore \texttt{D}.
 		\begin{itemize}
 			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto. La versione "single-step" produce il risultato corretto sul grafo di Roma, quella non "single-step" produce un risultato di poco diverso (in tutto qualche centinaio di nodi hanno un valore errato).
 			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo. Sul grafo di Roma, la versione "single-step" produce il risultato corretto, quella non "single-step" produce un risultato molto diverso.
 			\item \texttt{bf0-min}: usare l'istruzione CUDA \texttt{atomicMin}.
-			\item \texttt{bf0-cas}: usare l'istruzione CUDA \texttt{atomicCAS}. Come dovrei usarla? Come posso usare una funzione che esegue \verb|if(x==old) x=value| per eseguire \verb|if(a+x<b) b=a+x|?
+			\item \texttt{bf0-minred}: utilizza una min-reduction per evitare aggiornamenti concorrenti. (come alternativa a \texttt{bf0-min})
 		\end{itemize}
-		In alternativa, la versione \texttt{bf0-minred} utilizza una min-reduction per evitare aggiornamenti concorrenti.
 	
 		\item \texttt{bf1}: memorizzare il grafo come lista di adiacenza (in realtà non serve) e parallelizzare il ciclo interno. Per ogni nodo $u$ si creano tanti thread quanti sono i nodi $v$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco uscente $(u,v)$ aggiornando \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
 		
@@ -112,11 +120,12 @@ sorting=ynt
 
 	In ogni caso, per ognuna di queste versioni, bisognerebbe provare la versione shared memory e le versione AoS e SoA. Per ottimizzare gli accessi si potrebbe provare a sortare gli archi in base all'esigenza.
 	
-	\section{Implementazione}
-	\label{section:impl}
+	Alla fine di questo capitolo si possono aggiungere alcuni dettagli implementativi da discutere come l'implementazione "step" (per la sincronizzazione) oppure quella "normale".
 	
 	\section{Valutazione delle prestazioni}
 	\label{section:perf}
+	I test di correttezza di ogni versione vanno effettuati su ogni test disponibile. Ovviamente, solo le versioni che producono un risultato corretto in tutti i casi vengono tenute in considerazione nei capitoli successivi. I test per la valutazione delle prestazioni, invece, possono essere eseguiti solo sul test più voluminoso per ridurre i tempi di valutazione.
+	
 	\subsection{Throughput}
 	\subsection{Bandwidth}
 	Fonte dei test:

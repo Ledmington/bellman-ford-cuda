@@ -159,13 +159,13 @@ unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n
 
     #if KERNEL_SINGLE_STEP == 0
     // kernel invocation
-    cuda_bellman_ford<<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances);
+    cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances);
     cudaCheckError();
 
     #elif KERNEL_SINGLE_STEP == 1
 
     for(unsigned int i=0; i<n_nodes-1; i++) {
-        cuda_bellman_ford<<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances);
+        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances);
         cudaCheckError();
     }
     #endif
