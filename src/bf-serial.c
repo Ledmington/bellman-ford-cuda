@@ -32,28 +32,31 @@
 #include <time.h>
 
 typedef struct {
+    // The index of the source node of the edge
     unsigned int start_node;
+
+    // The index of the destination node of the edge
     unsigned int end_node;
+
+    // The weight assigned to the edge
     unsigned int weight;
 } Edge;
 
 /*
-    Legge un grafo da stdin formattato come segue:
-    prima riga: |numero nodi| |numero archi| n
-    tutte le altre |numero archi| righe: |nodo sorgente| |nodo destinazione| |peso arco|
+    Reads a graph from stdin formatted as follows:
+    first line: |number of nodes| |number of arcs| n
+    each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
 
-    Le variabili puntate da |n_nodes| e |n_edges| sono modificate opportunamente.
+    The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
 
-    Retituisce un puntatore ad un array di |n_edges| strutture Edge.
+    This function returns a pointer to an array of |n_edges| structures of type Edge.
 */
 Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
     /*
-        |tmp| è necessaria per leggere il terzo valore della prima riga, che però non serve
+        |tmp| is necessary to read the third value of the first line, which is useless
     */
     unsigned int tmp;
     scanf("%u %u %u", n_nodes, n_edges, &tmp);
-    //fprintf(stderr, "Nodes: %u\n", n_nodes);
-    //fprintf(stderr, "Edges: %u\n", n_edges);
 
     Edge *graph = (Edge*) malloc(*n_edges * sizeof(Edge));
     assert(graph);
@@ -73,15 +76,15 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
 }
 
 /*
-    Stampa la soluzione di Bellman-Ford su stdout.
+    Dumps the solution on stdout.
 
-    L'output è formattato come segue:
+    Output is formatted as follows:
 
-    numero_di_nodi
-    nodo_sorgente
-    nodo_0 distanza_al_nodo_0
-    nodo_1 distanza_al_nodo_1
-    nodo_2 distanza_al_nodo_2
+    number_of_nodes
+    source_node
+    node_0 distance_to_node_0
+    node_1 distance_to_node_1
+    node_2 distance_to_node_2
     ...
 */
 void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dist) {
@@ -93,10 +96,10 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
 }
 
 /*
-    Esegue l'algoritmo di Bellman-Ford sul grafo passato in input.
-    Restituisce un puntatore ad un vettore con |n_nodes| elementi:
-    ciascuno elemento di indice i contiene la distanza del cammino minimo
-    dal nodo |source| al nodo i.
+    Executes the Bellman-Ford's algorithm on the graph |h_graph|.
+    Returns a pointer to an array with |n_nodes| elements:
+    each element of index |i| contains the shortest path distance from node
+    |source| to node |i|.
 */
 unsigned int* bellman_ford ( Edge* graph, unsigned int n_nodes, unsigned int n_edges, unsigned int source ) {
     if(graph == NULL) return NULL;
@@ -121,7 +124,7 @@ unsigned int* bellman_ford ( Edge* graph, unsigned int n_nodes, unsigned int n_e
         for(unsigned int e=0; e<n_edges; e++) {
             const unsigned int u = graph[e].start_node;
             const unsigned int v = graph[e].end_node;
-            // controllo overflow-safe
+            // overflow-safe check
             if(D[v] > D[u] && D[v]-D[u] > graph[e].weight){
                 D[v] = D[u] + graph[e].weight;
             }
@@ -146,9 +149,19 @@ int main ( void ) {
     fprintf(stderr, "done\n");
 
     fprintf(stderr, "\nGraph data:\n");
-    fprintf(stderr, "%u nodes\n", nodes);
-    fprintf(stderr, "%u arcs\n", edges);
-    fprintf(stderr, "%f MBytes of RAM used\n\n", (float)(sizeof(Edge)*edges)/(float)(1024*1024));
+    fprintf(stderr, " %7u nodes\n", nodes);
+    fprintf(stderr, " %7u arcs\n", edges);
+
+    float ram_usage = (float)(sizeof(Edge)*edges);
+    if(ram_usage < 1024.0f) {
+        fprintf(stderr, " %.3f bytes of RAM used\n\n", ram_usage);
+    }
+    else if(ram_usage < 1024.0f*1024.0f) {
+        fprintf(stderr, " %.3f KBytes of RAM used\n\n", ram_usage/1024.0f);
+    }
+    else {
+        fprintf(stderr, " %.3f MBytes of RAM used\n\n", ram_usage/(1024.0f*1024.0f));
+    }
 
     fprintf(stderr, "Computing Bellman-Ford...\n");
     compute_start = clock();
