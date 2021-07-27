@@ -1,9 +1,13 @@
 *.pdf
+
 src/*.exe
 src/*.o
 src/*.exp
 src/*.lib
 src/*.out
+
 doc/*
 !doc/*.tex
 !doc/*.bib
+
+bin/
