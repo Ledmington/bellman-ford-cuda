@@ -119,7 +119,7 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
                                    unsigned int* start_nodes,
                                    unsigned int* end_nodes,
                                    unsigned int* weights,
-                                   unsigned int *distances) {
+                                   unsigned int* distances) {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(idx < n_edges) {
@@ -240,7 +240,6 @@ int main ( void ) {
 
     fprintf(stderr, "\nTotal execution time: %.3f seconds\n", (float)(program_end-program_start) / (float)CLOCKS_PER_SEC);
     fprintf(stderr, "Actual execution time: %.3f seconds\n", (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC);
-
 
     return EXIT_SUCCESS;
 }

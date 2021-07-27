@@ -18,11 +18,10 @@
 /*
     CUDA implementation of the Bellman-Ford's algorithm.
 
-    Version BF0-mutex:
-    - il grafo è memorizzato come una lista di archi pesati,
-    - la parallelizzazione è effettuata su ciclo che itera gli archi
-         (il "ciclo interno"),
-    - si utilizzano mutex sotto forma di un array di unsigned int
+    Version BF0-mutex-AoS:
+    - the input graph is stored as an array of weighted arcs (Array of Structures),
+    - the parallelization is done on the "inner cycle",
+    - an array of unsigned ints is used as a mutex
 
     To compile:
     nvcc -arch=<cuda_capability> bf0-mutex.cu -o bf0-mutex
@@ -37,38 +36,35 @@
 #include <stdlib.h>
 #include <assert.h>
 
-// La dimensione del blocco CUDA monodimensionale
+// CUDA block's size for monodimensional grid
 #define BLKDIM 1024
 
-/*
-    Con 1 viene invocato V-1 volte un kernel che esegue un singolo passo dell'algoritmo;
-    con 0 viene invocato una sola volta un kernel che esegue tutto l'algoritmo.
-*/
-#define KERNEL_SINGLE_STEP 1
-
 typedef struct {
+    // The index of the source node of the edge
     unsigned int start_node;
+
+    // The index of the destination node of the edge
     unsigned int end_node;
+
+    // The weight assigned to the edge
     unsigned int weight;
 } Edge;
 
 /*
-    Legge un grafo da stdin formattato come segue:
-    prima riga: |numero nodi| |numero archi| n
-    tutte le altre |numero archi| righe: |nodo sorgente| |nodo destinazione| |peso arco|
+    Reads a graph from stdin formatted as follows:
+    first line: |number of nodes| |number of arcs| n
+    each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
 
-    Le variabili puntate da |n_nodes| e |n_edges| sono modificate opportunamente.
+    The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
 
-    Retituisce un puntatore ad un array di |n_edges| strutture Edge.
+    This function returns a pointer to an array of |n_edges| structures of type Edge.
 */
 Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
     /*
-        |tmp| è necessaria per leggere il terzo valore della prima riga, che però non serve
+        |tmp| is necessary to read the third value of the first line, which is useless
     */
     unsigned int tmp;
     scanf("%u %u %u", n_nodes, n_edges, &tmp);
-    //fprintf(stderr, "Nodes: %u\n", n_nodes);
-    //fprintf(stderr, "Edges: %u\n", n_edges);
 
     Edge *graph = (Edge*) malloc(*n_edges * sizeof(Edge));
     assert(graph);
@@ -79,7 +75,7 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
         graph[i].weight = (unsigned int)tmp;
 
         if(graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
-            fprintf(stderr, "ERRORE alla riga %u:\nIndice del nodo non valido.\n\n", i+1);
+            fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i+1);
             exit(EXIT_FAILURE);
         }
     }
@@ -88,15 +84,15 @@ Edge* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
 }
 
 /*
-    Stampa la soluzione di Bellman-Ford su stdin.
+    Dumps the solution on stdout.
 
-    L'output è formattato come segue:
+    Output is formatted as follows:
 
-    numero_di_nodi
-    nodo_sorgente
-    nodo_0 distanza_al_nodo_0
-    nodo_1 distanza_al_nodo_1
-    nodo_2 distanza_al_nodo_2
+    number_of_nodes
+    source_node
+    node_0 distance_to_node_0
+    node_1 distance_to_node_1
+    node_2 distance_to_node_2
     ...
 */
 void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dist) {
@@ -108,8 +104,8 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
 }
 
 /*
-    CUDA kernel of Bellman-Ford algorithm.
-    Each thread executes a relax on a single edge for V-1 times.
+    CUDA kernel of Bellman-Ford's algorithm.
+    Each thread executes a relax on a single edge in each kernel call.
 */
 __global__ void cuda_bellman_ford (unsigned int n_nodes,
                                    unsigned int n_edges,
@@ -119,50 +115,31 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(idx < n_edges) {
-        #if KERNEL_SINGLE_STEP == 0
-        for(unsigned int i=0; i<n_nodes-1; i++) {
-            // relax the edge (u,v)
-            const unsigned int u = graph[idx].start_node;
-            const unsigned int v = graph[idx].end_node;
-            // controllo overflow-safe
-            if(distances[v] > distances[u] && distances[v]-distances[u] > graph[idx].weight) {
-                while(!atomicCAS(&mutex[ v ], 0, 1)) ;
-
-                //mutex[ graph[idx].end_node ] = 1;
-                if(distances[v] > distances[u] && distances[v]-distances[u] > graph[idx].weight) {
-                    distances[v] = distances[u] + graph[idx].weight;
-                }
-                mutex[v] = 0;
-            }
-        }
-        #elif KERNEL_SINGLE_STEP == 1
         // relax the edge (u,v)
         const unsigned int u = graph[idx].start_node;
         const unsigned int v = graph[idx].end_node;
-        // controllo overflow-safe
+        // overflow-safe check
         if(distances[v] > distances[u] && distances[v]-distances[u] > graph[idx].weight) {
             while(!atomicCAS(&mutex[ v ], 0, 1)) ;
 
-            //mutex[ graph[idx].end_node ] = 1;
             if(distances[v] > distances[u] && distances[v]-distances[u] > graph[idx].weight) {
                 distances[v] = distances[u] + graph[idx].weight;
             }
             mutex[v] = 0;
         }
-        #endif
     }
 }
 
 /*
-    Esegue l'algoritmo di Bellman-Ford sul grafo passato in input.
-    Restituisce un puntatore ad un vettore con |n_nodes| elementi:
-    ciascuno elemento di indice i contiene la distanza del cammino minimo
-    dal nodo |source| al nodo i.
+    Executes the Bellman-Ford's algorithm on the graph |h_graph|.
+    Returns a pointer to an array with |n_nodes| elements:
+    each element of index |i| contains the shortest path distance from node
+    |source| to node |i|.
 */
 unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n_edges, unsigned int source ) {
     if(h_graph == NULL) return NULL;
     if(source >= n_nodes) {
-        fprintf(stderr, "ERRORE: il nodo sorgente %u non esiste\n\n", source);
+        fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
         exit(EXIT_FAILURE);
     }
 
@@ -185,7 +162,7 @@ unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n
     assert(h_distances);
 
     for(unsigned int i=0; i<n_nodes; i++) {
-        h_distances[i] = 0xffffffff;
+        h_distances[i] = UINT_MAX;
     }
     h_distances[source] = 0;
 
@@ -197,22 +174,14 @@ unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n
     cudaSafeCall( cudaMalloc((void**)&d_graph, sz_graph) );
     cudaSafeCall( cudaMemcpy(d_graph, h_graph, sz_graph, cudaMemcpyHostToDevice) );
 
-    // preparo le mutex
+    // malloc and copy of the mutex array
     cudaSafeCall( cudaMalloc((void**)&d_mutex, sz_mutex) );
     cudaSafeCall( cudaMemcpy(d_mutex, h_mutex, sz_mutex, cudaMemcpyHostToDevice) );
 
-    #if KERNEL_SINGLE_STEP == 0
-    // kernel invocation
-    cuda_bellman_ford<<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances, d_mutex);
-    cudaCheckError();
-
-    #elif KERNEL_SINGLE_STEP == 1
-
     for(unsigned int i=0; i<n_nodes-1; i++) {
-        cuda_bellman_ford<<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>>(n_nodes, n_edges, d_graph, d_distances, d_mutex);
+        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>> (n_nodes, n_edges, d_graph, d_distances, d_mutex);
         cudaCheckError();
     }
-    #endif
 
     // copy-back of the result
     cudaSafeCall( cudaMemcpy(h_distances, d_distances, sz_distances, cudaMemcpyDeviceToHost) );
@@ -221,6 +190,8 @@ unsigned int* bellman_ford ( Edge* h_graph, unsigned int n_nodes, unsigned int n
     cudaFree(d_graph);
     cudaFree(d_distances);
     cudaFree(d_mutex);
+
+    free(h_mutex);
 
     return h_distances;
 }
@@ -231,19 +202,34 @@ int main ( void ) {
     unsigned int nodes, edges;
     unsigned int *result;
 
+    clock_t program_start, program_end, compute_start, compute_end;
+
+    program_start = clock();
+
     fprintf(stderr, "Reading input graph...");
     graph = read_graph(&nodes, &edges);
     fprintf(stderr, "done\n");
 
-    #if KERNEL_SINGLE_STEP == 0
-    fprintf(stderr, "Computing Bellman-Ford (no single step)...");
-    #elif KERNEL_SINGLE_STEP == 1
-    fprintf(stderr, "Computing Bellman-Ford (single step)...");
-    #endif
-    result = bellman_ford(graph, nodes, edges, 0);
-    fprintf(stderr, "done\n");
+    fprintf(stderr, "\nGraph data:\n");
+    fprintf(stderr, " %7u nodes\n", nodes);
+    fprintf(stderr, " %7u arcs\n", edges);
 
-    fprintf(stderr, "\n");
+    float ram_usage = (float)(sizeof(Edge)*edges);
+    if(ram_usage < 1024.0f) {
+        fprintf(stderr, " %.3f bytes of RAM used\n\n", ram_usage);
+    }
+    else if(ram_usage < 1024.0f*1024.0f) {
+        fprintf(stderr, " %.3f KBytes of RAM used\n\n", ram_usage/1024.0f);
+    }
+    else {
+        fprintf(stderr, " %.3f MBytes of RAM used\n\n", ram_usage/(1024.0f*1024.0f));
+    }
+
+    fprintf(stderr, "Computing Bellman-Ford...");
+    compute_start = clock();
+    result = bellman_ford(graph, nodes, edges, 0);
+    compute_end = clock();
+    fprintf(stderr, "done\n\n");
 
     fprintf(stderr, "Dumping solution...");
     dump_solution(nodes, 0, result);
@@ -251,6 +237,11 @@ int main ( void ) {
 
     free(graph);
     free(result);
+
+    program_end = clock();
+
+    fprintf(stderr, "\nTotal execution time: %.3f seconds\n", (float)(program_end-program_start) / (float)CLOCKS_PER_SEC);
+    fprintf(stderr, "Actual execution time: %.3f seconds\n", (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC);
 
     return EXIT_SUCCESS;
 }
