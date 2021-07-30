@@ -21,13 +21,13 @@
     Version BF0-mutex-SoA:
     - the input graph is stored as an array of weighted arcs (Structure of Arrays),
     - the parallelization is done on the "inner cycle",
-    - an array of unsigned ints is used as a mutex
+    - an atomic operation is used for the update of distances
 
     To compile:
-    nvcc -arch=<cuda_capability> bf0-mutex.cu -o bf0-mutex
+    nvcc -arch=<cuda_capability> bf0-mutex-aos.cu -o bf0-mutex-aos
 
     To run:
-    ./bf0-mutex < test/graph.txt > solution.txt
+    ./bf0-mutex-aos < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"
@@ -40,14 +40,14 @@
 #define BLKDIM 1024
 
 typedef struct {
-    // The indexes of the source nodes of each edge
-    unsigned int* start_nodes;
+    // The index of the source node of the edge
+    unsigned int *start_nodes;
 
-    // The indexes of the destination nodes of each edge
-    unsigned int* end_nodes;
+    // The index of the destination node of the edge
+    unsigned int *end_nodes;
 
-    // The weights assigned to each edge
-    unsigned int* weights;
+    // The weight assigned to the edge
+    float *weights;
 } Graph;
 
 /*
@@ -73,13 +73,11 @@ Graph* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
     assert(graph->start_nodes);
     graph->end_nodes = (unsigned int*) malloc((*n_edges) * sizeof(unsigned int));
     assert(graph->end_nodes);
-    graph->weights = (unsigned int*) malloc((*n_edges) * sizeof(unsigned int));
+    graph->weights = (float*) malloc((*n_edges) * sizeof(float));
     assert(graph->weights);
 
     for(unsigned int i=0; i<*n_edges; i++) {
-        float tmp;
-        scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &tmp);
-        graph->weights[i] = (unsigned int)tmp;
+        scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &graph->weights[i]);
 
         if(graph->start_nodes[i] >= *n_nodes || graph->end_nodes[i] >= *n_nodes) {
             fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i+1);
@@ -102,11 +100,17 @@ Graph* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
     node_2 distance_to_node_2
     ...
 */
-void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dist) {
+void dump_solution (unsigned int n_nodes, unsigned int source, float *dist) {
     printf("%u\n%u\n", n_nodes, source);
 
     for(unsigned int i=0; i<n_nodes; i++) {
-        printf("%u %u\n", i, dist[i]);
+        printf("%u", i);
+        if(isinf(dist[i])) {
+            printf(" %u\n", UINT_MAX);
+        }
+        else {
+            printf(" %u\n", (unsigned int)dist[i]);
+        }
     }
 }
 
@@ -114,27 +118,31 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
     CUDA kernel of Bellman-Ford's algorithm.
     Each thread executes a relax on a single edge in each kernel call.
 */
-__global__ void cuda_bellman_ford (unsigned int n_nodes,
-                                   unsigned int n_edges,
+__global__ void cuda_bellman_ford (unsigned int n_edges,
                                    unsigned int* start_nodes,
                                    unsigned int* end_nodes,
-                                   unsigned int* weights,
-                                   unsigned int* distances,
-                                   unsigned int* mutex) {
+                                   float* weights,
+                                   float *distances) {
+    union {
+        float vf;
+        int vi;
+    } oldval, newval;
+
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(idx < n_edges) {
         // relax the edge (u,v)
         const unsigned int u = start_nodes[idx];
         const unsigned int v = end_nodes[idx];
+
         // overflow-safe check
         if(distances[v] > distances[u] && distances[v]-distances[u] > weights[idx]) {
-            while(!atomicCAS(&mutex[ v ], 0, 1)) ;
 
-            if(distances[v] > distances[u] && distances[v]-distances[u] > weights[idx]) {
-                distances[v] = distances[u] + weights[idx];
-            }
-            mutex[v] = 0;
+            do {
+                oldval.vf = distances[v];
+                newval.vf = distances[u] + weights[idx];
+                newval.vf = fminf(oldval.vf, newval.vf);
+            } while( atomicCAS((int*)&distances[v], oldval.vi, newval.vi) != newval.vi );
         }
     }
 }
@@ -145,37 +153,28 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
     each element of index |i| contains the shortest path distance from node
     |source| to node |i|.
 */
-unsigned int* bellman_ford ( Graph* h_graph, unsigned int n_nodes, unsigned int n_edges, unsigned int source ) {
+float* bellman_ford ( Graph* h_graph, unsigned int n_nodes, unsigned int n_edges, unsigned int source ) {
     if(h_graph == NULL) return NULL;
     if(source >= n_nodes) {
-        fprintf(stderr, "ERRORE: il nodo sorgente %u non esiste\n\n", source);
+        fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
         exit(EXIT_FAILURE);
     }
 
-    size_t sz_distances = n_nodes * sizeof(unsigned int);
+    size_t sz_distances = n_nodes * sizeof(float);
     size_t sz = n_edges * sizeof(unsigned int);
-    size_t sz_mutex = n_nodes * sizeof(unsigned int);
-
-    unsigned int *h_mutex = (unsigned int*) malloc(sz_mutex);
-    assert(h_mutex);
-    unsigned int *d_mutex;
-
-    for(unsigned int i=0; i<n_nodes; i++) {
-        h_mutex[i] = 0;
-    }
 
     unsigned int* d_start_nodes;
     unsigned int* d_end_nodes;
-    unsigned int* d_weights;
+    float* d_weights;
 
-    unsigned int *d_distances;
-    unsigned int *h_distances = (unsigned int*) malloc(sz_distances);
+    float *d_distances;
+    float *h_distances = (float*) malloc(sz_distances);
     assert(h_distances);
 
     for(unsigned int i=0; i<n_nodes; i++) {
-        h_distances[i] = UINT_MAX;
+        h_distances[i] = HUGE_VAL;
     }
-    h_distances[source] = 0;
+    h_distances[source] = 0.0f;
 
     // malloc and copy of the distances array
     cudaSafeCall( cudaMalloc((void**)&d_distances, sz_distances) );
@@ -189,12 +188,8 @@ unsigned int* bellman_ford ( Graph* h_graph, unsigned int n_nodes, unsigned int 
     cudaSafeCall( cudaMalloc((void**)&d_weights, sz) );
     cudaSafeCall( cudaMemcpy(d_weights, h_graph->weights, sz, cudaMemcpyHostToDevice) );
 
-    // malloc and copy of the mutex array
-    cudaSafeCall( cudaMalloc((void**)&d_mutex, sz_mutex) );
-    cudaSafeCall( cudaMemcpy(d_mutex, h_mutex, sz_mutex, cudaMemcpyHostToDevice) );
-
     for(unsigned int i=0; i<n_nodes-1; i++) {
-        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>> (n_nodes, n_edges, d_start_nodes, d_end_nodes, d_weights, d_distances, d_mutex);
+        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>> (n_edges, d_start_nodes, d_end_nodes, d_weights, d_distances);
         cudaCheckError();
     }
 
@@ -206,9 +201,6 @@ unsigned int* bellman_ford ( Graph* h_graph, unsigned int n_nodes, unsigned int 
     cudaFree(d_end_nodes);
     cudaFree(d_weights);
     cudaFree(d_distances);
-    cudaFree(d_mutex);
-
-    free(h_mutex);
 
     return h_distances;
 }
@@ -217,7 +209,7 @@ int main ( void ) {
 
     Graph *graph;
     unsigned int nodes, edges;
-    unsigned int *result;
+    float *result;
 
     clock_t program_start, program_end, compute_start, compute_end;
 
@@ -252,9 +244,6 @@ int main ( void ) {
     dump_solution(nodes, 0, result);
     fprintf(stderr, "done\n");
 
-    free(graph->start_nodes);
-    free(graph->end_nodes);
-    free(graph->weights);
     free(graph);
     free(result);
 
