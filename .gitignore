@@ -11,3 +11,5 @@ doc/*
 !doc/*.bib
 
 bin/
+
+*.out

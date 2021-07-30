@@ -135,9 +135,7 @@ __global__ void cuda_bellman_ford (unsigned int n_edges,
         const unsigned int u = start_nodes[idx];
         const unsigned int v = end_nodes[idx];
 
-        // overflow-safe check
-        if(distances[v] > distances[u] && distances[v]-distances[u] > weights[idx]) {
-
+        if(distances[u] + weights[idx] < distances[v]) {
             do {
                 oldval.vf = distances[v];
                 newval.vf = distances[u] + weights[idx];

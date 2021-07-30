@@ -4,7 +4,7 @@ if not exist bin mkdir bin
 del /Q bin\*
 
 if [%1] == [] (
-    echo Please type the name of the file to be compiled (without extension)
+    echo Please type the name of the file, without extension, to be compiled
     echo or type "all" to compile all .cu files.
     exit /b 1
 )
