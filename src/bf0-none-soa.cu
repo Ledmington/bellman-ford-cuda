@@ -114,8 +114,7 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
     CUDA kernel of Bellman-Ford's algorithm.
     Each thread executes a relax on a single edge in each kernel call.
 */
-__global__ void cuda_bellman_ford (unsigned int n_nodes,
-                                   unsigned int n_edges,
+__global__ void cuda_bellman_ford (unsigned int n_edges,
                                    unsigned int* start_nodes,
                                    unsigned int* end_nodes,
                                    unsigned int* weights,
@@ -175,7 +174,7 @@ unsigned int* bellman_ford ( Graph* h_graph, unsigned int n_nodes, unsigned int 
     cudaSafeCall( cudaMemcpy(d_weights, h_graph->weights, sz, cudaMemcpyHostToDevice) );
 
     for(unsigned int i=0; i<n_nodes-1; i++) {
-        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>> (n_nodes, n_edges, d_start_nodes, d_end_nodes, d_weights, d_distances);
+        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>> (n_edges, d_start_nodes, d_end_nodes, d_weights, d_distances);
         cudaCheckError();
     }
 
