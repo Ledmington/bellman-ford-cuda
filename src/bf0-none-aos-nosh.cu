@@ -18,10 +18,11 @@
 /*
     CUDA implementation of the Bellman-Ford's algorithm.
 
-    Version BF0-none-AoS:
+    Version BF0-none-AoS-noSh:
     - the input graph is stored as an array of weighted arcs (Array of Structures),
     - the parallelization is done on the "inner cycle",
     - no mutexes
+    - no shared memory
 
     To compile:
     nvcc -arch=<cuda_capability> bf0-none.cu -o bf0-none
