@@ -18,10 +18,11 @@
 /*
     CUDA implementation of the Bellman-Ford's algorithm.
 
-    Version BF0-none-SoA:
+    Version BF0-none-SoA-Sh:
     - the input graph is stored as an array of weighted arcs (Structure of Arrays),
     - the parallelization is done on the "inner cycle",
     - no mutexes
+    - a shared memory buffer is used
 
     To compile:
     nvcc -arch=<cuda_capability> bf0-none.cu -o bf0-none
@@ -119,15 +120,25 @@ __global__ void cuda_bellman_ford (unsigned int n_edges,
                                    unsigned int* end_nodes,
                                    unsigned int* weights,
                                    unsigned int* distances) {
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    __shared__ unsigned int buffer[3 * BLKDIM];
+    unsigned int g_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int l_idx = 3 * threadIdx.x;
 
-    if(idx < n_edges) {
+    // Filling the shared memory buffer
+    if(g_idx < n_edges) {
+        buffer[l_idx]   = start_nodes[g_idx];
+        buffer[l_idx+1] = end_nodes[g_idx];
+        buffer[l_idx+2] = weights[g_idx];
+    }
+    __syncthreads();
+
+    if(g_idx < n_edges) {
         // relax the edge (u,v)
-        const unsigned int u = start_nodes[idx];
-        const unsigned int v = end_nodes[idx];
+        const unsigned int u = buffer[l_idx];
+        const unsigned int v = buffer[l_idx+1];
         // overflow-safe check
-        if(distances[v] > distances[u] && distances[v]-distances[u] > weights[idx]) {
-            distances[v] = distances[u] + weights[idx];
+        if(distances[v] > distances[u] && distances[v]-distances[u] > buffer[l_idx+2]) {
+            distances[v] = distances[u] + buffer[l_idx+2];
         }
     }
 }
