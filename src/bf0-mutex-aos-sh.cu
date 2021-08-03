@@ -18,10 +18,11 @@
 /*
     CUDA implementation of the Bellman-Ford's algorithm.
 
-    Version BF0-mutex-AoS:
+    Version BF0-mutex-AoS-Sh:
     - the input graph is stored as an array of weighted arcs (Array of Structures),
     - the parallelization is done on the "inner cycle",
     - an atomic operation is used for the update of distances
+    - a shared memory buffer is used
 
     To compile:
     nvcc -arch=<cuda_capability> bf0-mutex-aos.cu -o bf0-mutex-aos
@@ -119,17 +120,25 @@ __global__ void cuda_bellman_ford (unsigned int n_edges,
         int vi;
     } oldval, newval;
 
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    __shared__ Edge buffer[BLKDIM];
+    unsigned int g_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int l_idx = threadIdx.x;
 
-    if(idx < n_edges) {
+    // Filling the shared memory buffer
+    if(g_idx < n_edges) {
+        buffer[l_idx] = graph[g_idx];
+    }
+    __syncthreads();
+
+    if(g_idx < n_edges) {
         // relax the edge (u,v)
-        const unsigned int u = graph[idx].start_node;
-        const unsigned int v = graph[idx].end_node;
+        const unsigned int u = buffer[l_idx].start_node;
+        const unsigned int v = buffer[l_idx].end_node;
 
-        if(distances[u] + graph[idx].weight < distances[v]) {
+        if(distances[u] + buffer[l_idx].weight < distances[v]) {
             do {
                 oldval.vf = distances[v];
-                newval.vf = distances[u] + graph[idx].weight;
+                newval.vf = distances[u] + buffer[l_idx].weight;
                 newval.vf = fminf(oldval.vf, newval.vf);
             } while( atomicCAS((int*)&distances[v], oldval.vi, newval.vi) != newval.vi );
         }
