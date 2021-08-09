@@ -68,9 +68,19 @@ int main ( int argc, char** argv ) {
     double min_weight = 1.0f;
     double max_weight = 1.0f;
 
+    if(p < 0.0f || p > 1.0f) {
+        fprintf(stderr, "ERROR: invalid value of p\n");
+        exit(EXIT_FAILURE);
+    }
+
     if(argc == 5) {
         min_weight = strtod(argv[3], NULL);
         max_weight = strtod(argv[4], NULL);
+    }
+
+    if(min_weight < 0 || max_weight < 0 || min_weight > max_weight) {
+        fprintf(stderr, "ERROR: invalid values of min_weight and max_weight\n");
+        exit(EXIT_FAILURE);
     }
 
     fprintf(stderr, "N: %u\np: %f\n", N, p);
