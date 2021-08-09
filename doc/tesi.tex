@@ -126,6 +126,8 @@ sorting=ynt
 	\label{section:impl}
 	Serve fare un capitolo a parte per dei dettagli?
 	
+	O in questo capitolo o prima bisogna dire che, siccome per i nostri scopi non serve che l'algoritmo produca come risultato anche tutti i percorsi (nella forma di un vettore di predecessori) Bellman-Ford non è stato implementato in questo modo.
+	
 	Qui parlo del problema dell'overflow e della funzione atomicMin. Magari anche di come ho implementato le mutex nella versione \texttt{bf0-mutex}.
 	
 	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo.
@@ -133,6 +135,26 @@ sorting=ynt
 	\section{Valutazione delle prestazioni}
 	\label{section:perf}
 	I test di correttezza di ogni versione vanno effettuati su ogni test disponibile. Ovviamente, solo le versioni che producono un risultato corretto in tutti i casi vengono tenute in considerazione nei capitoli successivi. I test per la valutazione delle prestazioni, invece, possono essere eseguiti solo sul test più voluminoso per ridurre i tempi di valutazione.
+	
+	\subsection{Schede su cui effettuiamo l'analisi}
+	Non serve veramente un capitoletto a sè.
+	\renewcommand{\arraystretch}{1.2}
+	\begin{table}[!ht]
+		\begin{tabular}{|l|c|c|c|}
+			\hline
+			\multicolumn{1}{|c|}{\textbf{}} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			\textbf{CUDA Driver Version} & 11.4 & 10.1 & 11.4 \\ \hline
+			\textbf{CUDA Runtime Version} & 11.1 & 8.0 & 11.1 \\ \hline
+			\textbf{CUDA capability} & 5.0 & 6.1 & 7.5 \\ \hline
+			\textbf{Memoria globale (GB)} & 2 & 8 & 8 \\ \hline
+			\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
+			\textbf{Frequenza Memoria (MHz)} & 2505 & 4004 & 7000 \\ \hline
+			\textbf{Memory Bus (bit)} & 64 & 256 & 256 \\ \hline
+			\textbf{Streaming Multiprocessors} & 3 & 15 & 46 \\ \hline
+			\textbf{Total CUDA Cores} & 384 & 1920 & 2944 \\ \hline
+			\textbf{Frequenza Cores (MHz)} & 1189 & 1797 & 1860 \\ \hline
+		\end{tabular}
+	\end{table}
 	
 	\subsection{Throughput}
 	\subsection{Bandwidth}
