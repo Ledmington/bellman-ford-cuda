@@ -37,7 +37,7 @@ sorting=ynt
 	\newpage
 	
 	\section{Introduzione}
-	L'obiettivo di questa tesi consiste in...
+	L'obiettivo di questa tesi consiste nell'implementazione in linguaggio CUDA dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem.
 	
 	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano (?) un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perchè. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nella repo. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle misure più comuni che è possibile misurare su GPU (throughput, bandwidth...?) e si discuteranno.
 	
@@ -47,11 +47,21 @@ sorting=ynt
 	
 	\section{GPU e CUDA}
 	\label{section:cuda}
+	Serve un capitolo a parte o si può fare un sotto-capitolo dei cenni storici?
 	Qui si parla di cos'è CUDA e come funziona. Si parla anche della struttura della memoria di una GPU CUDA e di come funziona lo scheduling.
 	
 	\section{Metriche di valutazione}
 	\label{section:metriche}
 	Qui si parla delle metriche di valutazione adottate in questo progetto, si spiega che cosa misurano e cosa significano.
+	
+	\subsection{Speedup}
+	Perchè è molto importante e perchè non ha senso misurarlo sulle applicazioni CUDA? Noi lo misureremo lo stesso ma solo rispetto alla versione seriale su CPU.
+	
+	\subsection{Throughput}
+	\'E una metrica molto meglio rappresentativa delle prestazioni di un'applicazione CUDA perchè rappresenta il numero medio di "elementi" processati in un secondo o in un certo intervallo di tempo.
+	
+	\subsection{Intensità aritmetica}
+	\'E una metrica per confrontare due implementazioni diverse dello stesso algoritmo. Si calcola come il rapporto tra il numero di byte coinvolti in tutti i calcoli e il numero di byte necessario per la memoria. Il valore ottenuto rappresenta "quanto l'implementazione X di un algoritmo sia computation-based o memory-based". Noi la utilizzeremo per spiegare meglio i valori ottenuti dalle misurazioni di speedup e throughput delle varie versioni dell'algoritmo.
 	
 	\section{Analisi}
 	\label{section:analisi}
@@ -122,6 +132,31 @@ sorting=ynt
 	
 	Alla fine di questo capitolo si possono aggiungere alcuni dettagli implementativi da discutere come l'implementazione "step" (per la sincronizzazione) oppure quella "normale".
 	
+	\renewcommand{\arraystretch}{1.2}
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|c|}
+			\hline
+			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\texttt{bf0-none-aos-nosh-step}  & step & no & AoS & no \\ \hline
+			\texttt{bf0-none-aos-sh-step}    & step & no & AoS & si \\ \hline
+			\texttt{bf0-none-soa-nosh-step}  & step & no & SoA & no \\ \hline
+			\texttt{bf0-none-soa-sh-step}    & step & no & SoA & si \\ \hline
+			\texttt{bf0-mutex-aos-nosh-step} & step & si & AoS & no \\ \hline
+			\texttt{bf0-mutex-aos-sh-step}   & step & si & AoS & si \\ \hline
+			\texttt{bf0-mutex-soa-nosh-step} & step & si & SoA & no \\ \hline
+			\texttt{bf0-mutex-soa-sh-step}   & step & si & SoA & si \\ \hline
+			\texttt{bf0-none-aos-nosh-full}  & full & no & AoS & no \\ \hline
+			\texttt{bf0-none-aos-sh-full}    & full & no & AoS & si \\ \hline
+			\texttt{bf0-none-soa-nosh-full}  & full & no & SoA & no \\ \hline
+			\texttt{bf0-none-soa-sh-full}    & full & no & SoA & si \\ \hline
+			\texttt{bf0-mutex-aos-nosh-full} & full & si & AoS & no \\ \hline
+			\texttt{bf0-mutex-aos-sh-full}   & full & si & AoS & si \\ \hline
+			\texttt{bf0-mutex-soa-nosh-full} & full & si & SoA & no \\ \hline
+			\texttt{bf0-mutex-soa-sh-full}   & full & si & SoA & si \\ \hline
+		\end{tabular}
+	\end{table}
+	
 	\section{Dettagli implementativi}
 	\label{section:impl}
 	Serve fare un capitolo a parte per dei dettagli?
@@ -136,16 +171,37 @@ sorting=ynt
 	\label{section:perf}
 	I test di correttezza di ogni versione vanno effettuati su ogni test disponibile. Ovviamente, solo le versioni che producono un risultato corretto in tutti i casi vengono tenute in considerazione nei capitoli successivi. I test per la valutazione delle prestazioni, invece, possono essere eseguiti solo sul test più voluminoso per ridurre i tempi di valutazione.
 	
-	\subsection{Schede su cui effettuiamo l'analisi}
+	\subsection{Dati della macchina su cui misuriamo l'algoritmo seriale}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|}
+			\hline
+			\textbf{Nome CPU} & Intel Core i5-7200U \\ \hline
+			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz \\ \hline
+			\textbf{Core fisici} & 2 \\ \hline
+			\textbf{Hyper-Threading} & si \\ \hline
+			\textbf{L1 cache} & 128 KB \\ \hline
+			\textbf{L2 cache} & 512 KB \\ \hline
+			\textbf{L3 cache} & 3 MB \\ \hline
+			\textbf{RAM totale} & 8 GB \\ \hline
+			\textbf{Frequenza RAM} & 2133 MHz \\ \hline
+			\textbf{Tipologia RAM} & DDR4 \\ \hline
+		\end{tabular}
+	\end{table}
+	
+	\subsection{Schede su cui effettuiamo le misurazioni}
 	Non serve veramente un capitoletto a sè.
 	\renewcommand{\arraystretch}{1.2}
 	\begin{table}[!ht]
+		\centering
 		\begin{tabular}{|l|c|c|c|}
 			\hline
-			\multicolumn{1}{|c|}{\textbf{}} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			  & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
 			\textbf{CUDA Driver Version} & 11.4 & 10.1 & 11.4 \\ \hline
 			\textbf{CUDA Runtime Version} & 11.1 & 8.0 & 11.1 \\ \hline
 			\textbf{CUDA capability} & 5.0 & 6.1 & 7.5 \\ \hline
+			\textbf{Architettura} & Maxwell & Pascal & Turing \\ \hline
 			\textbf{Memoria globale (GB)} & 2 & 8 & 8 \\ \hline
 			\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
 			\textbf{Frequenza Memoria (MHz)} & 2505 & 4004 & 7000 \\ \hline
@@ -156,8 +212,62 @@ sorting=ynt
 		\end{tabular}
 	\end{table}
 	
+	\subsection{Speedup}
+	Di seguito riportiamo i valori di speedup di ogni versione, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}, misurati su ogni scheda.
+	\renewcommand{\arraystretch}{1.2}
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|c|}
+			\hline
+			\textbf{Nome versione} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			\texttt{bf0-none-aos-nosh-step}  &  &  &  \\ \hline
+			\texttt{bf0-none-aos-sh-step}    &  &  &  \\ \hline
+			\texttt{bf0-none-soa-nosh-step}  &  &  &  \\ \hline
+			\texttt{bf0-none-soa-sh-step}    &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-nosh-step} &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-sh-step}   &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-nosh-step} &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-sh-step}   &  &  &  \\ \hline
+			\texttt{bf0-none-aos-nosh-full}  & N/A &  &  \\ \hline
+			\texttt{bf0-none-aos-sh-full}    & N/A &  &  \\ \hline
+			\texttt{bf0-none-soa-nosh-full}  & N/A &  &  \\ \hline
+			\texttt{bf0-none-soa-sh-full}    & N/A &  &  \\ \hline
+			\texttt{bf0-mutex-aos-nosh-full} & N/A &  &  \\ \hline
+			\texttt{bf0-mutex-aos-sh-full}   & N/A &  &  \\ \hline
+			\texttt{bf0-mutex-soa-nosh-full} & N/A &  &  \\ \hline
+			\texttt{bf0-mutex-soa-sh-full}   & N/A &  &  \\ \hline
+		\end{tabular}
+	\end{table}
+	
 	\subsection{Throughput}
-	\subsection{Bandwidth}
+	Di seguito riportiamo i valori di throughput di ogni versione, indicati come numero di rilassamenti al secondo, misurati su ogni scheda.
+	\renewcommand{\arraystretch}{1.2}
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|c|}
+			\hline
+			\textbf{Nome versione} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			\texttt{bf0-none-aos-nosh-step}  &  &  &  \\ \hline
+			\texttt{bf0-none-aos-sh-step}    &  &  &  \\ \hline
+			\texttt{bf0-none-soa-nosh-step}  &  &  &  \\ \hline
+			\texttt{bf0-none-soa-sh-step}    &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-nosh-step} &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-sh-step}   &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-nosh-step} &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-sh-step}   &  &  &  \\ \hline
+			\texttt{bf0-none-aos-nosh-full}  & N/A &  &  \\ \hline
+			\texttt{bf0-none-aos-sh-full}    & N/A &  &  \\ \hline
+			\texttt{bf0-none-soa-nosh-full}  & N/A &  &  \\ \hline
+			\texttt{bf0-none-soa-sh-full}    & N/A &  &  \\ \hline
+			\texttt{bf0-mutex-aos-nosh-full} & N/A &  &  \\ \hline
+			\texttt{bf0-mutex-aos-sh-full}   & N/A &  &  \\ \hline
+			\texttt{bf0-mutex-soa-nosh-full} & N/A &  &  \\ \hline
+			\texttt{bf0-mutex-soa-sh-full}   & N/A &  &  \\ \hline
+		\end{tabular}
+	\end{table}
+	
+	
+	
 	Fonte dei test:
 	\begin{itemize}
 		\item \url{https://www.moreno.marzolla.name/teaching/LabASD/handouts/bellman-ford.html}
@@ -166,6 +276,7 @@ sorting=ynt
 	
 	\section{Conclusioni}
 	\label{section:end}
+	Qui dovrei effettuare un'analisi di tutti i risultati ottenuti e scegliere infine la versione migliore da etichettare come "Bellman-Ford in CUDA".
 	
 	\printbibliography
 	
