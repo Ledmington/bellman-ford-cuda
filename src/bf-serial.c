@@ -178,8 +178,15 @@ int main ( void ) {
 
     program_end = clock();
 
-    fprintf(stderr, "\nTotal execution time: %.3f seconds\n", (float)(program_end-program_start) / (float)CLOCKS_PER_SEC);
-    fprintf(stderr, "Actual execution time: %.3f seconds\n", (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC);
+    float total_seconds = (float)(program_end-program_start) / (float)CLOCKS_PER_SEC;
+    float compute_seconds = (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC;
+
+    fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
+    fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);
+    
+    unsigned long long total_work = (unsigned long long) nodes * (unsigned long long) edges;
+    double throughput = (double)total_work / (double)compute_seconds;
+    fprintf(stderr, "\nThroughput: %.3e relax/second\n", throughput);
 
     return EXIT_SUCCESS;
 }
