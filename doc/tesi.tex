@@ -15,6 +15,8 @@ sorting=ynt
 
 \addbibresource{tesi.bib}
 
+\renewcommand{\arraystretch}{1.2}
+
 \title{Implementazione CUDA dell'algoritmo di Bellman-Ford}
 \author{Filippo Barbari}
 \date{\today}
@@ -119,8 +121,6 @@ sorting=ynt
 		\begin{itemize}
 			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto. La versione "single-step" produce il risultato corretto sul grafo di Roma, quella non "single-step" produce un risultato di poco diverso (in tutto qualche centinaio di nodi hanno un valore errato).
 			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo. Sul grafo di Roma, la versione "single-step" produce il risultato corretto, quella non "single-step" produce un risultato molto diverso.
-			\item \texttt{bf0-min}: usare l'istruzione CUDA \texttt{atomicMin}.
-			\item \texttt{bf0-minred}: utilizza una min-reduction per evitare aggiornamenti concorrenti. (come alternativa a \texttt{bf0-min})
 		\end{itemize}
 	
 		\item \texttt{bf1}: memorizzare il grafo come lista di adiacenza (in realtà non serve) e parallelizzare il ciclo interno. Per ogni nodo $u$ si creano tanti thread quanti sono i nodi $v$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco uscente $(u,v)$ aggiornando \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
@@ -132,7 +132,6 @@ sorting=ynt
 	
 	Alla fine di questo capitolo si possono aggiungere alcuni dettagli implementativi da discutere come l'implementazione "step" (per la sincronizzazione) oppure quella "normale".
 	
-	\renewcommand{\arraystretch}{1.2}
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|l|c|c|c|c|}
@@ -161,6 +160,8 @@ sorting=ynt
 	\label{section:impl}
 	Serve fare un capitolo a parte per dei dettagli?
 	
+	Bisogna specificare che nei programmi della repo il nodo sorgente in ogni esecuzione dell'algoritmo è sempre il primo (quello di indice 0).
+	
 	O in questo capitolo o prima bisogna dire che, siccome per i nostri scopi non serve che l'algoritmo produca come risultato anche tutti i percorsi (nella forma di un vettore di predecessori) Bellman-Ford non è stato implementato in questo modo.
 	
 	Qui parlo del problema dell'overflow e della funzione atomicMin. Magari anche di come ho implementato le mutex nella versione \texttt{bf0-mutex}.
@@ -172,7 +173,6 @@ sorting=ynt
 	I test di correttezza di ogni versione vanno effettuati su ogni test disponibile. Ovviamente, solo le versioni che producono un risultato corretto in tutti i casi vengono tenute in considerazione nei capitoli successivi. I test per la valutazione delle prestazioni, invece, possono essere eseguiti solo sul test più voluminoso per ridurre i tempi di valutazione.
 	
 	\subsection{Dati della macchina su cui misuriamo l'algoritmo seriale}
-	\renewcommand{\arraystretch}{1.2}
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|l|c|}
@@ -189,10 +189,23 @@ sorting=ynt
 			\textbf{Tipologia RAM} & DDR4 \\ \hline
 		\end{tabular}
 	\end{table}
+
+	\subsection{Performance dell'algoritmo seriale}
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|c|c|c|}
+			\hline
+			\textbf{Nome test} & \textbf{Speedup} & \textbf{Throughput} \\ \hline
+			rome &  &  \\ \hline
+			DE &  &  \\ \hline
+			VT &  &  \\ \hline
+			ME &  &  \\ \hline
+			NV &  &  \\ \hline
+		\end{tabular}
+	\end{table}
 	
 	\subsection{Schede su cui effettuiamo le misurazioni}
 	Non serve veramente un capitoletto a sè.
-	\renewcommand{\arraystretch}{1.2}
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|l|c|c|c|}
@@ -211,13 +224,55 @@ sorting=ynt
 			\textbf{Frequenza Cores (MHz)} & 1189 & 1797 & 1860 \\ \hline
 		\end{tabular}
 	\end{table}
+
+	\subsection{Descrizione dei test}
+	Qui parlo di come sono strutturati i file di test e cosa rappresentano.
+	
+	Tutti i valori riportati nelle tabelle sono ottenuti misurandoli sul test più voluminoso (NV). Le tabelle complete saranno inserite come file Excel a parte dentro la repo.
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|c|c|c|c|}
+			\hline
+			\textbf{Nome test} & \textbf{Numero nodi} & \textbf{Numero archi} & \textbf{Descrizione} \\ \hline
+			rome & 3353 & 8859 & Mappa metropolitana di Roma \\ \hline
+			DE & 49109 & 119744 & Mappa stradale del Delaware \\ \hline
+			VT & 97975 & 212979 & Mappa stradale del Vermont \\ \hline
+			ME & 194505 & 425708 & Mappa stradale del Maine \\ \hline
+			NV & 261155 & 618175 & Mappa stradale del Nevada \\ \hline
+		\end{tabular}
+	\end{table}
+
+	\subsection{Correttezza degli algoritmi}
+	Qui dobbiamo scartare le eventuali versioni che non producono un risultato corretto su tutti i test disponibili.
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|c|c|}
+			\hline
+			\textbf{Nome versione} & \textbf{rome} & \textbf{DE} & \textbf{VT} & \textbf{ME} & \textbf{NV} \\ \hline
+			\texttt{bf0-none-aos-nosh-step}  &  &  &  &  &  \\ \hline
+			\texttt{bf0-none-aos-sh-step}    &  &  &  &  &  \\ \hline
+			\texttt{bf0-none-soa-nosh-step}  &  &  &  &  &  \\ \hline
+			\texttt{bf0-none-soa-sh-step}    &  &  &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-nosh-step} &  &  &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-sh-step}   &  &  &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-nosh-step} &  &  &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-sh-step}   &  &  &  &  &  \\ \hline
+			\texttt{bf0-none-aos-nosh-full}  &  &  &  &  &  \\ \hline
+			\texttt{bf0-none-aos-sh-full}    &  &  &  &  &  \\ \hline
+			\texttt{bf0-none-soa-nosh-full}  &  &  &  &  &  \\ \hline
+			\texttt{bf0-none-soa-sh-full}    &  &  &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-nosh-full} &  &  &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-sh-full}   &  &  &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-nosh-full} &  &  &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-sh-full}   &  &  &  &  &  \\ \hline
+		\end{tabular}
+	\end{table}
 	
 	\subsection{Speedup}
 	Di seguito riportiamo i valori di speedup di ogni versione, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}, misurati su ogni scheda.
-	\renewcommand{\arraystretch}{1.2}
 	\begin{table}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|c|}
+		\begin{tabular}{|l|c|c|c|}
 			\hline
 			\textbf{Nome versione} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
 			\texttt{bf0-none-aos-nosh-step}  &  &  &  \\ \hline
@@ -241,10 +296,9 @@ sorting=ynt
 	
 	\subsection{Throughput}
 	Di seguito riportiamo i valori di throughput di ogni versione, indicati come numero di rilassamenti al secondo, misurati su ogni scheda.
-	\renewcommand{\arraystretch}{1.2}
 	\begin{table}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|c|}
+		\begin{tabular}{|l|c|c|c|}
 			\hline
 			\textbf{Nome versione} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
 			\texttt{bf0-none-aos-nosh-step}  &  &  &  \\ \hline
