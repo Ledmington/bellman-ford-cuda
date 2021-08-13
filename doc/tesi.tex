@@ -47,10 +47,17 @@ sorting=ynt
 	\label{section:storia}
 	Qui si parla della storia del calcolo parallelo, perchè è necessario, perchè si sta sviluppando così tanto e perchè le GPU sono diventate cosi importanti.
 	
-	\section{GPU e CUDA}
-	\label{section:cuda}
-	Serve un capitolo a parte o si può fare un sotto-capitolo dei cenni storici?
+	\subsection{GPU e CUDA}
 	Qui si parla di cos'è CUDA e come funziona. Si parla anche della struttura della memoria di una GPU CUDA e di come funziona lo scheduling.
+	
+	\section{Teoria}
+	Qua si parla della teoria dei grafi.
+	\subsection{Notazione}
+	Serve?
+	\subsection{Grafi e grafi planari}
+	Che cos'è un grafo, da cosa è composto e che cos'è un grafo planare.
+	\subsection{Cammini minimi e problema SSSP}
+	Che cos'è un cammino minimo, la proprietà della disuguaglianza triangolare, la proprietà della sottostruttura minima e i problemi SSSP e APSP.
 	
 	\section{Metriche di valutazione}
 	\label{section:metriche}
@@ -67,8 +74,6 @@ sorting=ynt
 	
 	\section{Analisi}
 	\label{section:analisi}
-	\subsection{Notazione}
-	\subsection{Single-Source Shortest Path problem}
 	\subsection{Algoritmo di Bellman-Ford}
 	Proposto per primo da Alfonso Shimbel nel 1955, ma è chiamato Bellman-Ford perchè Richard Bellman l'ha pubblicato nel 1958 e Lester Ford Jr. l'ha pubblicato nel 1956. Edward F. Moore ha pubblicato una sua variante nel 1959 (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
 	
@@ -130,7 +135,7 @@ sorting=ynt
 
 	In ogni caso, per ognuna di queste versioni, bisognerebbe provare la versione shared memory e le versione AoS e SoA. Per ottimizzare gli accessi si potrebbe provare a sortare gli archi in base all'esigenza.
 	
-	Alla fine di questo capitolo si possono aggiungere alcuni dettagli implementativi da discutere come l'implementazione "step" (per la sincronizzazione) oppure quella "normale".
+	Alla fine di questo capitolo si possono aggiungere alcuni dettagli implementativi da discutere come l'implementazione "step" (per la sincronizzazione lato CPU) oppure quella "full" (una singola invocazione kernel da parte della CPU).
 	
 	\begin{table}[!ht]
 		\centering
@@ -154,6 +159,8 @@ sorting=ynt
 			\texttt{bf0-mutex-soa-nosh-full} & full & si & SoA & no \\ \hline
 			\texttt{bf0-mutex-soa-sh-full}   & full & si & SoA & si \\ \hline
 		\end{tabular}
+		\label{tab:riassunto_bf0}
+		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf0}}
 	\end{table}
 	
 	\section{Dettagli implementativi}
@@ -188,6 +195,8 @@ sorting=ynt
 			\textbf{Frequenza RAM} & 2133 MHz \\ \hline
 			\textbf{Tipologia RAM} & DDR4 \\ \hline
 		\end{tabular}
+		\label{tab:specs_serial_cpu}
+		\caption{Specifiche hardware della macchina su cui effettuiamo le misurazioni per la versione seriale su CPU}
 	\end{table}
 
 	\subsection{Performance dell'algoritmo seriale}
@@ -195,13 +204,15 @@ sorting=ynt
 		\centering
 		\begin{tabular}{|c|c|c|}
 			\hline
-			\textbf{Nome test} & \textbf{Speedup} & \textbf{Throughput} \\ \hline
-			rome &  &  \\ \hline
-			DE &  &  \\ \hline
-			VT &  &  \\ \hline
-			ME &  &  \\ \hline
-			NV &  &  \\ \hline
+			\textbf{Nome test} & \textbf{Wall Clock Time} & \textbf{Throughput} \\ \hline
+			       rome        &                          &                     \\ \hline
+			        DE         &                          &                     \\ \hline
+			        VT         &                          &                     \\ \hline
+			        ME         &                          &                     \\ \hline
+			        NV         &                          &                     \\ \hline
 		\end{tabular}
+		\label{tab:performance_serial}
+		\caption{Prestazioni dell'algoritmo seriale su CPU}
 	\end{table}
 	
 	\subsection{Schede su cui effettuiamo le misurazioni}
@@ -223,6 +234,8 @@ sorting=ynt
 			\textbf{Total CUDA Cores} & 384 & 1920 & 2944 \\ \hline
 			\textbf{Frequenza Cores (MHz)} & 1189 & 1797 & 1860 \\ \hline
 		\end{tabular}
+		\label{tab:specs_gpus}
+		\caption{Specifiche hardware delle GPU su cui effettuiamo le misurazioni}
 	\end{table}
 
 	\subsection{Descrizione dei test}
@@ -240,6 +253,8 @@ sorting=ynt
 			ME & 194505 & 425708 & Mappa stradale del Maine \\ \hline
 			NV & 261155 & 618175 & Mappa stradale del Nevada \\ \hline
 		\end{tabular}
+		\label{tab:riassunto_test}
+		\caption{Tabella riassuntiva delle specifiche dei test utilizzati}
 	\end{table}
 
 	\subsection{Correttezza degli algoritmi}
@@ -266,6 +281,8 @@ sorting=ynt
 			\texttt{bf0-mutex-soa-nosh-full} &  &  &  &  &  \\ \hline
 			\texttt{bf0-mutex-soa-sh-full}   &  &  &  &  &  \\ \hline
 		\end{tabular}
+		\label{tab:correttezza}
+		\caption{Tabella di correttezza degli algoritmi}
 	\end{table}
 	
 	\subsection{Speedup}
@@ -292,6 +309,8 @@ sorting=ynt
 			\texttt{bf0-mutex-soa-nosh-full} & N/A &  &  \\ \hline
 			\texttt{bf0-mutex-soa-sh-full}   & N/A &  &  \\ \hline
 		\end{tabular}
+		\label{tab:speedup_bf0}
+		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf0}}
 	\end{table}
 	
 	\subsection{Throughput}
@@ -318,6 +337,8 @@ sorting=ynt
 			\texttt{bf0-mutex-soa-nosh-full} & N/A &  &  \\ \hline
 			\texttt{bf0-mutex-soa-sh-full}   & N/A &  &  \\ \hline
 		\end{tabular}
+		\label{tab:throughput_bf0}
+		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf0}}
 	\end{table}
 	
 	
