@@ -25,10 +25,10 @@
     - no shared memory
 
     To compile:
-    nvcc -arch=<cuda_capability> bf0-none.cu -o bf0-none
+    nvcc -arch=<cuda_capability> bf0-none-soa-nosh.cu -o bf0-none-soa-nosh
 
     To run:
-    ./bf0-none < test/graph.txt > solution.txt
+    ./bf0-none-soa-nosh < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"

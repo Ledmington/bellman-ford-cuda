@@ -25,10 +25,10 @@
     - a shared memory buffer is used
 
     To compile:
-    nvcc -arch=<cuda_capability> bf0-mutex-aos.cu -o bf0-mutex-aos
+    nvcc -arch=<cuda_capability> bf0-mutex-soa-sh.cu -o bf0-mutex-soa-sh
 
     To run:
-    ./bf0-mutex-aos < test/graph.txt > solution.txt
+    ./bf0-mutex-soa-sh < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"

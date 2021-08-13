@@ -25,10 +25,10 @@
     - a shared memory buffer is used
 
     To compile:
-    nvcc -arch=<cuda_capability> bf0-none.cu -o bf0-none
+    nvcc -arch=<cuda_capability> bf0-none-aos-sh.cu -o bf0-none-aos-sh
 
     To run:
-    ./bf0-none < test/graph.txt > solution.txt
+    ./bf0-none-aos-sh < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"

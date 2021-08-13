@@ -25,10 +25,10 @@
     - no shared memory
 
     To compile:
-    nvcc -arch=<cuda_capability> bf0-mutex-aos.cu -o bf0-mutex-aos
+    nvcc -arch=<cuda_capability> bf0-mutex-aos-nosh.cu -o bf0-mutex-aos-nosh
 
     To run:
-    ./bf0-mutex-aos < test/graph.txt > solution.txt
+    ./bf0-mutex-aos-nosh < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"
