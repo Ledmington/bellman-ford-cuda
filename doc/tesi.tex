@@ -225,6 +225,8 @@ sorting=ynt
 	
 	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo.
 	
+	Aggiungere dettagli sui limiti delle varie versioni dell'algoritmo: ad esempio, le versioni \texttt{bf0}, siccome creano un thread per ogni arco, funzionano bene solo se il grafo ha meno di $2^{31}\cdot 1024$ archi (max numero di blocchi per max numero di thread).
+	
 	\section{Valutazione delle prestazioni}
 	\label{section:perf}
 	I test di correttezza di ogni versione vanno effettuati su ogni test disponibile. Ovviamente, solo le versioni che producono un risultato corretto in tutti i casi vengono tenute in considerazione nei capitoli successivi. I test per la valutazione delle prestazioni, invece, possono essere eseguiti solo sul test più voluminoso per ridurre i tempi di valutazione.
