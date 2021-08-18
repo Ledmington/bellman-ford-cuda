@@ -18,16 +18,16 @@
 /*
     CUDA implementation of the Bellman-Ford's algorithm.
 
-    Version BF1:
+    Version BF1-NoSh:
     - the input graph is stored as an adjacency list,
     - the parallelization is done on the "inner cycle",
-    - each group of thread relaxes the outgoing edges of a single node
+    - no shared memory is used
 
     To compile:
-    nvcc -arch=<cuda_capability> bf1.cu -o bf1
+    nvcc -arch=<cuda_capability> bf1-nosh.cu -o bf1-nosh
 
     To run:
-    ./bf1 < test/graph.txt > solution.txt
+    ./bf1-nosh < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"
