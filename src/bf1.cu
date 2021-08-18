@@ -20,7 +20,8 @@
 
     Version BF1:
     - the input graph is stored as an adjacency list,
-    - the parallelization is done on the "inner cycle"
+    - the parallelization is done on the "inner cycle",
+    - each group of thread relaxes the outgoing edges of a single node
 
     To compile:
     nvcc -arch=<cuda_capability> bf1.cu -o bf1
@@ -119,24 +120,25 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
 
 /*
     CUDA kernel of Bellman-Ford's algorithm.
-    A single block of |BLKDIM| threads executes a relax on each outgoing arc
-    of the node |node|.
+    A single block of |BLKDIM| threads executes a relax on each outgoing edge
+    of each node.
 */
 __global__ void cuda_bellman_ford (unsigned int n_nodes,
-                                   unsigned int node,
                                    Node* graph,
                                    unsigned int *distances) {
-    if(node >= n_nodes) return;
     if(blockIdx.x != 0) return;
 
-    for(unsigned int idx = threadIdx.x; idx < graph[node].n_neighbors; idx += BLKDIM) {
-        // relax the edge (u,v)
-        const unsigned int u = node;
-        const unsigned int v = graph[node].neighbors[idx];
-        // overflow-safe check
-        if(distances[v] > distances[u] && distances[v]-distances[u] > graph[node].weights[idx]) {
-            distances[v] = distances[u] + graph[node].weights[idx];
+    for(unsigned int node = 0; node < n_nodes; node++) {
+        for(unsigned int idx = threadIdx.x; idx < graph[node].n_neighbors; idx += BLKDIM) {
+            // relax the edge (u,v)
+            const unsigned int u = node;
+            const unsigned int v = graph[node].neighbors[idx];
+            // overflow-safe check
+            if(distances[v] > distances[u] && distances[v]-distances[u] > graph[node].weights[idx]) {
+                distances[v] = distances[u] + graph[node].weights[idx];
+            }
         }
+        __syncthreads();
     }
 }
 
@@ -202,12 +204,12 @@ unsigned int* bellman_ford ( Node* h_graph, unsigned int n_nodes, unsigned int s
     }
     cudaCheckError();
 
+    fprintf(stderr, "\n");
+
     // Computation
     for(unsigned int i=0; i<n_nodes-1; i++) {
         if(i%1000 == 0) fprintf(stderr, "%u / %u iterations completed\n", i, n_nodes-1);
-        for(unsigned int node=0; node<n_nodes; node++) {
-            cuda_bellman_ford <<< 1, BLKDIM >>> (n_nodes, node, d_graph, d_distances);
-        }
+        cuda_bellman_ford <<< 1, BLKDIM >>> (n_nodes, d_graph, d_distances);
         cudaCheckError();
     }
 
