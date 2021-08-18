@@ -18,15 +18,16 @@
 /*
     CUDA implementation of the Bellman-Ford's algorithm.
 
-    Version BF2:
+    Version BF2-NoSh:
     - the input graph is stored as an adjacency list,
-    - the parallelization is done on the "inner cycle"
+    - the parallelization is done on the "inner cycle",
+    - no shared memory is used
 
     To compile:
-    nvcc -arch=<cuda_capability> bf2.cu -o bf2
+    nvcc -arch=<cuda_capability> bf2-nosh.cu -o bf2-nosh
 
     To run:
-    ./bf2 < test/graph.txt > solution.txt
+    ./bf2-nosh < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"
@@ -120,7 +121,7 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
 /*
     CUDA kernel of Bellman-Ford's algorithm.
     A single block of |BLKDIM| threads executes a relax on each incoming arc
-    of the node |node|.
+    of each node.
 */
 __global__ void cuda_bellman_ford (unsigned int n_nodes,
                                    Node* graph,

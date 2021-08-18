@@ -18,16 +18,16 @@
 /*
     CUDA implementation of the Bellman-Ford's algorithm.
 
-    Version BF1-Sh:
+    Version BF2-Sh:
     - the input graph is stored as an adjacency list,
-    - the parallelization is done on the "inner cycle",
+    - the parallelization is done on the "inner cycle"
     - a shared memory buffer is used
 
     To compile:
-    nvcc -arch=<cuda_capability> bf1-sh.cu -o bf1-sh
+    nvcc -arch=<cuda_capability> bf2-sh.cu -o bf2-sh
 
     To run:
-    ./bf1-sh < test/graph.txt > solution.txt
+    ./bf2-sh < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"
@@ -46,7 +46,7 @@ typedef struct _node {
     // Array of indices of neighbor nodes
     unsigned int *neighbors;
 
-    // Weights of outgoing arcs to neighbors
+    // Weights of incoming arcs to neighbors
     unsigned int *weights;
 } Node;
 
@@ -86,13 +86,13 @@ Node* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
             exit(EXIT_FAILURE);
         }
 
-        graph[start_node].neighbors = (unsigned int*) realloc(graph[start_node].neighbors, (graph[start_node].n_neighbors+1)*sizeof(unsigned int*));
-        assert(graph[start_node].neighbors);
-        graph[start_node].weights = (unsigned int*) realloc(graph[start_node].weights, (graph[start_node].n_neighbors+1)*sizeof(unsigned int*));
-        assert(graph[start_node].weights);
-        graph[start_node].neighbors[graph[start_node].n_neighbors] = end_node;
-        graph[start_node].weights[graph[start_node].n_neighbors] = weight;
-        graph[start_node].n_neighbors++;
+        graph[end_node].neighbors = (unsigned int*) realloc(graph[end_node].neighbors, (graph[end_node].n_neighbors+1)*sizeof(unsigned int*));
+        assert(graph[end_node].neighbors);
+        graph[end_node].weights = (unsigned int*) realloc(graph[end_node].weights, (graph[end_node].n_neighbors+1)*sizeof(unsigned int*));
+        assert(graph[end_node].weights);
+        graph[end_node].neighbors[graph[end_node].n_neighbors] = start_node;
+        graph[end_node].weights[graph[end_node].n_neighbors] = weight;
+        graph[end_node].n_neighbors++;
     }
 
     return graph;
@@ -120,7 +120,7 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
 
 /*
     CUDA kernel of Bellman-Ford's algorithm.
-    A single block of |BLKDIM| threads executes a relax on each outgoing edge
+    A single block of |BLKDIM| threads executes a relax on each incoming arc
     of each node.
 */
 __global__ void cuda_bellman_ford (unsigned int n_nodes,
@@ -137,8 +137,8 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
             sh_buffer[threadIdx.x+1] = graph[node].weights[idx];
 
             // relax the edge (u,v)
-            const unsigned int u = node;
-            const unsigned int v = sh_buffer[threadIdx.x];
+            const unsigned int u = sh_buffer[threadIdx.x];
+            const unsigned int v = node;
             // overflow-safe check
             if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[threadIdx.x+1]) {
                 distances[v] = distances[u] + sh_buffer[threadIdx.x+1];
