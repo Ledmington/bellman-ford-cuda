@@ -126,19 +126,16 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
 __global__ void cuda_bellman_ford (unsigned int n_nodes,
                                    Node* graph,
                                    unsigned int *distances) {
-    if(blockIdx.x != 0) return;
+    const unsigned int node = blockIdx.x;
 
-    for(unsigned int node = 0; node < n_nodes; node++) {
-        for(unsigned int idx = threadIdx.x; idx < graph[node].n_neighbors; idx += BLKDIM) {
-            // relax the edge (u,v)
-            const unsigned int u = graph[node].neighbors[idx];
-            const unsigned int v = node;
-            // overflow-safe check
-            if(distances[v] > distances[u] && distances[v]-distances[u] > graph[node].weights[idx]) {
-                distances[v] = distances[u] + graph[node].weights[idx];
-            }
+    for(unsigned int idx = threadIdx.x; idx < graph[node].n_neighbors; idx += BLKDIM) {
+        // relax the edge (u,v)
+        const unsigned int u = graph[node].neighbors[idx];
+        const unsigned int v = node;
+        // overflow-safe check
+        if(distances[v] > distances[u] && distances[v]-distances[u] > graph[node].weights[idx]) {
+            distances[v] = distances[u] + graph[node].weights[idx];
         }
-        __syncthreads();
     }
 }
 
@@ -209,7 +206,7 @@ unsigned int* bellman_ford ( Node* h_graph, unsigned int n_nodes, unsigned int s
     // Computation
     for(unsigned int i=0; i<n_nodes-1; i++) {
         if(i%1000 == 0) fprintf(stderr, "%u / %u iterations completed\n", i, n_nodes-1);
-        cuda_bellman_ford <<< 1, BLKDIM >>> (n_nodes, d_graph, d_distances);
+        cuda_bellman_ford <<< n_nodes, BLKDIM >>> (n_nodes, d_graph, d_distances);
         cudaCheckError();
     }
 
