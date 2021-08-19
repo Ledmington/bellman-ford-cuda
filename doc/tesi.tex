@@ -212,6 +212,30 @@ sorting=ynt
 		\label{tab:riassunto_bf0}
 		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf0}}
 	\end{table}
+
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|c|}
+			\hline
+			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\texttt{bf1-nosh}  & step & no & AoS & no \\ \hline
+			\texttt{bf1-sh}    & step & no & AoS & si \\ \hline
+		\end{tabular}
+		\label{tab:riassunto_bf1}
+		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf1}}
+	\end{table}
+
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|c|}
+			\hline
+			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\texttt{bf2-nosh}  & step & no & AoS & no \\ \hline
+			\texttt{bf2-sh}    & step & no & AoS & si \\ \hline
+		\end{tabular}
+		\label{tab:riassunto_bf2}
+		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf2}}
+	\end{table}
 	
 	\section{Dettagli implementativi}
 	\label{section:impl}
@@ -311,6 +335,8 @@ sorting=ynt
 
 	\subsection{Correttezza degli algoritmi}
 	Qui dobbiamo scartare le eventuali versioni che non producono un risultato corretto su tutti i test disponibili.
+	
+	Per evitare troppe tabelle inutili, si può riassumere il tutto ad un "tutti gli algoritmi tranne X, Y e Z hanno prodotto il risultato corretto su tutti i test".
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|l|c|c|c|c|c|}
