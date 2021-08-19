@@ -126,25 +126,21 @@ void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dis
 __global__ void cuda_bellman_ford (unsigned int n_nodes,
                                    Node* graph,
                                    unsigned int *distances) {
-    if(blockIdx.x != 0) return;
-
     __shared__ unsigned int sh_buffer[2*BLKDIM];
+    const unsigned int node = blockIdx.x;
 
-    for(unsigned int node = 0; node < n_nodes; node++) {
-        for(unsigned int idx = threadIdx.x; idx < graph[node].n_neighbors; idx += BLKDIM) {
+    for(unsigned int idx = threadIdx.x; idx < graph[node].n_neighbors; idx += BLKDIM) {
 
-            sh_buffer[threadIdx.x] = graph[node].neighbors[idx];
-            sh_buffer[threadIdx.x+1] = graph[node].weights[idx];
+        sh_buffer[threadIdx.x] = graph[node].neighbors[idx];
+        sh_buffer[threadIdx.x+1] = graph[node].weights[idx];
 
-            // relax the edge (u,v)
-            const unsigned int u = sh_buffer[threadIdx.x];
-            const unsigned int v = node;
-            // overflow-safe check
-            if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[threadIdx.x+1]) {
-                distances[v] = distances[u] + sh_buffer[threadIdx.x+1];
-            }
+        // relax the edge (u,v)
+        const unsigned int u = sh_buffer[threadIdx.x];
+        const unsigned int v = node;
+        // overflow-safe check
+        if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[threadIdx.x+1]) {
+            distances[v] = distances[u] + sh_buffer[threadIdx.x+1];
         }
-        __syncthreads();
     }
 }
 
@@ -215,7 +211,7 @@ unsigned int* bellman_ford ( Node* h_graph, unsigned int n_nodes, unsigned int s
     // Computation
     for(unsigned int i=0; i<n_nodes-1; i++) {
         if(i%1000 == 0) fprintf(stderr, "%u / %u iterations completed\n", i, n_nodes-1);
-        cuda_bellman_ford <<< 1, BLKDIM >>> (n_nodes, d_graph, d_distances);
+        cuda_bellman_ford <<< n_nodes, BLKDIM >>> (n_nodes, d_graph, d_distances);
         cudaCheckError();
     }
 
