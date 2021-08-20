@@ -18,16 +18,16 @@
 /*
     CUDA implementation of the Bellman-Ford's algorithm.
 
-    Version BF2-Sh:
-    - the input graph is stored as an adjacency list,
+    Version BF2-AoS-Sh:
+    - the input graph is stored as an adjacency list (Array of Structures),
     - the parallelization is done on the "inner cycle"
     - a shared memory buffer is used
 
     To compile:
-    nvcc -arch=<cuda_capability> bf2-sh.cu -o bf2-sh
+    nvcc -arch=<cuda_capability> bf2-aos-sh.cu -o bf2-aos-sh
 
     To run:
-    ./bf2-sh < test/graph.txt > solution.txt
+    ./bf2-aos-sh < test/graph.txt > solution.txt
 */
 
 #include "hpc.h"
@@ -39,7 +39,7 @@
 // CUDA block's size for monodimensional grid
 #define BLKDIM 1024
 
-typedef struct _node {
+typedef struct {
     // Number of neighbors
     unsigned int n_neighbors;
 
