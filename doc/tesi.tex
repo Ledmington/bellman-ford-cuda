@@ -174,13 +174,13 @@ sorting=ynt
 	\begin{itemize}
 		\item \texttt{bf0}: memorizzare il grafo come array di archi e parallelizzare il ciclo interno ovvero il "per ogni arco del grafo" (usare un thread per ogni arco). In realtà questa versione si ramifica in altre 4 sotto-versioni che variano in base al meccanismo utilizzato per gestire le scritture concorrenti sul vettore \texttt{D}.
 		\begin{itemize}
-			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto. La versione "single-step" produce il risultato corretto sul grafo di Roma, quella non "single-step" produce un risultato di poco diverso (in tutto qualche centinaio di nodi hanno un valore errato).
-			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo. Sul grafo di Roma, la versione "single-step" produce il risultato corretto, quella non "single-step" produce un risultato molto diverso.
+			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto.
+			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo.
 		\end{itemize}
 	
-		\item \texttt{bf1}: memorizzare il grafo come lista di adiacenza (in realtà non serve) e parallelizzare il ciclo interno. Per ogni nodo $u$ si creano tanti thread quanti sono i nodi $v$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco uscente $(u,v)$ aggiornando \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
+		\item \texttt{bf1}: memorizzare il grafo come lista di adiacenza e parallelizzare il ciclo interno. Per ogni nodo $u$ si creano tanti thread quanti sono i nodi $v$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco uscente $(u,v)$ aggiornando \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
 		
-		\item \texttt{bf2}: memorizzare il grafo come lista di adiacenza (in realtà non serve) e parallelizzare il ciclo interno. Per ogni nodo $v$ si creano tanti thread quanti sono i nodi $u$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco entrante $(u,v)$ mantenendo un valore parziale, infine si opera una min-reduction per determinare \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
+		\item \texttt{bf2}: memorizzare il grafo come lista di adiacenza e parallelizzare il ciclo interno. Per ogni nodo $v$ si creano tanti thread quanti sono i nodi $u$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco entrante $(u,v)$ mantenendo un valore parziale, infine si opera una min-reduction per determinare \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
 	\end{itemize}
 
 	In ogni caso, per ognuna di queste versioni, bisognerebbe provare la versione shared memory e le versione AoS e SoA. Per ottimizzare gli accessi si potrebbe provare a sortare gli archi in base all'esigenza.
@@ -215,11 +215,13 @@ sorting=ynt
 
 	\begin{table}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|c|}
+		\begin{tabular}{|l|c|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
-			\texttt{bf1-nosh}  & step & no & AoS & no \\ \hline
-			\texttt{bf1-sh}    & step & no & AoS & si \\ \hline
+			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\texttt{bf1-aos-nosh}  & step & AoS & no \\ \hline
+			\texttt{bf1-aos-sh}    & step & AoS & si \\ \hline
+			\texttt{bf1-soa-nosh}  & step & SoA & no \\ \hline
+			\texttt{bf1-soa-sh}    & step & SoA & si \\ \hline
 		\end{tabular}
 		\label{tab:riassunto_bf1}
 		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf1}}
@@ -227,11 +229,11 @@ sorting=ynt
 
 	\begin{table}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|c|}
+		\begin{tabular}{|l|c|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
-			\texttt{bf2-nosh}  & step & no & AoS & no \\ \hline
-			\texttt{bf2-sh}    & step & no & AoS & si \\ \hline
+			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\texttt{bf2-nosh}  & step & AoS & no \\ \hline
+			\texttt{bf2-sh}    & step & AoS & si \\ \hline
 		\end{tabular}
 		\label{tab:riassunto_bf2}
 		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf2}}
@@ -247,9 +249,9 @@ sorting=ynt
 	
 	Qui parlo del problema dell'overflow e della funzione atomicMin. Magari anche di come ho implementato le mutex nella versione \texttt{bf0-mutex}.
 	
-	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo.
+	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo. Lo stesso discorso vale per tutte le altre versioni implementate, si utilizza la shared memory su graph (o sui vettori nel caso di \texttt{soa}) perchè produce un throughput maggiore rispetto a quando la si usa sul vettore \texttt{distances}.
 	
-	Aggiungere dettagli sui limiti delle varie versioni dell'algoritmo: ad esempio, le versioni \texttt{bf0}, siccome creano un thread per ogni arco, funzionano bene solo se il grafo ha meno di $2^{31}\cdot 1024$ archi (max numero di blocchi per max numero di thread).
+	Aggiungere dettagli sui limiti delle varie versioni dell'algoritmo: ad esempio, le versioni \texttt{bf0}, siccome creano un thread per ogni arco, funzionano bene solo se il grafo ha meno di $2^{31}\cdot 1024$ archi (max numero di blocchi per max numero di thread). Le versioni \texttt{bf2} creano un blocco di thread per ogni nodo, quindi può gestire un grafo con massimo $2^{31}$ nodi.
 	
 	\section{Valutazione delle prestazioni}
 	\label{section:perf}
