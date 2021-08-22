@@ -65,6 +65,9 @@ void dump_solution_float (unsigned int n_nodes, unsigned int source, float *dist
     }
 }
 
+/*
+    Prints correctly the amount of RAM used.
+*/
 void print_ram_usage (unsigned int nbytes) {
     float ram_usage = (float)nbytes;
     if(ram_usage < 1024.0f) {

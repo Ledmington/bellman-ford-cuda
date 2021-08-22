@@ -11,7 +11,7 @@ if [%1] == [] (
 
 if "%1" == "all" (
 	for /f tokens^=* %%A in ('where "src:*.cu"') do (
-		nvcc -arch=compute_50 %%A -o bin\%%~nA.exe
+		nvcc -Wno-deprecated-gpu-targets -arch=compute_50 %%A -o bin\%%~nA.exe
 	)
 	exit /b 1
 )
