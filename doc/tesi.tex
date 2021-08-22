@@ -251,9 +251,11 @@ sorting=ynt
 	
 	Qui parlo del problema dell'overflow e della funzione atomicMin. Magari anche di come ho implementato le mutex nella versione \texttt{bf0-mutex}.
 	
-	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo. Lo stesso discorso vale per tutte le altre versioni implementate, si utilizza la shared memory su graph (o sui vettori nel caso di \texttt{soa}) perchè produce un throughput maggiore rispetto a quando la si usa sul vettore \texttt{distances}.
+	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo. Lo stesso discorso vale per tutte le altre versioni implementate, si utilizza la shared memory su graph (o sui vettori nel caso di \texttt{soa}) perchè produce un throughput maggiore rispetto a quando la si usa sul vettore \texttt{distances}. Qui andrebbe scritto qualcosa del tipo "nonostante in teoria un buffering del vettore \texttt{distances} riduce maggiormente il numero di accessi alla memoria globale, nella pratica gli accessi estremamenti sparsi su tutto il vettore producono un risultato molto più lento della versione senza shared memory.
 	
 	Aggiungere dettagli sui limiti delle varie versioni dell'algoritmo: ad esempio, le versioni \texttt{bf0}, siccome creano un thread per ogni arco, funzionano bene solo se il grafo ha meno di $2^{31}\cdot 1024$ archi (max numero di blocchi per max numero di thread). Le versioni \texttt{bf2} creano un blocco di thread per ogni nodo, quindi può gestire un grafo con massimo $2^{31}$ nodi.
+	
+	Le versioni \texttt{bf1} e \texttt{bf2} non funzionano bene su grafi con nodi isolati. In particolare, siccome l'algoritmo \texttt{bf1} memorizza il grafo come una lista di adiacenza degli archi uscenti, questi "non funziona bene" se è presente un nodo senza archi uscenti. Lo stesso discorso vale per \texttt{bf2} ma con gli archi entranti. Invece l'algoritmo \texttt{bf0} semplicemente produrrà un valore di $+\infty$ per tutti i nodi irraggiungibili.
 	
 	\section{Valutazione delle prestazioni}
 	\label{section:perf}
