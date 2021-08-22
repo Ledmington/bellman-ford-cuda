@@ -31,6 +31,7 @@
 */
 
 #include "hpc.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,26 +97,6 @@ Node* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
     }
 
     return graph;
-}
-
-/*
-    Dumps the solution on stdout.
-
-    Output is formatted as follows:
-
-    number_of_nodes
-    source_node
-    node_0 distance_to_node_0
-    node_1 distance_to_node_1
-    node_2 distance_to_node_2
-    ...
-*/
-void dump_solution (unsigned int n_nodes, unsigned int source, unsigned int *dist) {
-    printf("%u\n%u\n", n_nodes, source);
-
-    for(unsigned int i=0; i<n_nodes; i++) {
-        printf("%u %u\n", i, dist[i]);
-    }
 }
 
 /*

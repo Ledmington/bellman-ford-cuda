@@ -32,6 +32,7 @@
 */
 
 #include "hpc.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,32 +88,6 @@ Graph* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
     }
 
     return graph;
-}
-
-/*
-    Dumps the solution on stdout.
-
-    Output is formatted as follows:
-
-    number_of_nodes
-    source_node
-    node_0 distance_to_node_0
-    node_1 distance_to_node_1
-    node_2 distance_to_node_2
-    ...
-*/
-void dump_solution (unsigned int n_nodes, unsigned int source, float *dist) {
-    printf("%u\n%u\n", n_nodes, source);
-
-    for(unsigned int i=0; i<n_nodes; i++) {
-        printf("%u", i);
-        if(isinf(dist[i])) {
-            printf(" %u\n", UINT_MAX);
-        }
-        else {
-            printf(" %u\n", (unsigned int)dist[i]);
-        }
-    }
 }
 
 /*
@@ -250,7 +225,7 @@ int main ( void ) {
     fprintf(stderr, "done\n\n");
 
     fprintf(stderr, "Dumping solution...");
-    dump_solution(nodes, 0, result);
+    dump_solution_float(nodes, 0, result);
     fprintf(stderr, "done\n");
 
     free(graph);
