@@ -188,16 +188,7 @@ int main ( void ) {
     fprintf(stderr, " %7u nodes\n", nodes);
     fprintf(stderr, " %7u arcs\n", edges);
 
-    float ram_usage = (float)(sizeof(Edge)*edges);
-    if(ram_usage < 1024.0f) {
-        fprintf(stderr, " %.3f bytes of RAM used\n\n", ram_usage);
-    }
-    else if(ram_usage < 1024.0f*1024.0f) {
-        fprintf(stderr, " %.3f KBytes of RAM used\n\n", ram_usage/1024.0f);
-    }
-    else {
-        fprintf(stderr, " %.3f MBytes of RAM used\n\n", ram_usage/(1024.0f*1024.0f));
-    }
+    print_ram_usage(sizeof(Edge)*edges);
 
     fprintf(stderr, "Computing Bellman-Ford...");
     compute_start = clock();

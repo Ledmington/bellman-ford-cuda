@@ -230,19 +230,7 @@ int main ( void ) {
     fprintf(stderr, " %7u nodes\n", nodes);
     fprintf(stderr, " %7u arcs\n", edges);
 
-    float ram_usage = (float)(sizeof(Node)*nodes);
-    for(unsigned int i=0; i<nodes; i++) {
-        ram_usage += (float)(graph[i].n_neighbors*2*sizeof(unsigned int));
-    }
-    if(ram_usage < 1024.0f) {
-        fprintf(stderr, " %.3f bytes of RAM used\n\n", ram_usage);
-    }
-    else if(ram_usage < 1024.0f*1024.0f) {
-        fprintf(stderr, " %.3f KBytes of RAM used\n\n", ram_usage/1024.0f);
-    }
-    else {
-        fprintf(stderr, " %.3f MBytes of RAM used\n\n", ram_usage/(1024.0f*1024.0f));
-    }
+    print_ram_usage(nodes*sizeof(Node) + edges*2*sizeof(unsigned int));
 
     fprintf(stderr, "Computing Bellman-Ford...");
     compute_start = clock();

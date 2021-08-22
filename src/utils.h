@@ -65,4 +65,17 @@ void dump_solution_float (unsigned int n_nodes, unsigned int source, float *dist
     }
 }
 
+void print_ram_usage (unsigned int nbytes) {
+    float ram_usage = (float)nbytes;
+    if(ram_usage < 1024.0f) {
+        fprintf(stderr, " %.3f bytes of RAM used\n\n", ram_usage);
+    }
+    else if(ram_usage < 1024.0f*1024.0f) {
+        fprintf(stderr, " %.3f KBytes of RAM used\n\n", ram_usage/1024.0f);
+    }
+    else {
+        fprintf(stderr, " %.3f MBytes of RAM used\n\n", ram_usage/(1024.0f*1024.0f));
+    }
+}
+
 #endif // UTILS_H
