@@ -1,7 +1,6 @@
 @echo off
 
 if not exist bin mkdir bin
-del /Q bin\*
 
 if [%1] == [] (
     echo Please type the name of the file, without extension, to be compiled
@@ -11,10 +10,12 @@ if [%1] == [] (
 
 if "%1" == "all" (
 	for /f tokens^=* %%A in ('where "src:*.cu"') do (
+		if exist bin\%%~nA.exe del bin\%%~nA*
 		nvcc -Wno-deprecated-gpu-targets -arch=compute_50 %%A -o bin\%%~nA.exe
 	)
 	exit /b 1
 )
 
+if exist bin\%1.exe del bin\%1*
 nvcc -Wno-deprecated-gpu-targets -arch=compute_50 src\%1.cu -o bin\%1.exe
 exit /b 1
