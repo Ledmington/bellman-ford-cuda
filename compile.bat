@@ -16,5 +16,5 @@ if "%1" == "all" (
 	exit /b 1
 )
 
-nvcc -arch=compute_50 src\%1.cu -o bin\%1.exe
+nvcc -Wno-deprecated-gpu-targets -arch=compute_50 src\%1.cu -o bin\%1.exe
 exit /b 1
