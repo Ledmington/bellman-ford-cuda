@@ -24,7 +24,7 @@ You can use the file `test.bat` to test `.exe` files. Pass the name of the file,
 For each file, it runs `bin\my-file.exe < test\graph-rome.in > rome.out` and then checks if the result is correct with `fc rome.out test\graph-rome.sol`.
 
 ### Testing on Linux
-For each file, it runs `bin\my-file.exe < test\graph-rome.in > rome.out` and then checks if the result is correct with `cmp rome.out test\graph-rome.sol`.
+For each file, it runs `bin\my-file.exe < test\graph-rome.in > rome.out` and then checks if the result is correct with `diff --strip-trailing-cr -q rome.out test\graph-rome.sol`.
 
 ## Document
 The main document of this project is a `tex` file inside the `doc` folder.

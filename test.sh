@@ -11,7 +11,8 @@ if [ "$1" == "all" ] ; then
 		echo =======================================;
 		echo TESTING ${F};
 		${F} < test/graph-rome.in > rome.out;
-		diff --strip-trailing-cr rome.out test/graph-rome.sol;
+		diff --strip-trailing-cr -q rome.out test/graph-rome.sol;
+		if [[ $? == 0 ]] ; then echo CHECK OK ; fi
 	done
 	exit 1
 fi
@@ -21,5 +22,6 @@ if [ ! -f bin/$1.exe ] ; then
 	exit 1
 fi
 bin/$1.exe < test/graph-rome.in > rome.out
-diff --strip-trailing-cr rome.out test/graph-rome.sol
+diff --strip-trailing-cr -q rome.out test/graph-rome.sol
+if [[ $? == 0 ]] ; then echo CHECK OK ; fi
 exit 1
