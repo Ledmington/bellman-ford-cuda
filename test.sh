@@ -11,7 +11,7 @@ if [ "$1" == "all" ] ; then
 		echo =======================================;
 		echo TESTING ${F};
 		${F} < test/graph-rome.in > rome.out;
-		cmp rome.out test/graph-rome.sol;
+		diff --strip-trailing-cr rome.out test/graph-rome.sol;
 	done
 	exit 1
 fi
@@ -21,5 +21,5 @@ if [ ! -f bin/$1.exe ] ; then
 	exit 1
 fi
 bin/$1.exe < test/graph-rome.in > rome.out
-cmp rome.out test/graph-rome.sol
+diff --strip-trailing-cr rome.out test/graph-rome.sol
 exit 1
