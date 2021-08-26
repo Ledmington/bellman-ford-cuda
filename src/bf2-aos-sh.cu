@@ -109,18 +109,20 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
                                    unsigned int *distances) {
     __shared__ unsigned int sh_buffer[2*BLKDIM];
     const unsigned int node = blockIdx.x;
+    const unsigned int l_idx = 2*threadIdx.x;
 
-    for(unsigned int idx = threadIdx.x; idx < graph[node].n_neighbors; idx += BLKDIM) {
+    for(unsigned int g_idx = threadIdx.x; g_idx < graph[node].n_neighbors; g_idx += BLKDIM) {
 
-        sh_buffer[threadIdx.x] = graph[node].neighbors[idx];
-        sh_buffer[threadIdx.x+1] = graph[node].weights[idx];
+        sh_buffer[l_idx] = graph[node].neighbors[g_idx];
+        sh_buffer[l_idx+1] = graph[node].weights[g_idx];
 
         // relax the edge (u,v)
-        const unsigned int u = sh_buffer[threadIdx.x];
+        const unsigned int u = sh_buffer[l_idx];
         const unsigned int v = node;
+
         // overflow-safe check
-        if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[threadIdx.x+1]) {
-            distances[v] = distances[u] + sh_buffer[threadIdx.x+1];
+        if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[l_idx+1]) {
+            distances[v] = distances[u] + sh_buffer[l_idx+1];
         }
     }
 }

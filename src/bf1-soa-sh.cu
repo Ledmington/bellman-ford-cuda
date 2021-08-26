@@ -166,15 +166,15 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
     for(unsigned int node = 0; node < n_nodes; node++) {
         for(unsigned int idx = threadIdx.x; idx < n_neighbors[node]; idx += BLKDIM) {
 
-            sh_buffer[threadIdx.x] = neighbors[start_indices[node] + idx];
-            sh_buffer[threadIdx.x+1] = weights[start_indices[node] + idx];
+            sh_buffer[2*threadIdx.x] = neighbors[start_indices[node] + idx];
+            sh_buffer[2*threadIdx.x+1] = weights[start_indices[node] + idx];
 
             // relax the edge (u,v)
             const unsigned int u = node;
-            const unsigned int v = sh_buffer[threadIdx.x];
+            const unsigned int v = sh_buffer[2*threadIdx.x];
             // overflow-safe check
-            if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[threadIdx.x+1]) {
-                distances[v] = distances[u] + sh_buffer[threadIdx.x+1];
+            if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[2*threadIdx.x+1]) {
+                distances[v] = distances[u] + sh_buffer[2*threadIdx.x+1];
             }
         }
         __syncthreads();

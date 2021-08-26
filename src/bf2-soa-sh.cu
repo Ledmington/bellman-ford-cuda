@@ -150,8 +150,8 @@ Graph* convert_to_soa (Node* list_of_nodes, unsigned int n_nodes, unsigned int n
 
 /*
     CUDA kernel of Bellman-Ford's algorithm.
-    A single block of |BLKDIM| threads executes a relax on each incoming edge
-    of each node.
+    Each block of |BLKDIM| threads executes a relax on each incoming edge
+    of one node.
 */
 __global__ void cuda_bellman_ford (unsigned int n_nodes,
                                    unsigned int *start_indices,
@@ -161,18 +161,19 @@ __global__ void cuda_bellman_ford (unsigned int n_nodes,
                                    unsigned int *distances) {
     __shared__ unsigned int sh_buffer[2*BLKDIM];
     const unsigned int node = blockIdx.x;
+    const unsigned int l_idx = 2*threadIdx.x;
 
-    for(unsigned int idx = threadIdx.x; idx < n_neighbors[node]; idx += BLKDIM) {
+    for(unsigned int g_idx = threadIdx.x; g_idx < n_neighbors[node]; g_idx += BLKDIM) {
 
-        sh_buffer[threadIdx.x] = neighbors[start_indices[node] + idx];
-        sh_buffer[threadIdx.x+1] = weights[start_indices[node] + idx];
+        sh_buffer[l_idx] = neighbors[start_indices[node] + g_idx];
+        sh_buffer[l_idx+1] = weights[start_indices[node] + g_idx];
 
         // relax the edge (u,v)
-        const unsigned int u = sh_buffer[threadIdx.x];
+        const unsigned int u = sh_buffer[l_idx];
         const unsigned int v = node;
         // overflow-safe check
-        if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[threadIdx.x+1]) {
-            distances[v] = distances[u] + sh_buffer[threadIdx.x+1];
+        if(distances[v] > distances[u] && distances[v]-distances[u] > sh_buffer[l_idx+1]) {
+            distances[v] = distances[u] + sh_buffer[l_idx+1];
         }
     }
 }
