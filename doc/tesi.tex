@@ -189,25 +189,17 @@ sorting=ynt
 	
 	\begin{table}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|c|}
+		\begin{tabular}{|l|c|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
-			\texttt{bf0-none-aos-nosh-step}  & step & no & AoS & no \\ \hline
-			\texttt{bf0-none-aos-sh-step}    & step & no & AoS & si \\ \hline
-			\texttt{bf0-none-soa-nosh-step}  & step & no & SoA & no \\ \hline
-			\texttt{bf0-none-soa-sh-step}    & step & no & SoA & si \\ \hline
-			\texttt{bf0-mutex-aos-nosh-step} & step & si & AoS & no \\ \hline
-			\texttt{bf0-mutex-aos-sh-step}   & step & si & AoS & si \\ \hline
-			\texttt{bf0-mutex-soa-nosh-step} & step & si & SoA & no \\ \hline
-			\texttt{bf0-mutex-soa-sh-step}   & step & si & SoA & si \\ \hline
-			\texttt{bf0-none-aos-nosh-full}  & full & no & AoS & no \\ \hline
-			\texttt{bf0-none-aos-sh-full}    & full & no & AoS & si \\ \hline
-			\texttt{bf0-none-soa-nosh-full}  & full & no & SoA & no \\ \hline
-			\texttt{bf0-none-soa-sh-full}    & full & no & SoA & si \\ \hline
-			\texttt{bf0-mutex-aos-nosh-full} & full & si & AoS & no \\ \hline
-			\texttt{bf0-mutex-aos-sh-full}   & full & si & AoS & si \\ \hline
-			\texttt{bf0-mutex-soa-nosh-full} & full & si & SoA & no \\ \hline
-			\texttt{bf0-mutex-soa-sh-full}   & full & si & SoA & si \\ \hline
+			\textbf{Nome versione} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\texttt{bf0-none-aos-nosh}  & no & AoS & no \\ \hline
+			\texttt{bf0-none-aos-sh}    & no & AoS & si \\ \hline
+			\texttt{bf0-none-soa-nosh}  & no & SoA & no \\ \hline
+			\texttt{bf0-none-soa-sh}    & no & SoA & si \\ \hline
+			\texttt{bf0-mutex-aos-nosh} & si & AoS & no \\ \hline
+			\texttt{bf0-mutex-aos-sh}   & si & AoS & si \\ \hline
+			\texttt{bf0-mutex-soa-nosh} & si & SoA & no \\ \hline
+			\texttt{bf0-mutex-soa-sh}   & si & SoA & si \\ \hline
 		\end{tabular}
 		\label{tab:riassunto_bf0}
 		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf0}}
@@ -215,13 +207,13 @@ sorting=ynt
 
 	\begin{table}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|}
+		\begin{tabular}{|l|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
-			\texttt{bf1-aos-nosh}  & step & AoS & no \\ \hline
-			\texttt{bf1-aos-sh}    & step & AoS & si \\ \hline
-			\texttt{bf1-soa-nosh}  & step & SoA & no \\ \hline
-			\texttt{bf1-soa-sh}    & step & SoA & si \\ \hline
+			\textbf{Nome versione} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\texttt{bf1-aos-nosh}  & AoS & no \\ \hline
+			\texttt{bf1-aos-sh}    & AoS & si \\ \hline
+			\texttt{bf1-soa-nosh}  & SoA & no \\ \hline
+			\texttt{bf1-soa-sh}    & SoA & si \\ \hline
 		\end{tabular}
 		\label{tab:riassunto_bf1}
 		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf1}}
@@ -229,13 +221,13 @@ sorting=ynt
 
 	\begin{table}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|}
+		\begin{tabular}{|l|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{Kernel Type} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
-			\texttt{bf2-aos-nosh}  & step & AoS & no \\ \hline
-			\texttt{bf2-aos-sh}    & step & AoS & si \\ \hline
-			\texttt{bf2-soa-nosh}  & step & SoA & no \\ \hline
-			\texttt{bf2-soa-sh}    & step & SoA & si \\ \hline
+			\textbf{Nome versione} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\texttt{bf2-aos-nosh}  & AoS & no \\ \hline
+			\texttt{bf2-aos-sh}    & AoS & si \\ \hline
+			\texttt{bf2-soa-nosh}  & SoA & no \\ \hline
+			\texttt{bf2-soa-sh}    & SoA & si \\ \hline
 		\end{tabular}
 		\label{tab:riassunto_bf1}
 		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf2}}
