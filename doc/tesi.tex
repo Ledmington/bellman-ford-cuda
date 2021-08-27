@@ -255,20 +255,37 @@ sorting=ynt
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|l|c|c|c|}
-			 & \textbf{Macchina A} & \textbf{Macchina B} & \textbf{Macchina C} \\ \hline
-			\textbf{Nome CPU} & Intel Core i5-7200U & & \\ \hline
-			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz & & \\ \hline
-			\textbf{Core fisici} & 2 & & \\ \hline
-			\textbf{Hyper-Threading} & si & & \\ \hline
-			\textbf{L1 cache} & 128 KB & & \\ \hline
-			\textbf{L2 cache} & 512 KB & & \\ \hline
-			\textbf{L3 cache} & 3 MB & & \\ \hline
-			\textbf{RAM totale} & 8 GB & & \\ \hline
+			\hline
+			& \textbf{Macchina A} & \textbf{Macchina B} & \textbf{Macchina C} \\ \hline
+			\textbf{Sistema Operativo} & Windows & Ubuntu & Windows \\ \hline
+			\textbf{Versione OS} & 10.0.19042.1165 & 16.04.7 & \\ \hline
+			\textbf{Versione NVCC} & & & \\ \hline
+			\textbf{Versione GCC/CL} & & & \\ \hline
+			\textbf{Nome CPU} & Intel Core i5-7200U & Intel Xeon E5-2603 v4 & \\ \hline
+			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz & 1,2 - 1,7 GHz & \\ \hline
+			\textbf{Core fisici} & 2 & 6 & \\ \hline
+			\textbf{Hyper-Threading} & si & no & \\ \hline
+			\textbf{L1 cache} & 128 KB & 32 KB & \\ \hline
+			\textbf{L2 cache} & 512 KB & 256 KB & \\ \hline
+			\textbf{L3 cache} & 3 MB & 15 MB & \\ \hline
+			\textbf{RAM totale} & 8 GB & 64 GB & 32 GB \\ \hline
 			\textbf{Frequenza RAM} & 2133 MHz & & \\ \hline
-			\textbf{Tipologia RAM} & DDR4 & & \\ \hline
+			\textbf{Tipologia RAM} & DDR4 & & DDR4 \\ \hline
+			\textbf{Nome GPU} & \textbf{GeForce 940MX} & \textbf{GeForce GTX 1070} & \textbf{GeForce RTX 2080} \\ \hline
+			\textbf{CUDA Driver Version} & 11.4 & 10.1 & 11.4 \\ \hline
+			\textbf{CUDA Runtime Version} & 11.1 & 8.0 & 11.1 \\ \hline
+			\textbf{CUDA capability} & 5.0 & 6.1 & 7.5 \\ \hline
+			\textbf{Architettura} & Maxwell & Pascal & Turing \\ \hline
+			\textbf{Memoria globale} & 2 GB & 8 GB & 8 GB \\ \hline
+			\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
+			\textbf{Frequenza Memoria} & 2505 MHz & 4004 MHz & 7000 MHz \\ \hline
+			\textbf{Memory Bus} & 64 bit & 256 bit & 256 bit \\ \hline
+			\textbf{Streaming Multiprocessors} & 3 & 15 & 46 \\ \hline
+			\textbf{Total CUDA Cores} & 384 & 1920 & 2944 \\ \hline
+			\textbf{Frequenza Cores} & 1189 MHz & 1797 MHz & 1860 MHz \\ \hline
 		\end{tabular}
-		\label{tab:specs_serial_cpu}
-		\caption{Specifiche hardware della macchina su cui effettuiamo le misurazioni per la versione seriale su CPU}
+		\label{tab:specs}
+		\caption{Specifiche delle macchine su cui effettuiamo le misurazioni}
 	\end{table}
 
 	\subsection{Performance dell'algoritmo seriale}
@@ -289,29 +306,6 @@ sorting=ynt
 		\end{tabular}
 		\label{tab:performance_serial}
 		\caption{Prestazioni dell'algoritmo seriale su CPU (sulla "macchina A")}
-	\end{table}
-	
-	\subsection{Schede su cui effettuiamo le misurazioni}
-	Non serve veramente un capitoletto a sè.
-	\begin{table}[!ht]
-		\centering
-		\begin{tabular}{|l|c|c|c|}
-			\hline
-			  & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\textbf{CUDA Driver Version} & 11.4 & 10.1 & 11.4 \\ \hline
-			\textbf{CUDA Runtime Version} & 11.1 & 8.0 & 11.1 \\ \hline
-			\textbf{CUDA capability} & 5.0 & 6.1 & 7.5 \\ \hline
-			\textbf{Architettura} & Maxwell & Pascal & Turing \\ \hline
-			\textbf{Memoria globale (GB)} & 2 & 8 & 8 \\ \hline
-			\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
-			\textbf{Frequenza Memoria (MHz)} & 2505 & 4004 & 7000 \\ \hline
-			\textbf{Memory Bus (bit)} & 64 & 256 & 256 \\ \hline
-			\textbf{Streaming Multiprocessors} & 3 & 15 & 46 \\ \hline
-			\textbf{Total CUDA Cores} & 384 & 1920 & 2944 \\ \hline
-			\textbf{Frequenza Cores (MHz)} & 1189 & 1797 & 1860 \\ \hline
-		\end{tabular}
-		\label{tab:specs_gpus}
-		\caption{Specifiche hardware delle GPU su cui effettuiamo le misurazioni}
 	\end{table}
 
 	\subsection{Descrizione dei test}
@@ -349,22 +343,14 @@ sorting=ynt
 		\begin{tabular}{|l|c|c|c|}
 			\hline
 			\textbf{Nome versione} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\texttt{bf0-none-aos-nosh-step}  &  &  &  \\ \hline
-			\texttt{bf0-none-aos-sh-step}    &  &  &  \\ \hline
-			\texttt{bf0-none-soa-nosh-step}  &  &  &  \\ \hline
-			\texttt{bf0-none-soa-sh-step}    &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-nosh-step} &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-sh-step}   &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-nosh-step} &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-sh-step}   &  &  &  \\ \hline
-			\texttt{bf0-none-aos-nosh-full}  & N/A &  &  \\ \hline
-			\texttt{bf0-none-aos-sh-full}    & N/A &  &  \\ \hline
-			\texttt{bf0-none-soa-nosh-full}  & N/A &  &  \\ \hline
-			\texttt{bf0-none-soa-sh-full}    & N/A &  &  \\ \hline
-			\texttt{bf0-mutex-aos-nosh-full} & N/A &  &  \\ \hline
-			\texttt{bf0-mutex-aos-sh-full}   & N/A &  &  \\ \hline
-			\texttt{bf0-mutex-soa-nosh-full} & N/A &  &  \\ \hline
-			\texttt{bf0-mutex-soa-sh-full}   & N/A &  &  \\ \hline
+			\texttt{bf0-none-aos-nosh}  &  &  &  \\ \hline
+			\texttt{bf0-none-aos-sh}    &  &  &  \\ \hline
+			\texttt{bf0-none-soa-nosh}  &  &  &  \\ \hline
+			\texttt{bf0-none-soa-sh}    &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-nosh} &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-sh}   &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-nosh} &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-sh}   &  &  &  \\ \hline
 		\end{tabular}
 		\label{tab:speedup_bf0}
 		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf0}}
@@ -377,22 +363,14 @@ sorting=ynt
 		\begin{tabular}{|l|c|c|c|}
 			\hline
 			\textbf{Nome versione} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\texttt{bf0-none-aos-nosh-step}  &  &  &  \\ \hline
-			\texttt{bf0-none-aos-sh-step}    &  &  &  \\ \hline
-			\texttt{bf0-none-soa-nosh-step}  &  &  &  \\ \hline
-			\texttt{bf0-none-soa-sh-step}    &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-nosh-step} &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-sh-step}   &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-nosh-step} &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-sh-step}   &  &  &  \\ \hline
-			\texttt{bf0-none-aos-nosh-full}  & N/A &  &  \\ \hline
-			\texttt{bf0-none-aos-sh-full}    & N/A &  &  \\ \hline
-			\texttt{bf0-none-soa-nosh-full}  & N/A &  &  \\ \hline
-			\texttt{bf0-none-soa-sh-full}    & N/A &  &  \\ \hline
-			\texttt{bf0-mutex-aos-nosh-full} & N/A &  &  \\ \hline
-			\texttt{bf0-mutex-aos-sh-full}   & N/A &  &  \\ \hline
-			\texttt{bf0-mutex-soa-nosh-full} & N/A &  &  \\ \hline
-			\texttt{bf0-mutex-soa-sh-full}   & N/A &  &  \\ \hline
+			\texttt{bf0-none-aos-nosh}  &  &  &  \\ \hline
+			\texttt{bf0-none-aos-sh}    &  &  &  \\ \hline
+			\texttt{bf0-none-soa-nosh}  &  &  &  \\ \hline
+			\texttt{bf0-none-soa-sh}    &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-nosh} &  &  &  \\ \hline
+			\texttt{bf0-mutex-aos-sh}   &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-nosh} &  &  &  \\ \hline
+			\texttt{bf0-mutex-soa-sh}   &  &  &  \\ \hline
 		\end{tabular}
 		\label{tab:throughput_bf0}
 		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf0}}
