@@ -182,10 +182,6 @@ sorting=ynt
 		
 		\item \texttt{bf2}: memorizzare il grafo come lista di adiacenza e parallelizzare il ciclo interno. Per ogni nodo $v$ si creano tanti thread quanti sono i nodi $u$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco entrante $(u,v)$ mantenendo un valore parziale, infine si opera una min-reduction per determinare \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
 	\end{itemize}
-
-	In ogni caso, per ognuna di queste versioni, bisognerebbe provare la versione shared memory e le versione AoS e SoA. Per ottimizzare gli accessi si potrebbe provare a sortare gli archi in base all'esigenza.
-	
-	Alla fine di questo capitolo si possono aggiungere alcuni dettagli implementativi da discutere come l'implementazione "step" (per la sincronizzazione lato CPU) oppure quella "full" (una singola invocazione kernel da parte della CPU).
 	
 	\begin{table}[!ht]
 		\centering
@@ -229,7 +225,7 @@ sorting=ynt
 			\texttt{bf2-soa-nosh}  & SoA & no \\ \hline
 			\texttt{bf2-soa-sh}    & SoA & si \\ \hline
 		\end{tabular}
-		\label{tab:riassunto_bf1}
+		\label{tab:riassunto_bf2}
 		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf2}}
 	\end{table}
 	
@@ -242,6 +238,8 @@ sorting=ynt
 	O in questo capitolo o prima bisogna dire che, siccome per i nostri scopi non serve che l'algoritmo produca come risultato anche tutti i percorsi (nella forma di un vettore di predecessori) Bellman-Ford non è stato implementato in questo modo.
 	
 	Qui parlo del problema dell'overflow e della funzione atomicMin. Magari anche di come ho implementato le mutex nella versione \texttt{bf0-mutex}.
+	
+	Tutti gli algoritmi che utilizzano un buffer nella shared memory
 	
 	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo. Lo stesso discorso vale per tutte le altre versioni implementate, si utilizza la shared memory su graph (o sui vettori nel caso di \texttt{soa}) perchè produce un throughput maggiore rispetto a quando la si usa sul vettore \texttt{distances}. Qui andrebbe scritto qualcosa del tipo "nonostante in teoria un buffering del vettore \texttt{distances} riduce maggiormente il numero di accessi alla memoria globale, nella pratica gli accessi estremamenti sparsi su tutto il vettore producono un risultato molto più lento della versione senza shared memory.
 	
@@ -256,18 +254,18 @@ sorting=ynt
 	\subsection{Dati della macchina su cui misuriamo l'algoritmo seriale}
 	\begin{table}[!ht]
 		\centering
-		\begin{tabular}{|l|c|}
-			\hline
-			\textbf{Nome CPU} & Intel Core i5-7200U \\ \hline
-			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz \\ \hline
-			\textbf{Core fisici} & 2 \\ \hline
-			\textbf{Hyper-Threading} & si \\ \hline
-			\textbf{L1 cache} & 128 KB \\ \hline
-			\textbf{L2 cache} & 512 KB \\ \hline
-			\textbf{L3 cache} & 3 MB \\ \hline
-			\textbf{RAM totale} & 8 GB \\ \hline
-			\textbf{Frequenza RAM} & 2133 MHz \\ \hline
-			\textbf{Tipologia RAM} & DDR4 \\ \hline
+		\begin{tabular}{|l|c|c|c|}
+			 & \textbf{Macchina A} & \textbf{Macchina B} & \textbf{Macchina C} \\ \hline
+			\textbf{Nome CPU} & Intel Core i5-7200U & & \\ \hline
+			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz & & \\ \hline
+			\textbf{Core fisici} & 2 & & \\ \hline
+			\textbf{Hyper-Threading} & si & & \\ \hline
+			\textbf{L1 cache} & 128 KB & & \\ \hline
+			\textbf{L2 cache} & 512 KB & & \\ \hline
+			\textbf{L3 cache} & 3 MB & & \\ \hline
+			\textbf{RAM totale} & 8 GB & & \\ \hline
+			\textbf{Frequenza RAM} & 2133 MHz & & \\ \hline
+			\textbf{Tipologia RAM} & DDR4 & & \\ \hline
 		\end{tabular}
 		\label{tab:specs_serial_cpu}
 		\caption{Specifiche hardware della macchina su cui effettuiamo le misurazioni per la versione seriale su CPU}
@@ -279,11 +277,15 @@ sorting=ynt
 		\begin{tabular}{|c|c|c|}
 			\hline
 			\textbf{Nome test} & \textbf{Wall Clock Time [s]} & \textbf{Throughput [relax/s]} \\ \hline
-			       rome        &                          &                     \\ \hline
-			        DE         &                          &                     \\ \hline
-			        VT         &                          &                     \\ \hline
-			        ME         &                          &                     \\ \hline
-			        NV         &                          &                     \\ \hline
+			       rome & & \\ \hline
+			        DE & & \\ \hline
+			        VT & & \\ \hline
+			        ME & & \\ \hline
+			        NV & & \\ \hline
+			        025 & & \\ \hline
+			        050 & & \\ \hline
+			        075 & & \\ \hline
+			        100 & & \\ \hline
 		\end{tabular}
 		\label{tab:performance_serial}
 		\caption{Prestazioni dell'algoritmo seriale su CPU}
@@ -326,6 +328,10 @@ sorting=ynt
 			VT & 97975 & 212979 & Mappa stradale del Vermont \\ \hline
 			ME & 194505 & 425708 & Mappa stradale del Maine \\ \hline
 			NV & 261155 & 618175 & Mappa stradale del Nevada \\ \hline
+			025 & 1000 & 249808 & Grafo casuale con densità 0.25 \\ \hline
+			050 & 1000 & 499574 & Grafo casuale con densità 0.5 \\ \hline
+			075 & 1000 & 749262 & Grafo casuale con densità 0.75 \\ \hline
+			100 & 1000 & 999000 & Grafo casuale completo \\ \hline
 		\end{tabular}
 		\label{tab:riassunto_test}
 		\caption{Tabella riassuntiva delle specifiche dei test utilizzati}
@@ -334,32 +340,7 @@ sorting=ynt
 	\subsection{Correttezza degli algoritmi}
 	Qui dobbiamo scartare le eventuali versioni che non producono un risultato corretto su tutti i test disponibili.
 	
-	Per evitare troppe tabelle inutili, si può riassumere il tutto ad un "tutti gli algoritmi tranne X, Y e Z hanno prodotto il risultato corretto su tutti i test".
-	\begin{table}[!ht]
-		\centering
-		\begin{tabular}{|l|c|c|c|c|c|}
-			\hline
-			\textbf{Nome versione} & \textbf{rome} & \textbf{DE} & \textbf{VT} & \textbf{ME} & \textbf{NV} \\ \hline
-			\texttt{bf0-none-aos-nosh-step}  &  &  &  &  &  \\ \hline
-			\texttt{bf0-none-aos-sh-step}    &  &  &  &  &  \\ \hline
-			\texttt{bf0-none-soa-nosh-step}  &  &  &  &  &  \\ \hline
-			\texttt{bf0-none-soa-sh-step}    &  &  &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-nosh-step} &  &  &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-sh-step}   &  &  &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-nosh-step} &  &  &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-sh-step}   &  &  &  &  &  \\ \hline
-			\texttt{bf0-none-aos-nosh-full}  &  &  &  &  &  \\ \hline
-			\texttt{bf0-none-aos-sh-full}    &  &  &  &  &  \\ \hline
-			\texttt{bf0-none-soa-nosh-full}  &  &  &  &  &  \\ \hline
-			\texttt{bf0-none-soa-sh-full}    &  &  &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-nosh-full} &  &  &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-sh-full}   &  &  &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-nosh-full} &  &  &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-sh-full}   &  &  &  &  &  \\ \hline
-		\end{tabular}
-		\label{tab:correttezza}
-		\caption{Tabella di correttezza degli algoritmi}
-	\end{table}
+	Tutti gli algoritmi producono il risultato corretto sul grafo di Roma, tranne \texttt{bf2-soa-sh}.
 	
 	\subsection{Speedup}
 	Di seguito riportiamo i valori di speedup di ogni versione, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}, misurati su ogni scheda.
