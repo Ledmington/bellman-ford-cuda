@@ -99,14 +99,16 @@ int main ( int argc, char** argv ) {
     }
 
     for(unsigned int i=0; i<N; i++) {
-        g[i][i] = HUGE_VAL;
-        for(unsigned int j=i+1; j<N; j++) {
-            if(randab(0.0, 1.0) <= p) {
-                g[i][j] = g[j][i] = randab(min_weight, max_weight);
-                n_archi += 2;
-            }
+        for(unsigned int j=0; j<N; j++) {
+            if(i==j) g[i][j] = HUGE_VAL;
             else {
-                g[i][j] = g[j][i] = HUGE_VAL;
+                if(randab(0.0, 1.0) <= p) {
+                    g[i][j] = randab(min_weight, max_weight);
+                    n_archi++;
+                }
+                else {
+                    g[i][j] = HUGE_VAL;
+                }
             }
         }
     }
@@ -116,7 +118,7 @@ int main ( int argc, char** argv ) {
 
     printf("%u %u 1\n", N, n_archi);
     for(unsigned int i=0; i<N; i++) {
-        for(unsigned int j=i+1; j<N; j++) {
+        for(unsigned int j=0; j<N; j++) {
             if(!isinf(g[i][j])) {
                 printf("%u %u %f\n", i, j, g[i][j]);
             }
