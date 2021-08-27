@@ -1,5 +1,5 @@
 /*
-    CUDA implementation of the Bellman-Ford's algorithm
+    Random graph generator
     Copyright (C) 2021  Filippo Barbari
 
     This program is free software: you can redistribute it and/or modify
@@ -103,7 +103,7 @@ int main ( int argc, char** argv ) {
         for(unsigned int j=i+1; j<N; j++) {
             if(randab(0.0, 1.0) <= p) {
                 g[i][j] = g[j][i] = randab(min_weight, max_weight);
-                n_archi++;
+                n_archi += 2;
             }
             else {
                 g[i][j] = g[j][i] = HUGE_VAL;
@@ -111,7 +111,8 @@ int main ( int argc, char** argv ) {
         }
     }
 
-    fprintf(stderr, "n. arcs (created / total): %u / %u\n", n_archi, N*(N-1)/2);
+    fprintf(stderr, "n. arcs (created / total): %u / %u\n", n_archi, N*(N-1));
+    fprintf(stderr, "density: %.6f\n", (float)n_archi/(float)(N*(N-1)));
 
     printf("%u %u 1\n", N, n_archi);
     for(unsigned int i=0; i<N; i++) {
