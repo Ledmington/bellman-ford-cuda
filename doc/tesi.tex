@@ -24,8 +24,7 @@ sorting=ynt
 		\begin{center}
 			
 			\large
-			\textbf{ALMA MATER STUDIORUM -- UNIVERSITÀ DI BOLOGNA \\ CAMPUS DI CESENA}
-			\\
+			\textbf{ALMA MATER STUDIORUM -- UNIVERSITÀ DI BOLOGNA \\ CAMPUS DI CESENA} \\
 			\noindent\hrulefill
 			\vspace{0.4cm}
 			
@@ -36,29 +35,25 @@ sorting=ynt
 			\Huge
 			\vspace{4cm}
 			\textbf{
-				Implementazione CUDA
-				\\
+				Implementazione CUDA \\
 				dell'algoritmo di Bellman-Ford
 			}
 			
 			\large
 			\vspace{1cm}
-			Tesi di laurea in 
-			\\
+			Tesi di laurea in \\
 			\textsc{High-Performance Computing}
 			
 			\vspace{5.5cm}
 			\begin{minipage}[t]{0.64\textwidth}
 				\begin{flushleft}
-					\textit{Relatore} 
-					\\ 
+					\textit{Relatore} \\ 
 					\textbf{Prof.} \textbf{Moreno Marzolla}
 				\end{flushleft}
 			\end{minipage}
 			\begin{minipage}[t]{0.34\textwidth}
 				\begin{flushright}
-					\textit{Candidato} 
-					\\ 
+					\textit{Candidato} \\ 
 					\textbf{Filippo Barbari}
 				\end{flushright}
 			\end{minipage}\\
@@ -68,8 +63,7 @@ sorting=ynt
 			\vspace{0.3cm}
 			\Large
 			
-			Seconda Sessione di Laurea
-			\\
+			Seconda Sessione di Laurea \\
 			Anno Accademico 2020-2021
 		\end{center}
 	\end{titlepage}
@@ -89,16 +83,34 @@ sorting=ynt
 	\newpage
 	
 	\section{Introduzione}
-	L'obiettivo di questa tesi consiste nell'implementazione in linguaggio CUDA dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem.
+	L'obiettivo di questa tesi consiste nel trovare l'implementazione più efficiente, in linguaggio CUDA, dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem (SSSP). Allo scopo di svolgere un'analisi e una ricerca quanto più complete possibili, in questa tesi misuriamo le prestazioni di varie implementazioni utilizzando vari tipi di test su 3 macchine diverse. L'algoritmo di Bellman-Ford è stato uno dei primi ad essere proposto come soluzione del SSSP problem e, nonostante le varie ottimizzazioni che ha ricevuto, oggigiorno non è più molto utilizzato a causa di altri algoritmi più recenti ed efficienti. Tuttavia, è probabilmente l'algoritmo che meglio si presta alla parallelizzazione massiva offerta dal linguaggio CUDA.
 	
-	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano (?) un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perchè. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nel repository. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle misure più comuni che è possibile misurare su GPU (speedup rispetto alla versione seriale e throughput) e si discuteranno.
+	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perchè. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nel repository. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle misure più comuni che è possibile misurare su GPU (speedup rispetto alla versione seriale e throughput) e si discuteranno.
 	
 	\section{Calcolo parallelo}
 	\label{section:storia}
 	Qui si parla della storia del calcolo parallelo, perchè è necessario, perchè si sta sviluppando così tanto e perchè le GPU sono diventate cosi importanti.
 	
+	Negli anni '60, Gordon Moore, futuro fondatore e direttore esecutivo di Intel, ipotizzò che il numero di componenti elettronici (transistor) contenuti all'interno di un chip sarebbe raddoppiato ogni 18 mesi circa. Tale previsione si rivelò corretta per tutti gli anni '70 e i tempi si allungarono a partire dagli anni '80. Intorno agli anni 2000 si è giunti all'epilogo di questa crescita, infatti era evidente già un decennio prima che si sarebbero raggiunti presto i limiti fisici all'interno di un processore. Per questo motivo, la potenza di calcolo dei processori single-core è cresciuta sempre più lentamente fino ad arrestarsi e si è dovuti ricorrere alle architetture parallele. Raddoppiare il numero di cores fisici all'interno di un chip può, in certi casi, raddoppiare le prestazioni e ridurre allo stesso tempo il consumo di energia ma richiede uno sforzo maggiore da parte del programmatore per lo sviluppo di codice parallelo. A causa di questa difficoltà e anche a causa della scarsità di programmatori qualificati, il software parallelo è molto meno presente dell'hardware parallelo.
+	
+	Intorno al 2007, sono apparse sul mercato le prime General-Purpose Graphic Processing Unit (GPGPU), ovvero le prime schede grafiche programmabili in maniera generica. Queste hanno aperto una nuova era del calcolo parallelo, permettendo ai programmatori di sfruttare l'elevatissimo numero di cores fisici per computazioni estremamente parallelizzabili. La differenza principale, a livello hardware, tra una CPU multi-core e una GPGPU consiste nel numero di core quasi "centuplicato" a parità di prezzo. Questa abbondanza di risorse di calcolo ha cambiato anche il modo di strutturare i programmi paralleli. Le GPGPU hanno determinato un cambiamento così importante in ambito HPC che si può notare come, all'incirca dal 2010 in poi, tutti i nuovi super-computer costruiti possiedono un elevato numero di GPGPU affiancate alle CPU.
+	
 	\subsection{GPU e CUDA}
-	Qui si parla di cos'è CUDA e come funziona. Si parla anche della struttura della memoria di una GPU CUDA e di come funziona lo scheduling.
+	Qui si parla di cos'è CUDA e come funziona. Si parla anche della struttura della memoria di una GPU CUDA e di come funziona lo scheduling. Bisogna citare OpenCL?
+	
+	CUDA (acronimo di Compute Unified Device Architecture) è un'architettura hardware realizzata da NVIDIA, la cui prima versione è stata pubblicata nel 2007. Tramite CUDA è possibile scrivere programmi che saranno eseguiti su di una scheda grafica NVIDIA e su una CPU. CUDA basa tutto il suo funzionamento su alcuni concetti molto semplici: la CPU su cui viene lanciato il programma è chiamata \textit{host} e può interagire con una o più schede grafiche NVIDIA, chiamate \textit{device}. L'host può invocare alcune funzioni specifiche che vengono eseguite dal device, per questo motivo, ogni invocazione a queste funzioni è di fatto asincrona, ovvero il controllo viene restituito all'host subito, senza attendere il completamento della funzione invocata. Tuttavia, esistono alcune funzioni che permettono di sincronizzare esplicitamente l'host con un device. Le funzioni più importanti sono i \textit{kernel}, ovvero le funzioni che possono essere scritte dal programmatore per effettuare qualunque tipo di calcolo. I kernel, come le altre funzioni CUDA, sono invocati in maniera asincrona e, a differenza delle altre, richiedono due parametri obbligatori, ovvero il numero di blocchi e il numero di thread per blocco da utilizzare per eseguire quel kernel.
+	
+	CUDA raggruppa tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi (in genere da 1024) che a loro volta sono raggruppati in una griglia. Ogni device ha sempre e solo una griglia in esecuzione e ogni griglia esegue sempre e solo un singolo kernel. I blocchi all'interno della grigla sono indicizzabili con 1, 2 o 3 dimensioni e lo stesso vale per i thread all'interno di un blocco. La memoria di un device CUDA è suddivisa in vari livelli:
+	\begin{itemize}
+		\item la \textbf{memoria globale} è la memoria più voluminosa all'interno di un device (alcuni GB) ed è accessibile da tutti i thread di tutti i blocchi
+		\item la \textbf{memoria texture} è molto più piccola di quella globale (alcuni MB) ed è ottimizzata per contenere dati di texture, è accessibile da tutti i thread di tutti i blocchi
+		\item la \textbf{memoria delle costanti} è una memoria molto piccola (alcuni KB) e di sola lettura (da controllare), è accessibile da tutti i thread di tutti i blocchi
+		\item la \textbf{memoria shared} è una piccola memoria (alcuni MB) molto più veloce della memoria globale che però è accessibile solamente da thread all'interno dello stesso blocco
+		\item la \textbf{memoria locale} è la memoria "privata" di ogni thread e per questo motivo è accessibile solamente da un singolo thread
+	\end{itemize}
+	Aggiungere immagine struttura memoria in architettura CUDA
+	
+	Lo scheduling in una scheda CUDA funziona in modo particolare. Innanzitutto, va precisato che, nonostante il numero di cores fisici (Streaming Multiprocessors) vari in quasi ogni scheda, non è possibile scegliere quali e quanti utilizzare per l'esecuzione di una funzione kernel. Quando invochiamo un kernel, infatti, i thread che abbiamo richiesto vengono creati in memoria ma poi è l'hardware che sceglie la schedulazione migliore di questi thread sui SM a disposizione. Per questo motivo, si utilizza il concetto di \textit{thread warp}: un gruppo di thread (genericamente massimo 32) appartenenti allo stesso blocco che devono eseguire la stessa porzione di codice vengono schedulati tutti insieme sullo stesso SM ed eseguiti contemporaneamente. In caso di una biforcazione del flusso di controllo (ad esempio a causa di un \texttt{if-else}), viene verificata la condizione per tutti i thread, dopodichè vengono eseguiti tutti insieme solamente quelli che hanno verificato la condizione, poi vengono eseguiti tutti insieme tutti gli altri, poi l'esecuzione procede normalmente.
 	
 	\section{Teoria}
 	Qua si parla della teoria dei grafi.
@@ -268,8 +280,8 @@ sorting=ynt
 			\textbf{L2 cache} & 512 KB & 256 KB & 1,5 MB \\ \hline
 			\textbf{L3 cache} & 3 MB & 15 MB & 12 MB \\ \hline
 			\textbf{RAM totale} & 8 GB & 64 GB & 32 GB \\ \hline
-			\textbf{Frequenza RAM} & 2133 MHz & & 2133 MHz \\ \hline
-			\textbf{Tipologia RAM} & DDR4 & & DDR4 \\ \hline
+			\textbf{Frequenza RAM} & 2133 MHz & 2400 MHz & 2133 MHz \\ \hline
+			\textbf{Tipologia RAM} & DDR4 & DDR4 & DDR4 \\ \hline
 			\textbf{Nome GPU} & \textbf{GeForce 940MX} & \textbf{GeForce GTX 1070} & \textbf{GeForce RTX 2080} \\ \hline
 			\textbf{Versione CUDA Driver} & 11.4 & 10.1 & 11.4 \\ \hline
 			\textbf{Versione CUDA Runtime} & 11.1 & 8.0 & 11.1 \\ \hline
