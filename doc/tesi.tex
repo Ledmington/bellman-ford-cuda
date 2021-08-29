@@ -91,7 +91,7 @@ sorting=ynt
 	\section{Introduzione}
 	L'obiettivo di questa tesi consiste nell'implementazione in linguaggio CUDA dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem.
 	
-	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano (?) un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perchè. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nella repo. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle misure più comuni che è possibile misurare su GPU (throughput, bandwidth...?) e si discuteranno.
+	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano (?) un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perchè. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nel repository. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle misure più comuni che è possibile misurare su GPU (speedup rispetto alla versione seriale e throughput) e si discuteranno.
 	
 	\section{Calcolo parallelo}
 	\label{section:storia}
@@ -125,7 +125,7 @@ sorting=ynt
 	\section{Analisi}
 	\label{section:analisi}
 	\subsection{Algoritmo di Bellman-Ford}
-	Proposto per primo da Alfonso Shimbel nel 1955, ma è chiamato Bellman-Ford perchè Richard Bellman l'ha pubblicato nel 1958 e Lester Ford Jr. l'ha pubblicato nel 1956. Edward F. Moore ha pubblicato una sua variante nel 1959 (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
+	Proposto per primo da Alfonso Shimbel nel 1955\cite{Shimbel1955}, ma è chiamato Bellman-Ford perchè Richard Bellman l'ha pubblicato nel 1958\cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956\cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959\cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970\cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012\cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
 	
 	\begin{algorithm}[H]
 		\SetAlgorithmName{Bellman-Ford}{}{}
@@ -239,7 +239,7 @@ sorting=ynt
 	
 	Qui parlo del problema dell'overflow e della funzione atomicMin. Magari anche di come ho implementato le mutex nella versione \texttt{bf0-mutex}.
 	
-	Tutti gli algoritmi che utilizzano un buffer nella shared memory
+	Tutti gli algoritmi che utilizzano un buffer nella shared memory lo utilizzano per memorizzare i dati del "vettore \texttt{graph}" (invece del "vettore \texttt{distances}" oppure una soluzione ibrida) perchè si è rivelata la soluzione migliore e la più veloce a seguito di prove empiriche i cui risultati non sono riportati qui.
 	
 	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo. Lo stesso discorso vale per tutte le altre versioni implementate, si utilizza la shared memory su graph (o sui vettori nel caso di \texttt{soa}) perchè produce un throughput maggiore rispetto a quando la si usa sul vettore \texttt{distances}. Qui andrebbe scritto qualcosa del tipo "nonostante in teoria un buffering del vettore \texttt{distances} riduce maggiormente il numero di accessi alla memoria globale, nella pratica gli accessi estremamenti sparsi su tutto il vettore producono un risultato molto più lento della versione senza shared memory.
 	
@@ -258,30 +258,29 @@ sorting=ynt
 			\hline
 			& \textbf{Macchina A} & \textbf{Macchina B} & \textbf{Macchina C} \\ \hline
 			\textbf{Sistema Operativo} & Windows & Ubuntu & Windows \\ \hline
-			\textbf{Versione OS} & 10.0.19042.1165 & 16.04.7 & \\ \hline
-			\textbf{Versione NVCC} & & & \\ \hline
-			\textbf{Versione GCC/CL} & & & \\ \hline
-			\textbf{Nome CPU} & Intel Core i5-7200U & Intel Xeon E5-2603 v4 & \\ \hline
-			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz & 1,2 - 1,7 GHz & \\ \hline
-			\textbf{Core fisici} & 2 & 6 & \\ \hline
-			\textbf{Hyper-Threading} & si & no & \\ \hline
-			\textbf{L1 cache} & 128 KB & 32 KB & \\ \hline
-			\textbf{L2 cache} & 512 KB & 256 KB & \\ \hline
-			\textbf{L3 cache} & 3 MB & 15 MB & \\ \hline
+			\textbf{Versione SO} & 10.0.19042.1165 & 16.04.7 & 10.0.19043.1165 \\ \hline
+			\textbf{Versione Compilatore C} & CL 19.29.30133 & GCC 5.4.0 & CL 19.29.30040 \\ \hline
+			\textbf{Nome CPU} & Intel Core i5-7200U & Intel Xeon E5-2603 v4 & Intel Core i7-8700 \\ \hline
+			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz & 1,2 - 1,7 GHz & 3,2 GHz \\ \hline
+			\textbf{Cores fisici} & 2 & 6 & 6 \\ \hline
+			\textbf{Hyper-Threading} & si & no & si \\ \hline
+			\textbf{L1 cache} & 128 KB & 32 KB & 384 KB \\ \hline
+			\textbf{L2 cache} & 512 KB & 256 KB & 1,5 MB \\ \hline
+			\textbf{L3 cache} & 3 MB & 15 MB & 12 MB \\ \hline
 			\textbf{RAM totale} & 8 GB & 64 GB & 32 GB \\ \hline
-			\textbf{Frequenza RAM} & 2133 MHz & & \\ \hline
+			\textbf{Frequenza RAM} & 2133 MHz & & 2133 MHz \\ \hline
 			\textbf{Tipologia RAM} & DDR4 & & DDR4 \\ \hline
 			\textbf{Nome GPU} & \textbf{GeForce 940MX} & \textbf{GeForce GTX 1070} & \textbf{GeForce RTX 2080} \\ \hline
-			\textbf{CUDA Driver Version} & 11.4 & 10.1 & 11.4 \\ \hline
-			\textbf{CUDA Runtime Version} & 11.1 & 8.0 & 11.1 \\ \hline
-			\textbf{CUDA capability} & 5.0 & 6.1 & 7.5 \\ \hline
-			\textbf{Architettura} & Maxwell & Pascal & Turing \\ \hline
-			\textbf{Memoria globale} & 2 GB & 8 GB & 8 GB \\ \hline
-			\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
+			\textbf{Versione CUDA Driver} & 11.4 & 10.1 & 11.4 \\ \hline
+			\textbf{Versione CUDA Runtime} & 11.1 & 8.0 & 11.1 \\ \hline
+			\textbf{CUDA compute capability} & 5.0 & 6.1 & 7.5 \\ \hline
+			\textbf{Architettura GPU} & Maxwell & Pascal & Turing \\ \hline
+			\textbf{Memoria globale GPU} & 2 GB & 8 GB & 8 GB \\ \hline
+			\textbf{Tipologia Memoria GPU} & GDDR5 & GDDR5 & GDDR6 \\ \hline
 			\textbf{Frequenza Memoria} & 2505 MHz & 4004 MHz & 7000 MHz \\ \hline
-			\textbf{Memory Bus} & 64 bit & 256 bit & 256 bit \\ \hline
+			\textbf{Ampiezza Bus GPU} & 64 bit & 256 bit & 256 bit \\ \hline
 			\textbf{Streaming Multiprocessors} & 3 & 15 & 46 \\ \hline
-			\textbf{Total CUDA Cores} & 384 & 1920 & 2944 \\ \hline
+			\textbf{CUDA cores totali} & 384 & 1920 & 2944 \\ \hline
 			\textbf{Frequenza Cores} & 1189 MHz & 1797 MHz & 1860 MHz \\ \hline
 		\end{tabular}
 		\label{tab:specs}
@@ -342,7 +341,7 @@ sorting=ynt
 		\centering
 		\begin{tabular}{|l|c|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
 			\texttt{bf0-none-aos-nosh}  &  &  &  \\ \hline
 			\texttt{bf0-none-aos-sh}    &  &  &  \\ \hline
 			\texttt{bf0-none-soa-nosh}  &  &  &  \\ \hline
@@ -354,6 +353,34 @@ sorting=ynt
 		\end{tabular}
 		\label{tab:speedup_bf0}
 		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf0}}
+	\end{table}
+
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|}
+			\hline
+			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			\texttt{bf1-aos-nosh}  &  &  &  \\ \hline
+			\texttt{bf1-aos-sh}    &  &  &  \\ \hline
+			\texttt{bf1-soa-nosh}  &  &  &  \\ \hline
+			\texttt{bf1-soa-sh}    &  &  &  \\ \hline
+		\end{tabular}
+		\label{tab:speedup_bf1}
+		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf1}}
+	\end{table}
+
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|}
+			\hline
+			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			\texttt{bf2-aos-nosh}  &  &  &  \\ \hline
+			\texttt{bf2-aos-sh}    &  &  &  \\ \hline
+			\texttt{bf2-soa-nosh}  &  &  &  \\ \hline
+			\texttt{bf2-soa-sh}    & N/A & N/A & N/A \\ \hline
+		\end{tabular}
+		\label{tab:speedup_bf2}
+		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf2}}
 	\end{table}
 	
 	\subsection{Throughput}
@@ -374,6 +401,34 @@ sorting=ynt
 		\end{tabular}
 		\label{tab:throughput_bf0}
 		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf0}}
+	\end{table}
+
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|}
+			\hline
+			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			\texttt{bf1-aos-nosh}  &  &  &  \\ \hline
+			\texttt{bf1-aos-sh}    &  &  &  \\ \hline
+			\texttt{bf1-soa-nosh}  &  &  &  \\ \hline
+			\texttt{bf1-soa-sh}    &  &  &  \\ \hline
+		\end{tabular}
+		\label{tab:throughput_bf1}
+		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf1}}
+	\end{table}
+	
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|l|c|c|c|}
+			\hline
+			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			\texttt{bf2-aos-nosh}  &  &  &  \\ \hline
+			\texttt{bf2-aos-sh}    &  &  &  \\ \hline
+			\texttt{bf2-soa-nosh}  &  &  &  \\ \hline
+			\texttt{bf2-soa-sh}    & N/A & N/A & N/A \\ \hline
+		\end{tabular}
+		\label{tab:throughput_bf2}
+		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf2}}
 	\end{table}
 	
 	
