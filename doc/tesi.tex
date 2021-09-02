@@ -6,12 +6,19 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
 \usepackage{csquotes}
+
 \usepackage[
 backend=biber,
 style=alphabetic,
 sorting=ynt
 ]{biblatex}
-\usepackage[linesnumbered, ruled, titlenotnumbered]{algorithm2e}
+
+\usepackage[
+linesnumbered,
+ruled,
+titlenotnumbered,
+italiano
+]{algorithm2e}
 
 \addbibresource{tesi.bib}
 
@@ -113,11 +120,21 @@ sorting=ynt
 	Lo scheduling in una scheda CUDA funziona in modo particolare. Innanzitutto, va precisato che, nonostante il numero di cores fisici (Streaming Multiprocessors) vari in quasi ogni scheda, non è possibile scegliere quali e quanti utilizzare per l'esecuzione di una funzione kernel. Quando invochiamo un kernel, infatti, i thread che abbiamo richiesto vengono creati in memoria ma poi è l'hardware che sceglie la schedulazione migliore di questi thread sui SM a disposizione. Per questo motivo, si utilizza il concetto di \textit{thread warp}: un gruppo di thread (genericamente massimo 32) appartenenti allo stesso blocco che devono eseguire la stessa porzione di codice vengono schedulati tutti insieme sullo stesso SM ed eseguiti contemporaneamente. In caso di una biforcazione del flusso di controllo (ad esempio a causa di un \texttt{if-else}), viene verificata la condizione per tutti i thread, dopodichè vengono eseguiti tutti insieme solamente quelli che hanno verificato la condizione, poi vengono eseguiti tutti insieme tutti gli altri, poi l'esecuzione procede normalmente.
 	
 	\section{Teoria}
-	Qua si parla della teoria dei grafi.
-	\subsection{Notazione}
-	Serve?
-	\subsection{Grafi e grafi planari}
+	
+	\subsection{Grafi}
 	Che cos'è un grafo, da cosa è composto e che cos'è un grafo planare.
+	
+	Un grafo $G$ è genericamente indicato come una coppia ordinata di insiemi $(V,E)$ in cui $V$ rappresenta l'insieme dei nodi e $E$ l'insieme degli archi. Ogni elemento di $E$ è una coppia di elementi di $V$ da cui segue che $E \subseteq V \times V$. Una prima classificazione dei grafi consiste nel peso degli archi: un grafo si dice \textbf{non pesato} se i suoi archi hanno lo stesso peso (o, per semplicità, non hanno peso), altrimenti si definisce \textbf{pesato}. Un'ulteriore classificazione dei grafi consiste nella simmetria degli archi: se ogni arco è simmetrico si dice che il grafo è \textbf{non orientato} (o indiretto), altrimenti si dice \textbf{orientato} (o diretto). Più formalmente, se $w:E \rightarrow \Re$ è una funzione che restituisce il peso di un arco, allora un arco $(u,v)$ è simmetrico se e solo se:
+	\begin{itemize}
+		\item $(u,v) \in E$ e $(v,u) \in E$
+		\item $w(u,v) = w(v,u)$
+	\end{itemize}
+	Se il grafo non è orientato, in genere si considera $E$ semplicemente come un insieme di coppie non ordinate di nodi in cui $(u,v)$ e $(v,u)$ rappresentano lo stesso arco.
+	Inoltre, è possibile considerare anche i cosiddetti "cappi" o "auto-anelli", ovvero archi della forma $(u,u)$. Se un grafo non possiede auto-anelli, allora si definisce \textbf{grafo semplice}. In un grafo semplice il numero massimo possibile di archi è pari a $|V|\cdot (|V|-1)$, invece in un grafo non semplice corrisponde a $|V|^2$. Se il grafo è non orientato, il numero massimo di archi va diviso per 2. Se un grafo possiede esattamente il numero massimo di archi si dice \textbf{completo}.
+	Una metrica molto utilizzata è la \textbf{densità} di un grafo, che si calcola come il rapporto tra il numero di archi e il numero massimo possibile di archi. Se un grafo ha "pochi" archi, dove per pochi si intende che il numero di archi è comparabile o inferiore al numero di nodi, si dice \textbf{sparso}, altrimenti si dice \textbf{denso}.
+	
+	Un grafo si dice planare se è possibile rappesentarlo su di un piano senza che nessuno dei suoi archi si intersechi con altri archi. Più formalmente, si utilizza la \textbf{caratteristica di Eulero}, ovvero se un grafo è planare allora vale la relazione $v-e+f=2$ in cui $v$ è il numero di nodi, $e$ è il numero di archi e $f$ è il numero di facce.
+	
 	\subsection{Cammini minimi e problema SSSP}
 	Che cos'è un cammino minimo, la proprietà della disuguaglianza triangolare, la proprietà della sottostruttura minima e i problemi SSSP e APSP.
 	
@@ -137,7 +154,9 @@ sorting=ynt
 	\section{Analisi}
 	\label{section:analisi}
 	\subsection{Algoritmo di Bellman-Ford}
-	Proposto per primo da Alfonso Shimbel nel 1955\cite{Shimbel1955}, ma è chiamato Bellman-Ford perchè Richard Bellman l'ha pubblicato nel 1958\cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956\cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959\cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970\cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012\cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
+	Proposto per primo da Alfonso Shimbel nel 1955 \cite{Shimbel1955}, ma è chiamato Bellman-Ford perchè Richard Bellman l'ha pubblicato nel 1958 \cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956 \cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 \cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
+	
+	Riesce a trovare i cicli negativi all'interno di un grafo.
 	
 	\begin{algorithm}[H]
 		\SetAlgorithmName{Bellman-Ford}{}{}
@@ -389,7 +408,6 @@ sorting=ynt
 			\texttt{bf2-aos-nosh}  &  &  &  \\ \hline
 			\texttt{bf2-aos-sh}    &  &  &  \\ \hline
 			\texttt{bf2-soa-nosh}  &  &  &  \\ \hline
-			\texttt{bf2-soa-sh}    & N/A & N/A & N/A \\ \hline
 		\end{tabular}
 		\label{tab:speedup_bf2}
 		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf2}}
@@ -437,7 +455,6 @@ sorting=ynt
 			\texttt{bf2-aos-nosh}  &  &  &  \\ \hline
 			\texttt{bf2-aos-sh}    &  &  &  \\ \hline
 			\texttt{bf2-soa-nosh}  &  &  &  \\ \hline
-			\texttt{bf2-soa-sh}    & N/A & N/A & N/A \\ \hline
 		\end{tabular}
 		\label{tab:throughput_bf2}
 		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf2}}
