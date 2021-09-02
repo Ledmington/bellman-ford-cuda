@@ -120,10 +120,7 @@ italiano
 	Lo scheduling in una scheda CUDA funziona in modo particolare. Innanzitutto, va precisato che, nonostante il numero di cores fisici (Streaming Multiprocessors) vari in quasi ogni scheda, non è possibile scegliere quali e quanti utilizzare per l'esecuzione di una funzione kernel. Quando invochiamo un kernel, infatti, i thread che abbiamo richiesto vengono creati in memoria ma poi è l'hardware che sceglie la schedulazione migliore di questi thread sui SM a disposizione. Per questo motivo, si utilizza il concetto di \textit{thread warp}: un gruppo di thread (genericamente massimo 32) appartenenti allo stesso blocco che devono eseguire la stessa porzione di codice vengono schedulati tutti insieme sullo stesso SM ed eseguiti contemporaneamente. In caso di una biforcazione del flusso di controllo (ad esempio a causa di un \texttt{if-else}), viene verificata la condizione per tutti i thread, dopodichè vengono eseguiti tutti insieme solamente quelli che hanno verificato la condizione, poi vengono eseguiti tutti insieme tutti gli altri, poi l'esecuzione procede normalmente.
 	
 	\section{Teoria}
-	
 	\subsection{Grafi}
-	Che cos'è un grafo, da cosa è composto e che cos'è un grafo planare.
-	
 	Un grafo $G$ è genericamente indicato come una coppia ordinata di insiemi $(V,E)$ in cui $V$ rappresenta l'insieme dei nodi e $E$ l'insieme degli archi. Ogni elemento di $E$ è una coppia di elementi di $V$ da cui segue che $E \subseteq V \times V$. Una prima classificazione dei grafi consiste nel peso degli archi: un grafo si dice \textbf{non pesato} se i suoi archi hanno lo stesso peso (o, per semplicità, non hanno peso), altrimenti si definisce \textbf{pesato}. Un'ulteriore classificazione dei grafi consiste nella simmetria degli archi: se ogni arco è simmetrico si dice che il grafo è \textbf{non orientato} (o indiretto), altrimenti si dice \textbf{orientato} (o diretto). Più formalmente, se $w:E \rightarrow \Re$ è una funzione che restituisce il peso di un arco, allora un arco $(u,v)$ è simmetrico se e solo se:
 	\begin{itemize}
 		\item $(u,v) \in E$ e $(v,u) \in E$
@@ -136,14 +133,22 @@ italiano
 	Un grafo si dice planare se è possibile rappesentarlo su di un piano senza che nessuno dei suoi archi si intersechi con altri archi. Più formalmente, si utilizza la \textbf{caratteristica di Eulero}, ovvero se un grafo è planare allora vale la relazione $v-e+f=2$ in cui $v$ è il numero di nodi, $e$ è il numero di archi e $f$ è il numero di facce.
 	
 	\subsection{Cammini minimi e problema SSSP}
-	Che cos'è un cammino minimo, la proprietà della disuguaglianza triangolare, la proprietà della sottostruttura minima e i problemi SSSP e APSP.
+	In un grafo, un qualunque percorso che congiunge due nodi è detto \textbf{cammino} ed è rappresentabile come una lista ordinata di nodi. \'E importante notare la possibilità che uno stesso nodo sia presente più volte all'interno dello stesso cammino, quando ciò accade si parla di \textbf{cicli} (che approfondiremo di seguito). Il primo e l'ultimo nodo di questa lista ordinata sono chiamati rispettivamente \textbf{nodo sorgente} e \textbf{nodo destinazione}. In un grafo non pesato, il costo (o peso) di un cammino è pari al numero di nodi nella lista mentre in un grafo pesato è pari alla somma dei pesi degli archi coinvolti. Un cammino è detto \textbf{minimo} se non esiste un altro cammino nello stesso grafo, con uguali nodi sorgente e destinazione, con costo strettamente minore. Nello stesso grafo, a parità di nodi sorgente e destinazione, possono esistere numerosi cammini minimi diversi tra loro.
+	
+	Un ciclo consiste in un sottoinsieme $C$ di nodi di un grafo $G=(V,E)$ tali che $\forall u,v \in C, (u,v) \in E$. Un albero, ad esempio, è un tipo particolare di grafo che non presenta cicli. Il costo (o peso) di un ciclo è pari alla somma dei pesi degli archi tra i nodi da cui è composto (nei grafi non pesati, invece, è pari al numero di nodi). \'E possibile che in un grafo pesato siano presenti archi di costo negativo: sebbene siano poche le situazioni reali modellabili in questo modo, è molto importante determinare la presenza di cicli di costo negativo. Se in un grafo è presente un ciclo di costo negativo, allora ogni cammino minimo (in cui è possibile raggiungere tale ciclo dal nodo sorgente) avrà costo $-\infty$. Ai fini computazionali, non riuscire ad individuare un ciclo di costo negativo può determinare lo spreco di molte risorse di calcolo e di tempo eseguendo un algoritmo che produce un risultato inutile. Per questo motivo, in genere si utilizzano solamente grafi con pesi strettamente positivi.
+	
+	Un cammino minimo rispetta la cosiddetta \textbf{proprietà della sottostruttura ottima} (aggiungere immagine d'esempio), ovvero separando un cammino minimo in qualunque suo punto si ottengono due cammini minimi. Più formalmente, se abbiamo un cammino minimo $C$ dal nodo $u$ al nodo $v$ in cui è incluso anche il nodo $t$, allora sappiamo che tutti i nodi in $C$ da $u$ a $t$ costituiscono un cammino minimo e anche tutti i nodi in $C$ tra $t$ e $v$. (ci vuole una dimostrazione?)
+	
+	Una proprietà importante di un grafo è la \textbf{disuguaglianza triangolare} (aggiungere immagine). In un triangolo non degenere (ovvero i cui tre vertici non sono allineati) la somma delle lunghezze di due lati è sempre strettamente maggiore della lunghezza del terzo lato. Posta in maniera più semplice, dati tre punti nello spazio $x$, $y$ e $z$, la distanza tra $x$ e $y$ è minore o uguale alla somma delle distanze tra $x$ e $z$ e tra $z$ e $y$. Questa proprietà risulterà molto importante nella spiegazione della procedura RELAX\ref{alg:relax}.
+	
+	Dei tanti problemi che si possono applicare ad un grafo, il più studiato (su cui si concentra questa tesi) è senz'altro il Single-Source Shortest Path (abbreviato SSSP). Esso consiste, dato un grafo $G=(V,E)$ e un nodo sorgente $s$, nel trovare tutti i cammini minimi in $G$ che partono da $s$ e terminano in ogni altro nodo. Letteralmente significa "cammino minimo a singola sorgente", per differenziarlo dalla sua generalizzazione, l'All-Pairs Shortest Path (APSP) che invece chiede di trovare il cammino minimo per ogni coppia di vertici.
 	
 	\section{Metriche di valutazione}
 	\label{section:metriche}
-	Qui si parla delle metriche di valutazione adottate in questo progetto, si spiega che cosa misurano e cosa significano.
-	
 	\subsection{Speedup}
 	Perchè è molto importante e perchè non ha senso misurarlo sulle applicazioni CUDA? Noi lo misureremo lo stesso ma solo rispetto alla versione seriale su CPU.
+	
+	Lo speedup è la principale metrica di misurazione di un programma parallelo. Essa, infatti, rappresenta l'accelerazione che il programma ha ricevuto tramite la parallelizzazione.
 	
 	\subsection{Throughput}
 	\'E una metrica molto meglio rappresentativa delle prestazioni di un'applicazione CUDA perchè rappresenta il numero medio di "elementi" processati in un secondo o in un certo intervallo di tempo.
@@ -159,6 +164,7 @@ italiano
 	Riesce a trovare i cicli negativi all'interno di un grafo.
 	
 	\begin{algorithm}[H]
+		\label{alg:bf}
 		\SetAlgorithmName{Bellman-Ford}{}{}
 		\KwIn{G, w, s}
 		\KwResult{FALSE se il grafo G contiene cicli di costo negativo, FALSE altrimenti}
@@ -178,6 +184,7 @@ italiano
 	\end{algorithm}
 
 	\begin{algorithm}[H]
+		\label{alg:init}
 		\SetAlgorithmName{Initialize-Single-Source}{}{}
 		\KwIn{G, s}
 		\ForEach{vertex v $\in$ G.V}{
@@ -189,6 +196,7 @@ italiano
 	\end{algorithm}
 
 	\begin{algorithm}[H]
+		\label{alg:relax}
 		\SetAlgorithmName{Relax}{}{}
 		\KwIn{u, v, w}
 		\If{v.d > u.d + w(u,v)}{
@@ -323,7 +331,7 @@ italiano
 		\centering
 		\begin{tabular}{|c|c|c|}
 			\hline
-			\textbf{Nome test} & \textbf{Wall Clock Time [s]} & \textbf{Throughput [$10^6$ relax/s]} \\ \hline
+			\textbf{Nome test} & \textbf{Wall Clock Time [s]} & \textbf{Throughput [$10^6$ relax/s]\ref{foot:relax}} \\ \hline
 			       rome & 0,38 & 78 \\ \hline
 			        DE & 81,45 & 75 \\ \hline
 			        VT & 217,06 & 95,8 \\ \hline
@@ -337,6 +345,7 @@ italiano
 		\label{tab:performance_serial}
 		\caption{Prestazioni dell'algoritmo seriale su CPU (sulla "macchina A")}
 	\end{table}
+	\footnote{\label{foot:relax} numero di rilassamenti effettuati al secondo}
 
 	\subsection{Descrizione dei test}
 	Qui parlo di come sono strutturati i file di test e cosa rappresentano.
