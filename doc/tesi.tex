@@ -141,20 +141,33 @@ italiano
 	
 	Una proprietà importante di un grafo è la \textbf{disuguaglianza triangolare} (aggiungere immagine). In un triangolo non degenere (ovvero i cui tre vertici non sono allineati) la somma delle lunghezze di due lati è sempre strettamente maggiore della lunghezza del terzo lato. Posta in maniera più semplice, dati tre punti nello spazio $x$, $y$ e $z$, la distanza tra $x$ e $y$ è minore o uguale alla somma delle distanze tra $x$ e $z$ e tra $z$ e $y$. Questa proprietà risulterà molto importante nella spiegazione della procedura RELAX\ref{alg:relax}.
 	
-	Dei tanti problemi che si possono applicare ad un grafo, il più studiato (su cui si concentra questa tesi) è senz'altro il Single-Source Shortest Path (abbreviato SSSP). Esso consiste, dato un grafo $G=(V,E)$ e un nodo sorgente $s$, nel trovare tutti i cammini minimi in $G$ che partono da $s$ e terminano in ogni altro nodo. Letteralmente significa "cammino minimo a singola sorgente", per differenziarlo dalla sua generalizzazione, l'All-Pairs Shortest Path (APSP) che invece chiede di trovare il cammino minimo per ogni coppia di vertici.
+	Dei tanti problemi che si possono applicare ad un grafo, il più studiato (su cui si concentra questa tesi) è senz'altro il Single-Source Shortest Path (abbreviato SSSP). Esso consiste, dato un grafo $G=(V,E)$ e un nodo sorgente $s$, nel trovare tutti i cammini minimi in $G$ che partono da $s$ e terminano in ogni altro nodo. Letteralmente significa "cammino minimo a singola sorgente", per differenziarlo dalla sua generalizzazione, l'All-Pairs Shortest Path (APSP) che invece chiede di trovare il cammino minimo per ogni coppia di vertici. Il risultato del SSSP consiste in un array di distanze dal nodo sorgente e in un array di predecessori tramite cui è possibile costruire l'albero dei cammini minimi.
 	
 	\section{Metriche di valutazione}
 	\label{section:metriche}
 	\subsection{Speedup}
 	Perchè è molto importante e perchè non ha senso misurarlo sulle applicazioni CUDA? Noi lo misureremo lo stesso ma solo rispetto alla versione seriale su CPU.
 	
-	Lo speedup è la principale metrica di misurazione di un programma parallelo. Essa, infatti, rappresenta l'accelerazione che il programma ha ricevuto tramite la parallelizzazione.
+	Lo speedup è la principale metrica di misurazione di un programma parallelo. Essa, infatti, rappresenta l'accelerazione che un dato programma ha ricevuto tramite la parallelizzazione. In particolare, lo speedup di un programma parallelizzato su $p$ cores si calcola come:
+	\begin{equation}
+		S(p) = \frac{T_s}{T(p)}
+		\label{eq:speedup}
+	\end{equation}
+	in cui $T_s$ rappresenta il tempo di esecuzione del programma seriale (la "versione originale") e $T(p)$ rappresenta il tempo di esecuzione del programma parallelo utilizzando $p$ cores.
+	
+	In generale, $S(p) < p$. Idealmente, si vorrebbe mantenere uno \textbf{speedup lineare} nel proprio programma, ovvero $S(p) = p$ indipendentemente dal numero di processori utilizzati. Anche se può sembrare controintuitivo, raddoppiando il numero di processori utilizzati non si ottiene quasi mai un dimezzamento perfetto del tempo di esecuzione; ciò è dovuto all'aumentare dei tempi per la sincronizzazione e la comunicazione, oltre all'\textit{overhead} per l'allocazione della memoria necessaria. Nonostante questo, esistono alcuni rari casi in cui è possibile misurare nella realtà uno \textbf{speedup superlineare}, ovvero $S(p) > p$. In questi casi, la misurazione indica che raddoppiando il numero di processori il tempo di esecuzione si è più che dimezzato. Questo fenomeno, più unico che raro, è dovuto nella maggior parte dei casi alle elevate velocità e dimensioni delle cache integrate all'interno dei processori utilizzati.
+	
+	Aggiungere legge di Amdahl?
+	
+	Come è possibile notare dalla formula \ref{eq:speedup}, lo speedup di un programma parallelo si osserva misurando il tempo di esecuzione man mano che si aumenta il numero di processori utilizzati. In questo modo, si osserva "quanto peggiora lo speedup" aumentando il numero di processori utilizzati. Tuttavia, questo non è possibile con un programma CUDA perchè il programmatore non ha potere decisionale sul numero di cores fisici da utilizzare nè sulla schedulazione dei thread logici: l'unico aspetto della computazione che può controllare è la dimensione della \textit{grid} (intesa come numero di blocchi e numero di thread per ciascun blocco). Per questo motivo, in genere non ha senso misurare lo speedup di un'applicazione parallela su CUDA semplicemente aumentando il numero di thread. Tuttavia, in questa tesi misuriamo un singolo valore di accelerazione per ogni algoritmo per meglio confrontare le varie versioni.
 	
 	\subsection{Throughput}
-	\'E una metrica molto meglio rappresentativa delle prestazioni di un'applicazione CUDA perchè rappresenta il numero medio di "elementi" processati in un secondo o in un certo intervallo di tempo.
+	Il throughput (o produttività) è una metrica molto più rappresentativa delle prestazioni di un'applicazione CUDA per i motivi citati nella sezione precedente. Esso consiste nel numero di "elementi" processati in un secondo, oppure di "unità di lavoro" eseguite nello stesso tempo. Cosa si intenda per unità di lavoro, però, dipende dal problema, dal tipo di dati in input e dall'implementazione di un certo algoritmo. Ad esempio, per un'applicazione che applica filtri di colore ad un'immagine il throughput può essere misurati come numero di pixel modificati al secondo. Un altro esempio può essere un'algoritmo che cerca la mossa migliore in una partita di scacchi per il quale la produttività si può misurare come il numero di stati della scacchiera analizzati ogni secondo. Nel nostro caso, il throughput è misurato come il numero di rilassamenti di un arco effettuati ogni secondo.
+	
+	Ogni algoritmo ha un limite massimo di throughput che è possibile raggiungere solamente aumentando le dimensioni dei dati di input. In altre parole, è necessario fornire sufficienti dati all'algoritmo per farlo "andare a regime" (da cambiare assolutamente).
 	
 	\subsection{Intensità aritmetica}
-	\'E una metrica per confrontare due implementazioni diverse dello stesso algoritmo. Si calcola come il rapporto tra il numero di byte coinvolti in tutti i calcoli e il numero di byte necessario per la memoria. Il valore ottenuto rappresenta "quanto l'implementazione X di un algoritmo sia computation-based o memory-based". Noi la utilizzeremo per spiegare meglio i valori ottenuti dalle misurazioni di speedup e throughput delle varie versioni dell'algoritmo.
+	L'intensità aritmetica (o intensità operativa) è una metrica per confrontare due implementazioni diverse dello stesso algoritmo. Si calcola come il rapporto tra il numero di operazioni necessarie a terminare una certa unità di lavoro e il numero di byte necessari per la memoria. Il valore ottenuto rappresenta "quanto l'implementazione X di un algoritmo sia computation-based o memory-based". Noi la utilizzeremo per spiegare meglio i valori ottenuti dalle misurazioni di speedup e throughput delle varie versioni dell'algoritmo.
 	
 	\section{Analisi}
 	\label{section:analisi}
