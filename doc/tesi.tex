@@ -128,11 +128,12 @@ italiano
 	\end{itemize}
 	Se il grafo non è orientato, in genere si considera $E$ semplicemente come un insieme di coppie non ordinate di nodi in cui $(u,v)$ e $(v,u)$ rappresentano lo stesso arco.
 	Inoltre, è possibile considerare anche i cosiddetti "cappi" o "auto-anelli", ovvero archi della forma $(u,u)$. Se un grafo non possiede auto-anelli, allora si definisce \textbf{grafo semplice}. In un grafo semplice il numero massimo possibile di archi è pari a $|V|\cdot (|V|-1)$, invece in un grafo non semplice corrisponde a $|V|^2$. Se il grafo è non orientato, il numero massimo di archi va diviso per 2. Se un grafo possiede esattamente il numero massimo di archi si dice \textbf{completo}.
-	Una metrica molto utilizzata è la \textbf{densità} di un grafo, che si calcola come il rapporto tra il numero di archi e il numero massimo possibile di archi. Se un grafo ha "pochi" archi, dove per pochi si intende che il numero di archi è comparabile o inferiore al numero di nodi, si dice \textbf{sparso}, altrimenti si dice \textbf{denso}.
+	Una metrica molto utilizzata è la \textbf{densità} di un grafo, che si calcola come il rapporto tra il numero di archi e il numero massimo possibile di archi. Se un grafo ha "pochi" archi, dove per pochi si intende che il numero di archi è comparabile o inferiore al numero di nodi, si dice \textbf{sparso}, altrimenti si dice \textbf{denso}. Gli archi diretti $(u,v)$ si dicono uscenti per il nodo $u$ ed entranti per il nodo $v$. Se un nodo non ha archi nè entranti nè uscenti, si dice \textbf{isolato}.
 	
 	Un grafo si dice planare se è possibile rappesentarlo su di un piano senza che nessuno dei suoi archi si intersechi con altri archi. Più formalmente, si utilizza la \textbf{caratteristica di Eulero}, ovvero se un grafo è planare allora vale la relazione $v-e+f=2$ in cui $v$ è il numero di nodi, $e$ è il numero di archi e $f$ è il numero di facce.
 	
 	\subsection{Cammini minimi e problema SSSP}
+	\label{section:sssp}
 	In un grafo, un qualunque percorso che congiunge due nodi è detto \textbf{cammino} ed è rappresentabile come una lista ordinata di nodi. \'E importante notare la possibilità che uno stesso nodo sia presente più volte all'interno dello stesso cammino, quando ciò accade si parla di \textbf{cicli} (che approfondiremo di seguito). Il primo e l'ultimo nodo di questa lista ordinata sono chiamati rispettivamente \textbf{nodo sorgente} e \textbf{nodo destinazione}. In un grafo non pesato, il costo (o peso) di un cammino è pari al numero di nodi nella lista mentre in un grafo pesato è pari alla somma dei pesi degli archi coinvolti. Un cammino è detto \textbf{minimo} se non esiste un altro cammino nello stesso grafo, con uguali nodi sorgente e destinazione, con costo strettamente minore. Nello stesso grafo, a parità di nodi sorgente e destinazione, possono esistere numerosi cammini minimi diversi tra loro.
 	
 	Un ciclo consiste in un sottoinsieme $C$ di nodi di un grafo $G=(V,E)$ tali che $\forall u,v \in C, (u,v) \in E$. Un albero, ad esempio, è un tipo particolare di grafo che non presenta cicli. Il costo (o peso) di un ciclo è pari alla somma dei pesi degli archi tra i nodi da cui è composto (nei grafi non pesati, invece, è pari al numero di nodi). \'E possibile che in un grafo pesato siano presenti archi di costo negativo: sebbene siano poche le situazioni reali modellabili in questo modo, è molto importante determinare la presenza di cicli di costo negativo. Se in un grafo è presente un ciclo di costo negativo, allora ogni cammino minimo (in cui è possibile raggiungere tale ciclo dal nodo sorgente) avrà costo $-\infty$. Ai fini computazionali, non riuscire ad individuare un ciclo di costo negativo può determinare lo spreco di molte risorse di calcolo e di tempo eseguendo un algoritmo che produce un risultato inutile. Per questo motivo, in genere si utilizzano solamente grafi con pesi strettamente positivi.
@@ -157,8 +158,6 @@ italiano
 	
 	In generale, $S(p) < p$. Idealmente, si vorrebbe mantenere uno \textbf{speedup lineare} nel proprio programma, ovvero $S(p) = p$ indipendentemente dal numero di processori utilizzati. Anche se può sembrare controintuitivo, raddoppiando il numero di processori utilizzati non si ottiene quasi mai un dimezzamento perfetto del tempo di esecuzione; ciò è dovuto all'aumentare dei tempi per la sincronizzazione e la comunicazione, oltre all'\textit{overhead} per l'allocazione della memoria necessaria. Nonostante questo, esistono alcuni rari casi in cui è possibile misurare nella realtà uno \textbf{speedup superlineare}, ovvero $S(p) > p$. In questi casi, la misurazione indica che raddoppiando il numero di processori il tempo di esecuzione si è più che dimezzato. Questo fenomeno, più unico che raro, è dovuto nella maggior parte dei casi alle elevate velocità e dimensioni delle cache integrate all'interno dei processori utilizzati.
 	
-	Aggiungere legge di Amdahl?
-	
 	Come è possibile notare dalla formula \ref{eq:speedup}, lo speedup di un programma parallelo si osserva misurando il tempo di esecuzione man mano che si aumenta il numero di processori utilizzati. In questo modo, si osserva "quanto peggiora lo speedup" aumentando il numero di processori utilizzati. Tuttavia, questo non è possibile con un programma CUDA perchè il programmatore non ha potere decisionale sul numero di cores fisici da utilizzare nè sulla schedulazione dei thread logici: l'unico aspetto della computazione che può controllare è la dimensione della \textit{grid} (intesa come numero di blocchi e numero di thread per ciascun blocco). Per questo motivo, in genere non ha senso misurare lo speedup di un'applicazione parallela su CUDA semplicemente aumentando il numero di thread. Tuttavia, in questa tesi misuriamo un singolo valore di accelerazione per ogni algoritmo per meglio confrontare le varie versioni.
 	
 	\subsection{Throughput}
@@ -167,20 +166,21 @@ italiano
 	Ogni algoritmo ha un limite massimo di throughput che è possibile raggiungere solamente aumentando le dimensioni dei dati di input. In altre parole, è necessario fornire sufficienti dati all'algoritmo per farlo "andare a regime" (da cambiare assolutamente).
 	
 	\subsection{Intensità aritmetica}
-	L'intensità aritmetica (o intensità operativa) è una metrica per confrontare due implementazioni diverse dello stesso algoritmo. Si calcola come il rapporto tra il numero di operazioni necessarie a terminare una certa unità di lavoro e il numero di byte necessari per la memoria. Il valore ottenuto rappresenta "quanto l'implementazione X di un algoritmo sia computation-based o memory-based". Noi la utilizzeremo per spiegare meglio i valori ottenuti dalle misurazioni di speedup e throughput delle varie versioni dell'algoritmo.
+	L'intensità aritmetica (o intensità operativa) è una metrica per confrontare due implementazioni diverse dello stesso algoritmo. Si calcola come il rapporto tra il numero di operazioni necessarie a terminare una certa unità di lavoro e il numero di byte necessari per la memoria. Il valore ottenuto rappresenta "quanto è computation-based o memory-based" una certa implementazione di un algoritmo. Aggiungere esempio?
 	
-	\section{Analisi}
+	Noi la utilizzeremo per spiegare meglio i valori ottenuti dalle misurazioni di speedup e throughput delle varie versioni dell'algoritmo.
+	
+	\section{L'algoritmo di Bellman Ford}
 	\label{section:analisi}
-	\subsection{Algoritmo di Bellman-Ford}
 	Proposto per primo da Alfonso Shimbel nel 1955 \cite{Shimbel1955}, ma è chiamato Bellman-Ford perchè Richard Bellman l'ha pubblicato nel 1958 \cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956 \cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 \cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
 	
-	Riesce a trovare i cicli negativi all'interno di un grafo.
+	La versione che riportiamo di seguito e che andremo ad implementare è quella originale proposta prima da Lester Ford Jr. e poi da Richard Bellman.
 	
 	\begin{algorithm}[H]
 		\label{alg:bf}
 		\SetAlgorithmName{Bellman-Ford}{}{}
 		\KwIn{G, w, s}
-		\KwResult{FALSE se il grafo G contiene cicli di costo negativo, FALSE altrimenti}
+		\KwResult{FALSE se il grafo G contiene cicli di costo negativo, TRUE altrimenti}
 		Initialize-Single-Source(G,s)\;
 		\For{i=1 \textbf{to} |G.V| - 1}{
 			\ForEach{edge (u,v) $\in$ G.E}{
@@ -196,6 +196,14 @@ italiano
 		\caption{L'algoritmo di Bellman-Ford}
 	\end{algorithm}
 
+	Come è possibile notare dallo pseudocodice, il corpo effettivo dell'algoritmo consiste nelle righe 2-6. Difatti, l'inizializzazione è una procedura molto semplice che imposta la distanza di ogni nodo dalla sorgente a $+\infty$ e poi azzera la distanza del nodo sorgente. Il codice nelle righe 7-11 consiste invece in un ciclo per verificare o meno la presenza di cicli di costo negativo.
+	
+	Il corpo dell'algoritmo esegue un'operazione di rilassamento (o meglio, invoca la procedura Relax) su ogni arco del grafo per $|V|-1$ iterazioni. Questo limite nasce dal numero di rilassamenti effettuati nel caso pessimo. Consideriamo un grafo in cui tutti i nodi sono collegati in linea, ognuno è collegato solo con il precedente ed il successivo tranne per il primo e l'ultimo. Se la sorgente è il primo nodo, Bellman-Ford dovrà effettuare esattamente $|V|-1$ iterazioni di rilassamento perchè coincide con il numero di archi nel cammino più lungo all'interno del grafo e ogni iterazione di rilassamento rilassa almeno un arco. Come si può notare, questo algoritmo effettua un'enorme quantità di calcoli inutili ed è proprio per questo che sono state proposte molte ottimizzazioni per ridurre il più possibile sia il numero complessivo di iterazioni di rilassamento che il numero di rilassamenti in ogni iterazione. Ad esempio, il limite massimo di iterazioni di rilassamento da effettuare corrisponde al diametro del grafo (molto inferiore al numero di nodi nel caso di grafi densi). Un'ulteriore ottimizzazione può essere il controllo sugli effettivi rilassamenti effettuati durante un'iterazione: se un'iterazione non ha prodotto alcun rilassamento, sicuramente non ne verranno prodotti altri e quindi l'algoritmo può terminare. Infine, è inefficiente effettuare un rilassamento su ogni arco del grafo al di fuori della prima iterazione. In tutte le successive iterazioni, è sufficiente effettuare un rilassamento solamente sugli archi adiacenti ad almeno un arco che è stato rilassato nell'iterazione precedente.
+	
+	La procedura Relax\ref{alg:relax} richiede in input due nodi ($u$ e $v$) e la funzione $w$ che restituisce, dati due nodi, il peso dell'arco tra i due. Questa procedura non consiste in un effettivo rilassamento dell'arco $(u,v)$ ma è un tentativo di rilassamento, infatti viene verificato se una riduzione della distanza del nodo $v$ dalla sorgente sia possibile. In parole povere, la procedura Relax verifica se "arrivare al nodo $v$ passando per $u$ come ultimo nodo" sia meno costoso del valore già presente.
+	
+	Questo algoritmo riesce a rilevare i cicli di costo negativo verificando se è possibile rilassare un arco alla fine delle $|V|-1$ iterazioni. Se in un grafo è presente un ciclo di costo negativo, almeno un arco di quel ciclo verrà rilassato ad ogni iterazione. Questo è dovuto alla presenza di un arco di costo negativo che permette sempre di ridurre la distanza dal nodo sorgente. Come già spiegato nella sezione \ref{section:sssp}, quando è presente un ciclo di costo negativo è sempre possibile ridurre il costo di un cammino che passa per esso, fino a $-\infty$. Per questo motivo, se alla fine delle $|V|-1$ iterazioni, almeno un arco è ancora rilassabile, allora vuol dire che è presente un ciclo di costo negativo e l'arco rilassabile ne fa parte.
+
 	\begin{algorithm}[H]
 		\label{alg:init}
 		\SetAlgorithmName{Initialize-Single-Source}{}{}
@@ -205,7 +213,7 @@ italiano
 			v.$\pi$ = NIL\;
 		}
 		s.d = 0\;
-		\caption{La procedura di inizializzazione di un grafo}
+		\caption{La procedura di inizializzazione del grafo}
 	\end{algorithm}
 
 	\begin{algorithm}[H]
@@ -216,24 +224,35 @@ italiano
 			v.d = u.d + w(u,v)\;
 			v.$\pi$ = u\;
 		}
-		\caption{La procedura Relax}
+		\caption{La procedura di rilassamento di un arco}
 	\end{algorithm}
+
+	\subsection{Costo computazionale}
+	La procedura di inizializzazione\ref{alg:init} esegue due operazioni di costo $O(1)$ in ciascuna delle $|V|$ iterazioni e infine una singola istruzione da $O(1)$. Dunque, la procedura \texttt{Initialize-Single-Source} complessivamente ha un costo di $O(|V|)$. La procedura Relax\ref{alg:relax} esegue un confronto e, se verificato, esegue due istruzioni di costo $O(1)$. Complessivamente, dunque, la procedura Relax ha costo computazionale $O(1)$. Le istruzioni tra le righe 2-6 dell'algoritmo sono un doppio ciclo annidato che, per ognuna delle $|V|-1$ iterazioni, invoca la procedura Relax su ogni arco, dunque per $|E|$ volte. Quindi, questa porzione dell'algoritmo ha un costo computazionale di $O(|V|\cdot |E|)$. Le istruzioni sulle righe 7-11 complessivamente hanno un costo di $O(|E|)$ poichè esegue un confronto (di costo costante) per $|E|$ volte. Complessivamente, l'algoritmo ha costo computazionale $O(|V|\cdot |E|)$.
+	
+	\subsection{Dove parallelizzare}
+	Analizziamo ora le dipendenze tra dati contenuti nell'algoritmo. Ognuna delle iterazioni del ciclo sulle righe 2-6 è dipendente dal risultato dell'iterazione precedente. Mentre ogni iterazione del ciclo tra le righe 3-5 presenta una dipendenza particolare: ogni rilassamento di un arco $(u,v)$ dipende dal risultato dell'ultimo rilassamento di un arco diretto verso $v$.
+	
+	Alternativamente, questo algoritmo può essere alterato scambiando l'ordine dei due cicli annidati. Questa variazione lo rende incorretto solamente se seriale. Se consideriamo una versione parallela di questa variante, si può interpretare il lavoro effettuato da un thread come un rilassamento seguito da massimo $|V|-1$ tentativi di aggiornamento concorrente del valore della distanza di $v$.
+	
+	\subsection{Precisazioni}
+	Siccome, per lo scopo di questa tesi, non è necessario che l'algoritmo riesca a costruire l'albero dei cammini minimi, non è stata implementata questa funzionalità. Con riferimento allo pseudocodice, questa modifica si traduce nella rimozione della riga 3 dalla procedura Relax (\ref{alg:relax}) e dall'inizializzazione (\ref{alg:init}). Inoltre, i test utilizzati per le misurazioni non presentano archi di costo negativo e di conseguenza nessun ciclo di costo negativo. Per questo motivo, l'algoritmo implementato produce solamente un array di distanze di ogni nodo dalla sorgente.
+	(quest'ultimo paragrafo andrebbe spostato dentro il design o dentro i dettagli implementativi)
 	
 	\section{Design}
 	\label{section:design}
-	Qui si propongono alcune versioni parallele dell'algoritmo (e si etichettano per distinguerle tra loro) basandosi sull'analisi effettuata nel capitolo precedente
+	Basandoci sull'analisi effettuata nel capitolo precedente, proponiamo di seguito tre implementazioni differenti dell'algoritmo di Bellman-Ford.
 	
-	\begin{itemize}
-		\item \texttt{bf0}: memorizzare il grafo come array di archi e parallelizzare il ciclo interno ovvero il "per ogni arco del grafo" (usare un thread per ogni arco). In realtà questa versione si ramifica in altre 4 sotto-versioni che variano in base al meccanismo utilizzato per gestire le scritture concorrenti sul vettore \texttt{D}.
-		\begin{itemize}
-			\item \texttt{bf0-none}: non si utilizza nulla. Gli aggiornamenti dovrebbero essere così poco frequenti che il risultato potrebbe essere comunque corretto.
-			\item \texttt{bf0-mutex}: usare una mutex per ogni nodo.
-		\end{itemize}
+	\subsection{La versione \texttt{bf0}}
+	La prima versione sfrutta pesantemente il parallelismo massivo offerto da CUDA, memorizzando il grafo di input come una lista di archi e parallelizzando il ciclo "interno" dell'algoritmo utilizzando un thread per ogni arco del grafo. Ad ogni iterazione, ogni thread esegue una procedura Relax su un singolo arco del grafo e poi si sincronizza con tutti gli altri.
 	
-		\item \texttt{bf1}: memorizzare il grafo come lista di adiacenza e parallelizzare il ciclo interno. Per ogni nodo $u$ si creano tanti thread quanti sono i nodi $v$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco uscente $(u,v)$ aggiornando \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
-		
-		\item \texttt{bf2}: memorizzare il grafo come lista di adiacenza e parallelizzare il ciclo interno. Per ogni nodo $v$ si creano tanti thread quanti sono i nodi $u$ a cui è collegato (o semplicemente $N-1$ thread), ognuno di questi thread esegue il relax dell'arco entrante $(u,v)$ mantenendo un valore parziale, infine si opera una min-reduction per determinare \texttt{D[v]}. Questa versione usa molti meno thread della \texttt{bf0} ma non ha il problema della concorrenza.
-	\end{itemize}
+	Il problema principale di questa versione consiste negli aggiornamenti concorrenti della distanza del nodo $v$. Come già accennato in precedenza, possiamo interpretare il lavoro svolto da ogni thread come $|V|-1$ tentativi di aggiornamento di un singolo valore. Per questo motivo, riteniamo possa essere comunque corretta una versione che non utilizza meccanismi di mutua esclusione. Tale versione sarà chiamata \texttt{bf0-none}. Ovviamente proponiamo anche la sua controparte \texttt{bf0-mutex} per sfruttare le operazioni atomiche offerte da CUDA.
+	
+	\subsection{Rimuovere le mutex: \texttt{bf1}}
+	Il problema degli aggiornamenti concorrenti può essere risolto senza mutex ma utilizzando un numero molto inferiore di thread. Se il grafo di input viene memorizzato come lista di adiacenza in cui ogni nodo ha un riferimento solo ai nodi raggiungibili tramite archi uscenti, allora noi possiamo parallelizzare i rilassamenti da effettuare su ogni nodo. Nel dettaglio, fissato un nodo $u$, utilizziamo un thread per ogni arco uscente da $u$ che vi effettua un rilassamento. Com'è evidente, questa versione non presenta il problema di aggiornamenti concorrenti, ma utilizza molti meno thread. Le prestazioni di questa versione potrebbero essere comparabili a quella precedente solamente su grafi piccoli e completi, in cui ogni nodo ha un elevato numero di archi uscenti.
+	
+	\subsection{Sfruttare una reduction: \texttt{bf2}}
+	\'E possibile migliorare la versione \texttt{bf1} senza aggiungere aggiornamenti concorrenti. In questo caso il grafo dovrebbe essere memorizzato come una lista di adiacenza in cui ogni nodo memorizza il riferimenti ai nodi che possono raggiungerlo, dunque gli archi entranti. Con questa modifica, il numero di thread utilizzabili aumenta perchè è possibile effettuare una min-reduction dei rilassamenti degli archi entranti su ogni nodo del grafo contemporaneamente.
 	
 	\begin{table}[!ht]
 		\centering
