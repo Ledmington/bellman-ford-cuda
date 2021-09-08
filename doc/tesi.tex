@@ -298,21 +298,21 @@ italiano
 	
 	\section{Dettagli implementativi}
 	\label{section:impl}
-	Serve fare un capitolo a parte per dei dettagli?
+	Di seguito si elencano alcuni dettagli o limiti presentati dalle versioni implementate.
 	
-	Bisogna specificare che nei programmi della repo il nodo sorgente in ogni esecuzione dell'algoritmo è sempre il primo (quello di indice 0).
+	Come già spiegato nella sezione \ref{section:analisi}, ogni algoritmo che risolve il problema SSSP necessita dell'indice del nodo sorgente. In tutte le versioni implementate, il nodo sorgente è il nodo di indice $0$.
 	
-	O in questo capitolo o prima bisogna dire che, siccome per i nostri scopi non serve che l'algoritmo produca come risultato anche tutti i percorsi (nella forma di un vettore di predecessori) Bellman-Ford non è stato implementato in questo modo.
+	Inoltre, in tutte le versioni implementate il peso di un arco è memorizzato come un numero intero. L'unica eccezione è costituita dalla "famiglia" di versioni \texttt{bf0-mutex} in cui il peso di un arco è implementato mediante un \texttt{float} a 32 bit. Ciò è dovuto alla necessità di implementare il meccanismo di mutua esclusione: rispetto ad un'esplicita acquisizione e rilascio di una variabile mutex si è preferito utilizzare la funzione CUDA \texttt{atomicCAS}. L'utilizzo di un numero intero per il peso di un arco si è tradotto in un overflow durante il rilassamento, per questo motivo, in tutte le versioni (esclusa \texttt{bf0-mutex}) è stato implementato un controllo "overflow-safe" che però non ha più la stessa struttura del rilassamento mostrato nel listato \ref{alg:relax}.
+
+	Tutti gli algoritmi che utilizzano un buffer all'interno della memoria shared (ovvero tutti i programmi con nome "\texttt{*-sh}"), lo utilizzano per ottimizzare gli accessi in lettura all'array dei dati di input (nel caso si usi AoS, altrimenti sui vari array di input per SoA). Nonostante l'array \texttt{distances} sia acceduto più volte, esso richiede anche un accesso in scrittura e tutti i suoi accessi in lettura non sono allineati. Questi fattori contribuiscono ad un peggioramento significativo delle prestazioni, anche in caso di utilizzo ibrido del buffer, misurato in maniera empirica i cui risultati non sono riportati in questa tesi.
 	
-	Qui parlo del problema dell'overflow e della funzione atomicMin. Magari anche di come ho implementato le mutex nella versione \texttt{bf0-mutex}.
+	Tutte le versioni delle famiglia \texttt{bf0} utilizzano un thread per ogni arco del grafo e, considerato che nella maggior parte delle schede grafiche CUDA il numero massimo di thread per blocco è pari a 1024 e il numero massimo di blocchi utilizzabili è pari a $2^{31}$, il loro limite è pari a $2^{31}\cdot 1024$. Utilizzare come input un grafo con un numero maggiore di archi genererebbe un comportamento imprevisto.
 	
-	Tutti gli algoritmi che utilizzano un buffer nella shared memory lo utilizzano per memorizzare i dati del "vettore \texttt{graph}" (invece del "vettore \texttt{distances}" oppure una soluzione ibrida) perchè si è rivelata la soluzione migliore e la più veloce a seguito di prove empiriche i cui risultati non sono riportati qui.
+	Le versioni della famiglia \texttt{bf1} utilizzano un singolo blocco di $1024$ thread che opera su ogni nodo del grafo, ma non presenta limitazioni in questo senso.
 	
-	La versione \texttt{bf0-none-aos-sh} usa un buffer shared per il vettore \texttt{graph} e non per il vettore \texttt{distances} perchè nel primo caso si ottiene un throughput fino a $1,121\cdot 10^9$ mentre nel secondo caso si raggiunge a fatica $1\cdot 10^9$ rilassamenti al secondo. Lo stesso discorso vale per tutte le altre versioni implementate, si utilizza la shared memory su graph (o sui vettori nel caso di \texttt{soa}) perchè produce un throughput maggiore rispetto a quando la si usa sul vettore \texttt{distances}. Qui andrebbe scritto qualcosa del tipo "nonostante in teoria un buffering del vettore \texttt{distances} riduce maggiormente il numero di accessi alla memoria globale, nella pratica gli accessi estremamenti sparsi su tutto il vettore producono un risultato molto più lento della versione senza shared memory.
+	Le versioni della famiglia \texttt{bf2}, siccome utilizzano un blocco di thread per ogni nodo, se utilizzate su grafi con un numero di nodi maggiore di $2^{31}$, possono generare un comportamento imprevisto.
 	
-	Aggiungere dettagli sui limiti delle varie versioni dell'algoritmo: ad esempio, le versioni \texttt{bf0}, siccome creano un thread per ogni arco, funzionano bene solo se il grafo ha meno di $2^{31}\cdot 1024$ archi (max numero di blocchi per max numero di thread). Le versioni \texttt{bf2} creano un blocco di thread per ogni nodo, quindi può gestire un grafo con massimo $2^{31}$ nodi.
-	
-	Le versioni \texttt{bf1} e \texttt{bf2} non funzionano bene su grafi con nodi isolati. In particolare, siccome l'algoritmo \texttt{bf1} memorizza il grafo come una lista di adiacenza degli archi uscenti, questi "non funziona bene" se è presente un nodo senza archi uscenti. Lo stesso discorso vale per \texttt{bf2} ma con gli archi entranti. Invece l'algoritmo \texttt{bf0} semplicemente produrrà un valore di $+\infty$ per tutti i nodi irraggiungibili.
+	Le versioni della famiglia \texttt{bf1}, siccome memorizzano il grafo come una lista di adiacenza basata sugli archi uscenti, se utilizzate su grafi in cui sono presenti nodi senza archi uscenti possono generare un comportamento imprevisto. Lo stesso problema è presente per le versioni della famiglia \texttt{bf2} riguardo agli archi entranti. Le versioni della famiglia \texttt{bf0}, invece, produrranno un valore di $+\infty$ per ogni nodo irraggiungibile.
 	
 	\section{Valutazione delle prestazioni}
 	\label{section:perf}
