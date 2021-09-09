@@ -353,7 +353,7 @@ italiano
 		\caption{Specifiche delle macchine utilizzate per le misurazioni}
 	\end{table}
 
-	\subsection{Performance dell'algoritmo seriale}
+	\subsection{Prestazioni dell'algoritmo seriale}
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|c|c|c|}
@@ -370,14 +370,16 @@ italiano
 			        100 & 8,12 & 122,4 \\ \hline
 		\end{tabular}
 		\label{tab:performance_serial}
-		\caption{Prestazioni dell'algoritmo seriale su CPU (sulla "macchina A")}
+		\caption{Prestazioni dell'algoritmo seriale su CPU della macchina "940MX"}
 	\end{table}
 	\footnote{\label{foot:relax} numero di rilassamenti effettuati al secondo}
 
 	\subsection{Descrizione dei test}
-	Qui parlo di come sono strutturati i file di test e cosa rappresentano.
+	Nella tabella \ref{tab:riassunto_test} sono riassunte le caratteristiche più importanti dei grafi utilizzati come test.
 	
-	Tutti i valori riportati nelle tabelle sono ottenuti misurandoli sul test più voluminoso (NV). Le tabelle complete saranno inserite come file Excel a parte dentro la repo.
+	I primi cinque test sono rappresentazioni sotto forma di grafo delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi sono da considerarsi come situazioni reali in cui potrebbe essere utilizzato l'algoritmo. I successivi quattro test sono, invece, grafi sintetici casuali realizzati tramite il programma \texttt{graphgen} (disponibile nel repository) a densità crescente. L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi quattro test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
+	
+	Entrando più nello specifico, tutti i grafi elencati sono orientati, pesati e semplici. I primi 5 sono planari mentre gli altri 4 no. L'ultimo grafo, \texttt{100}, è l'unico completo. I primi cinque grafi sono considerati sparsi, gli ultimi quattro sono considerati densi. In nessuno di questi grafi sono presenti nodi isolati.
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|c|c|c|c|}
@@ -397,10 +399,8 @@ italiano
 		\caption{Tabella riassuntiva delle specifiche dei test utilizzati}
 	\end{table}
 
-	\subsection{Correttezza degli algoritmi}
-	Qui dobbiamo scartare le eventuali versioni che non producono un risultato corretto su tutti i test disponibili.
-	
-	Tutti gli algoritmi producono il risultato corretto sul grafo di Roma, tranne \texttt{bf2-soa-sh}.
+	\subsection{Precisazioni preliminari}
+	Tutti gli algoritmi producono il risultato corretto su ogni grafo utilizzato, tranne l'algoritmo \texttt{bf2-soa-sh} che produce valori errati per il grafo di Roma. Per questo motivo, tale algoritmo è considerato errato e non ne saranno riportate le misurazioni delle prestazioni.
 	
 	\subsection{Speedup}
 	Di seguito riportiamo i valori di speedup di ogni versione, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}, misurati su ogni scheda.
