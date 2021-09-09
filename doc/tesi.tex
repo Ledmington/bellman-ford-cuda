@@ -447,99 +447,121 @@ italiano
 	
 	\subsection{Speedup}
 	Di seguito riportiamo i valori di speedup di ogni versione, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}, misurati su ogni scheda.
-	\begin{table}[!ht]
+	
+	\begin{figure}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|}
-			\hline
-			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\texttt{bf0-none-aos-nosh}  &  &  &  \\ \hline
-			\texttt{bf0-none-aos-sh}    &  &  &  \\ \hline
-			\texttt{bf0-none-soa-nosh}  &  &  &  \\ \hline
-			\texttt{bf0-none-soa-sh}    &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-nosh} &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-sh}   &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-nosh} &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-sh}   &  &  &  \\ \hline
-		\end{tabular}
-		\label{tab:speedup_bf0}
-		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf0}}
-	\end{table}
+		\includegraphics[width=0.7\linewidth]{speedup_bf0-none-aos-nosh}
+		\caption{Speedup di \texttt{bf0-none-aos-nosh}}
+		\label{fig:speedup_bf0-none-aos-nosh}
+	\end{figure}
 
-	\begin{table}[!ht]
+	\begin{figure}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|}
-			\hline
-			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\texttt{bf1-aos-nosh}  &  &  &  \\ \hline
-			\texttt{bf1-aos-sh}    &  &  &  \\ \hline
-			\texttt{bf1-soa-nosh}  &  &  &  \\ \hline
-			\texttt{bf1-soa-sh}    &  &  &  \\ \hline
-		\end{tabular}
-		\label{tab:speedup_bf1}
-		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf1}}
-	\end{table}
+		\includegraphics[width=0.7\linewidth]{speedup_bf0-none-aos-sh}
+		\caption{Speedup di \texttt{bf0-none-aos-sh}}
+		\label{fig:speedup_bf0-none-aos-sh}
+	\end{figure}
 
-	\begin{table}[!ht]
+	\begin{figure}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|}
-			\hline
-			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\texttt{bf2-aos-nosh}  &  &  &  \\ \hline
-			\texttt{bf2-aos-sh}    &  &  &  \\ \hline
-			\texttt{bf2-soa-nosh}  &  &  &  \\ \hline
-		\end{tabular}
-		\label{tab:speedup_bf2}
-		\caption{Misurazioni dello speedup per le versioni dell'algoritmo \texttt{bf2}}
-	\end{table}
+		\includegraphics[width=0.7\linewidth]{speedup_bf0-none-soa-nosh}
+		\caption{Speedup di \texttt{bf0-none-soa-nosh}}
+		\label{fig:speedup_bf0-none-soa-nosh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{speedup_bf0-none-soa-sh}
+		\caption{Speedup di \texttt{bf0-none-soa-sh}}
+		\label{fig:speedup_bf0-none-soa-sh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{speedup_bf0-mutex-aos-nosh}
+		\caption{Speedup di \texttt{bf0-mutex-aos-nosh}}
+		\label{fig:speedup_bf0-mutex-aos-nosh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{speedup_bf0-mutex-aos-sh}
+		\caption{Speedup di \texttt{bf0-mutex-aos-sh}}
+		\label{fig:speedup_bf0-mutex-aos-sh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{speedup_bf0-mutex-soa-nosh}
+		\caption{Speedup di \texttt{bf0-mutex-soa-nosh}}
+		\label{fig:speedup_bf0-mutex-soa-nosh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{speedup_bf0-mutex-soa-sh}
+		\caption{Speedup di \texttt{bf0-mutex-soa-sh}}
+		\label{fig:speedup_bf0-mutex-soa-sh}
+	\end{figure}
 	
 	\subsection{Throughput}
 	Di seguito riportiamo i valori di throughput di ogni versione, indicati come numero di rilassamenti al secondo, misurati su ogni scheda.
-	\begin{table}[!ht]
+	
+	\begin{figure}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|}
-			\hline
-			\textbf{Nome versione} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\texttt{bf0-none-aos-nosh}  &  &  &  \\ \hline
-			\texttt{bf0-none-aos-sh}    &  &  &  \\ \hline
-			\texttt{bf0-none-soa-nosh}  &  &  &  \\ \hline
-			\texttt{bf0-none-soa-sh}    &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-nosh} &  &  &  \\ \hline
-			\texttt{bf0-mutex-aos-sh}   &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-nosh} &  &  &  \\ \hline
-			\texttt{bf0-mutex-soa-sh}   &  &  &  \\ \hline
-		\end{tabular}
-		\label{tab:throughput_bf0}
-		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf0}}
-	\end{table}
+		\includegraphics[width=0.7\linewidth]{throughput_bf0-none-aos-nosh}
+		\caption{Throughput di \texttt{bf0-none-aos-nosh}}
+		\label{fig:throughput_bf0-none-aos-nosh}
+	\end{figure}
 
-	\begin{table}[!ht]
+	\begin{figure}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|}
-			\hline
-			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\texttt{bf1-aos-nosh}  &  &  &  \\ \hline
-			\texttt{bf1-aos-sh}    &  &  &  \\ \hline
-			\texttt{bf1-soa-nosh}  &  &  &  \\ \hline
-			\texttt{bf1-soa-sh}    &  &  &  \\ \hline
-		\end{tabular}
-		\label{tab:throughput_bf1}
-		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf1}}
-	\end{table}
-	
-	\begin{table}[!ht]
+		\includegraphics[width=0.7\linewidth]{throughput_bf0-none-aos-sh}
+		\caption{Throughput di \texttt{bf0-none-aos-sh}}
+		\label{fig:throughput_bf0-none-aos-sh}
+	\end{figure}
+
+	\begin{figure}[!ht]
 		\centering
-		\begin{tabular}{|l|c|c|c|}
-			\hline
-			\textbf{Nome algoritmo} & \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
-			\texttt{bf2-aos-nosh}  &  &  &  \\ \hline
-			\texttt{bf2-aos-sh}    &  &  &  \\ \hline
-			\texttt{bf2-soa-nosh}  &  &  &  \\ \hline
-		\end{tabular}
-		\label{tab:throughput_bf2}
-		\caption{Misurazioni del throughput per le versioni dell'algoritmo \texttt{bf2}}
-	\end{table}
-	
-	
+		\includegraphics[width=0.7\linewidth]{throughput_bf0-none-soa-nosh}
+		\caption{Throughput di \texttt{bf0-none-soa-nosh}}
+		\label{fig:throughput_bf0-none-soa-nosh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{throughput_bf0-none-soa-sh}
+		\caption{Throughput di \texttt{bf0-none-soa-sh}}
+		\label{fig:throughput_bf0-none-soa-sh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{throughput_bf0-mutex-aos-nosh}
+		\caption{Throughput di \texttt{bf0-mutex-aos-nosh}}
+		\label{fig:throughput_bf0-mutex-aos-nosh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{throughput_bf0-mutex-aos-sh}
+		\caption{Throughput di \texttt{bf0-mutex-aos-sh}}
+		\label{fig:throughput_bf0-mutex-aos-sh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{throughput_bf0-mutex-soa-nosh}
+		\caption{Throughput di \texttt{bf0-mutex-soa-nosh}}
+		\label{fig:throughput_bf0-mutex-soa-nosh}
+	\end{figure}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{throughput_bf0-mutex-soa-sh}
+		\caption{Throughput di \texttt{bf0-mutex-soa-sh}}
+		\label{fig:throughput_bf0-mutex-soa-sh}
+	\end{figure}
 	
 	Fonte dei test:
 	\begin{itemize}
