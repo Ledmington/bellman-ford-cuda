@@ -1,4 +1,6 @@
 *.pdf
+*.out
+*.xlsx
 
 src/*.exe
 src/*.o
@@ -13,5 +15,3 @@ doc/*
 !doc/*.jpg
 
 bin/
-
-*.out
