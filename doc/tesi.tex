@@ -6,6 +6,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
 \usepackage{csquotes}
+\usepackage{graphicx}
 
 \usepackage[
 backend=biber,
@@ -29,7 +30,6 @@ italiano
 	\newgeometry{margin=0.8in}
 	\begin{titlepage}
 		\begin{center}
-			
 			\large
 			\textbf{ALMA MATER STUDIORUM -- UNIVERSITÀ DI BOLOGNA \\ CAMPUS DI CESENA} \\
 			\noindent\hrulefill
@@ -64,12 +64,11 @@ italiano
 					\textbf{Filippo Barbari}
 				\end{flushright}
 			\end{minipage}\\
-			
 			\vfill
 			\noindent\hrulefill
 			\vspace{0.3cm}
-			\Large
 			
+			\Large
 			Seconda Sessione di Laurea \\
 			Anno Accademico 2020-2021
 		\end{center}
@@ -96,14 +95,37 @@ italiano
 	
 	\section{Calcolo parallelo}
 	\label{section:storia}
-	Negli anni '60, Gordon Moore, futuro fondatore e direttore esecutivo di Intel, ipotizzò che il numero di componenti elettronici (transistor) contenuti all'interno di un chip sarebbe raddoppiato ogni 18 mesi circa. Tale previsione si rivelò corretta per tutti gli anni '70 e i tempi si allungarono a partire dagli anni '80. Intorno agli anni 2000 si è giunti all'epilogo di questa crescita, infatti era evidente già un decennio prima che si sarebbero raggiunti presto i limiti fisici all'interno di un processore. Per questo motivo, la potenza di calcolo dei processori single-core è cresciuta sempre più lentamente fino ad arrestarsi e si è dovuti ricorrere alle architetture parallele. Raddoppiare il numero di cores fisici all'interno di un chip può, in certi casi, raddoppiare le prestazioni e ridurre allo stesso tempo il consumo di energia ma richiede uno sforzo maggiore da parte del programmatore per lo sviluppo di codice parallelo. A causa di questa difficoltà e anche a causa della scarsità di programmatori qualificati, il software parallelo è molto meno presente dell'hardware parallelo.
+	Negli anni '60, Gordon Moore, futuro fondatore e direttore esecutivo di Intel, ipotizzò che il numero di componenti elettronici (transistor) contenuti all'interno di un chip sarebbe raddoppiato ogni 18 mesi circa. Tale previsione si rivelò corretta per tutti gli anni '70 e i tempi si allungarono a partire dagli anni '80. Intorno agli anni 2000 si è giunti all'epilogo di questa crescita, infatti era evidente già un decennio prima che si sarebbero raggiunti presto i limiti fisici all'interno di un processore. Nella figura \ref{fig:mooreslaw} si può notare l'incremento del numero di transistor all'interno di un chip su scala logaritmica. Per questo motivo, la potenza di calcolo dei processori single-core è cresciuta sempre più lentamente fino ad arrestarsi e si è dovuti ricorrere alle architetture parallele. Raddoppiare il numero di cores fisici all'interno di un chip può, in certi casi, raddoppiare le prestazioni e ridurre allo stesso tempo il consumo di energia ma richiede uno sforzo maggiore da parte del programmatore per lo sviluppo di codice parallelo. A causa di questa difficoltà e anche a causa della scarsità di programmatori qualificati, il software parallelo è molto meno presente dell'hardware parallelo.
+	
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{Moores_Law}
+		\caption[Legge di Moore]{Rappresentazione della legge di Moore: l'aumento di transistor in un chip su scala logaritmica rispetto al passare degli anni}
+		\label{fig:mooreslaw}
+	\end{figure}
 	
 	Intorno al 2007, sono apparse sul mercato le prime General-Purpose Graphic Processing Unit (GPGPU), ovvero le prime schede grafiche programmabili in maniera generica. Queste hanno aperto una nuova era del calcolo parallelo, permettendo ai programmatori di sfruttare l'elevatissimo numero di cores fisici per computazioni estremamente parallelizzabili. La differenza principale, a livello hardware, tra una CPU multi-core e una GPGPU consiste nel numero di core quasi "centuplicato" a parità di prezzo. Questa abbondanza di risorse di calcolo ha cambiato anche il modo di strutturare i programmi paralleli. Le GPGPU hanno determinato un cambiamento così importante in ambito HPC che si può notare come, all'incirca dal 2010 in poi, tutti i nuovi super-computer costruiti possiedono un elevato numero di GPGPU affiancate alle CPU.
 	
-	\subsection{GPU e CUDA}
-	CUDA (acronimo di Compute Unified Device Architecture) è un'architettura hardware realizzata da NVIDIA, la cui prima versione è stata pubblicata nel 2007. Tramite CUDA è possibile scrivere programmi che saranno eseguiti su di una scheda grafica NVIDIA e su una CPU. CUDA basa tutto il suo funzionamento su alcuni concetti molto semplici: la CPU su cui viene lanciato il programma è chiamata \textit{host} e può interagire con una o più schede grafiche NVIDIA, chiamate \textit{device}. L'host può invocare alcune funzioni specifiche che vengono eseguite dal device, per questo motivo, ogni invocazione a queste funzioni è di fatto asincrona, ovvero il controllo viene restituito all'host subito, senza attendere il completamento della funzione invocata. Tuttavia, esistono alcune funzioni che permettono di sincronizzare esplicitamente l'host con un device. Le funzioni più importanti sono i \textit{kernel}, ovvero le funzioni che possono essere scritte dal programmatore per effettuare qualunque tipo di calcolo. I kernel, come le altre funzioni CUDA, sono invocati in maniera asincrona e, a differenza delle altre, richiedono due parametri obbligatori, ovvero il numero di blocchi e il numero di thread per blocco da utilizzare per eseguire quel kernel.
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{cpu-gpu-computing-architecture}
+		\caption[Differenza architetturale tra CPU e GPU]{A sinistra l'architettura di una classica CPU, a destra l'architettura di una GPGPU.}
+		\label{fig:cpu-gpu-computing-architecture}
+	\end{figure}
 	
-	CUDA raggruppa tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi (in genere da 1024) che a loro volta sono raggruppati in una griglia. Ogni device ha sempre e solo una griglia in esecuzione e ogni griglia esegue sempre e solo un singolo kernel. I blocchi all'interno della grigla sono indicizzabili con 1, 2 o 3 dimensioni e lo stesso vale per i thread all'interno di un blocco. La memoria di un device CUDA è suddivisa in vari livelli:
+	\subsection{GPU e CUDA}
+	CUDA (acronimo di Compute Unified Device Architecture) è un'architettura hardware realizzata da NVIDIA, la cui prima versione è stata pubblicata nel 2007. Tramite CUDA è possibile scrivere programmi eseguibili su di una scheda grafica NVIDIA e su una CPU. CUDA basa tutto il suo funzionamento su alcuni concetti molto semplici: la CPU su cui viene lanciato il programma è chiamata \textit{host} e può interagire con una o più schede grafiche NVIDIA, chiamate \textit{device}. L'host può invocare alcune funzioni specifiche che vengono eseguite dal device, per questo motivo, ogni invocazione a queste funzioni è di fatto asincrona, ovvero il controllo viene restituito all'host subito, senza attendere il completamento della funzione invocata. Tuttavia, esistono alcune funzioni che permettono di sincronizzare esplicitamente l'host con un device. Le funzioni più importanti sono i \textit{kernel}, ovvero le funzioni che possono essere scritte dal programmatore per effettuare qualunque tipo di calcolo. I kernel, come le altre funzioni CUDA, sono invocati in maniera asincrona e, a differenza delle altre, richiedono due parametri obbligatori, ovvero il numero di blocchi e il numero di thread per blocco da utilizzare per eseguire quel kernel.
+	
+	CUDA raggruppa logicamente tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi (in genere da 1024) che a loro volta sono raggruppati in una griglia. Ogni device ha sempre e solo una griglia in esecuzione e ogni griglia esegue sempre e solo un singolo kernel. I blocchi all'interno della grigla sono indicizzabili con 1, 2 o 3 dimensioni e lo stesso vale per i thread all'interno di un blocco.
+	
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{grid-of-thread-blocks}
+		\caption[Struttura della griglia di una GPU CUDA]{Suddivisione della griglia di una GPU CUDA in blocchi di thread}
+		\label{fig:grid-of-thread-blocks}
+	\end{figure}
+	
+	La memoria di un device CUDA è suddivisa in vari livelli:
 	\begin{itemize}
 		\item la \textbf{memoria globale} è la memoria più voluminosa all'interno di un device (alcuni GB) ed è accessibile da tutti i thread di tutti i blocchi
 		\item la \textbf{memoria texture} è molto più piccola di quella globale (alcuni MB) ed è ottimizzata per contenere dati di texture, è accessibile da tutti i thread di tutti i blocchi
@@ -111,9 +133,22 @@ italiano
 		\item la \textbf{memoria shared} è una piccola memoria (alcuni MB) molto più veloce della memoria globale che però è accessibile solamente da thread all'interno dello stesso blocco
 		\item la \textbf{memoria locale} è la memoria "privata" di ogni thread e per questo motivo è accessibile solamente da un singolo thread
 	\end{itemize}
-	Aggiungere immagine struttura memoria in architettura CUDA
+	
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.5\linewidth]{CUDA-memory-model}
+		\caption[Struttura della memoria di una GPU CUDA]{Struttura e gerarchia delle varie memorie all'interno di una GPU CUDA}
+		\label{fig:cuda-memory-model}
+	\end{figure}
 	
 	Lo scheduling in una scheda CUDA funziona in modo particolare. Innanzitutto, va precisato che, nonostante il numero di cores fisici (Streaming Multiprocessors) vari in quasi ogni scheda, non è possibile scegliere quali e quanti utilizzare per l'esecuzione di una funzione kernel. Quando invochiamo un kernel, infatti, i thread che abbiamo richiesto vengono creati in memoria ma poi è l'hardware che sceglie la schedulazione migliore di questi thread sui SM a disposizione. Per questo motivo, si utilizza il concetto di \textit{thread warp}: un gruppo di thread (genericamente massimo 32) appartenenti allo stesso blocco che devono eseguire la stessa porzione di codice vengono schedulati tutti insieme sullo stesso SM ed eseguiti contemporaneamente. In caso di una biforcazione del flusso di controllo (ad esempio a causa di un \texttt{if-else}), viene verificata la condizione per tutti i thread, dopodichè vengono eseguiti tutti insieme solamente quelli che hanno verificato la condizione, poi vengono eseguiti tutti insieme tutti gli altri, poi l'esecuzione procede normalmente.
+	
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.5\linewidth]{automatic-scalability}
+		\caption{Schedulazione automatica dei thread in una GPU CUDA}
+		\label{fig:automatic-scalability}
+	\end{figure}
 	
 	\section{Teoria}
 	\subsection{Grafi}
