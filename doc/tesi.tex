@@ -152,14 +152,22 @@ italiano
 	
 	\section{Teoria}
 	\subsection{Grafi}
-	Un grafo $G$ è genericamente indicato come una coppia ordinata di insiemi $(V,E)$ in cui $V$ rappresenta l'insieme dei nodi e $E$ l'insieme degli archi. Ogni elemento di $E$ è una coppia di elementi di $V$ da cui segue che $E \subseteq V \times V$. Una prima classificazione dei grafi consiste nel peso degli archi: un grafo si dice \textbf{non pesato} se i suoi archi hanno lo stesso peso (o, per semplicità, non hanno peso), altrimenti si definisce \textbf{pesato}. Un'ulteriore classificazione dei grafi consiste nella simmetria degli archi: se ogni arco è simmetrico si dice che il grafo è \textbf{non orientato} (o indiretto), altrimenti si dice \textbf{orientato} (o diretto). Più formalmente, se $w:E \rightarrow \Re$ è una funzione che restituisce il peso di un arco, allora un arco $(u,v)$ è simmetrico se e solo se:
+	Un grafo $G$ è genericamente indicato come una coppia ordinata di insiemi $(V,E)$ in cui $V$ rappresenta l'insieme dei nodi e $E$ l'insieme degli archi. Ogni elemento di $E$ è una coppia di elementi di $V$ da cui segue che $E \subseteq V \times V$. Ad esempio, per il grafo \ref{fig:grafo-esempio} un nodo può essere $A$ e un arco può essere $(B,C)$. Una prima classificazione dei grafi consiste nel peso degli archi: un grafo si dice \textbf{non pesato} se i suoi archi hanno lo stesso peso (o, per semplicità, non hanno peso), altrimenti si definisce \textbf{pesato}. Un'ulteriore classificazione dei grafi consiste nella simmetria degli archi: se ogni arco è simmetrico si dice che il grafo è \textbf{non orientato} (o indiretto), altrimenti si dice \textbf{orientato} (o diretto). Più formalmente, se $w:E \rightarrow \Re$ è una funzione che restituisce il peso di un arco, allora un arco $(u,v)$ è simmetrico se e solo se:
 	\begin{itemize}
 		\item $(u,v) \in E$ e $(v,u) \in E$
 		\item $w(u,v) = w(v,u)$
 	\end{itemize}
+
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.5\linewidth]{grafo-esempio}
+		\caption{Un esempio di grafo non orientato}
+		\label{fig:grafo-esempio}
+	\end{figure}
+
 	Se il grafo non è orientato, in genere si considera $E$ semplicemente come un insieme di coppie non ordinate di nodi in cui $(u,v)$ e $(v,u)$ rappresentano lo stesso arco.
 	Inoltre, è possibile considerare anche i cosiddetti "cappi" o "auto-anelli", ovvero archi della forma $(u,u)$. Se un grafo non possiede auto-anelli, allora si definisce \textbf{grafo semplice}. In un grafo semplice il numero massimo possibile di archi è pari a $|V|\cdot (|V|-1)$, invece in un grafo non semplice corrisponde a $|V|^2$. Se il grafo è non orientato, il numero massimo di archi va diviso per 2. Se un grafo possiede esattamente il numero massimo di archi si dice \textbf{completo}.
-	Una metrica molto utilizzata è la \textbf{densità} di un grafo, che si calcola come il rapporto tra il numero di archi e il numero massimo possibile di archi. Se un grafo ha "pochi" archi, dove per pochi si intende che il numero di archi è comparabile o inferiore al numero di nodi, si dice \textbf{sparso}, altrimenti si dice \textbf{denso}. Gli archi diretti $(u,v)$ si dicono uscenti per il nodo $u$ ed entranti per il nodo $v$. Se un nodo non ha archi nè entranti nè uscenti, si dice \textbf{isolato}.
+	Una metrica molto utilizzata è la \textbf{densità} di un grafo, che si calcola come il rapporto tra il numero di archi e il numero massimo possibile di archi. Se un grafo ha "pochi" archi, dove per pochi si intende che il numero di archi è comparabile o inferiore al numero di nodi, si dice \textbf{sparso}, altrimenti si dice \textbf{denso}. Gli archi diretti $(u,v)$ si dicono uscenti per il nodo $u$ ed entranti per il nodo $v$. Se un nodo non ha archi nè entranti nè uscenti, si dice \textbf{isolato} (nel grafo d'esempio, il nodo $D$ è isolato).
 	
 	Un grafo si dice planare se è possibile rappesentarlo su di un piano senza che nessuno dei suoi archi si intersechi con altri archi. Più formalmente, si utilizza la \textbf{caratteristica di Eulero}, ovvero se un grafo è planare allora vale la relazione $v-e+f=2$ in cui $v$ è il numero di nodi, $e$ è il numero di archi e $f$ è il numero di facce.
 	
