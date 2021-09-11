@@ -204,11 +204,6 @@ italiano
 	
 	Ogni algoritmo ha un limite massimo di throughput che è possibile raggiungere solamente aumentando le dimensioni dei dati di input. In altre parole, è necessario fornire sufficienti dati all'algoritmo per farlo "andare a regime" (da cambiare assolutamente).
 	
-	\section{Intensità aritmetica}
-	L'intensità aritmetica (o intensità operativa) è una metrica per confrontare due implementazioni diverse dello stesso algoritmo. Si calcola come il rapporto tra il numero di operazioni necessarie a terminare una certa unità di lavoro e il numero di byte necessari per la memoria. Il valore ottenuto rappresenta "quanto è computation-based o memory-based" una certa implementazione di un algoritmo. Aggiungere esempio?
-	
-	Noi la utilizzeremo per spiegare meglio i valori ottenuti dalle misurazioni di speedup e throughput delle varie versioni dell'algoritmo.
-	
 	\chapter{L'algoritmo di Bellman Ford}
 	\label{section:analisi}
 	Proposto per primo da Alfonso Shimbel nel 1955 \cite{Shimbel1955}, ma è chiamato Bellman-Ford perché Richard Bellman l'ha pubblicato nel 1958 \cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956 \cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 \cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
@@ -569,7 +564,7 @@ italiano
 		\item \url{http://users.diag.uniroma1.it/challenge9/download.shtml}
 	\end{itemize}
 	
-	\chapter{Conclusioni}
+	\chapter*{Conclusioni e sviluppi futuri}
 	\label{section:end}
 	Qui dovrei effettuare un'analisi di tutti i risultati ottenuti e scegliere infine la versione migliore da etichettare come "Bellman-Ford in CUDA".
 	
