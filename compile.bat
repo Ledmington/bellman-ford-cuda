@@ -12,7 +12,7 @@ if [%2] == [] (
 if "%1" == "all" (
 	for /f tokens^=* %%A in ('where "src:*.cu"') do (
 		if exist bin\%%~nA.exe del bin\%%~nA*
-		nvcc -Wno-deprecated-gpu-targets -arch=%2 -rdc=true %%A -o bin\%%~nA.exe
+		nvcc -Wno-deprecated-gpu-targets -arch=%2 -rdc=true "%%A" -o bin\%%~nA.exe
 	)
 	exit /b 1
 )
