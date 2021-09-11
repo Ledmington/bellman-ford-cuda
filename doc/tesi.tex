@@ -1,4 +1,4 @@
-\documentclass[a4paper]{article}
+\documentclass[12pt,a4paper,draft]{book} % remove 'draft' when ready
 
 \usepackage[italian]{babel}
 \usepackage[T1]{fontenc}
@@ -23,7 +23,7 @@ italiano
 
 \addbibresource{tesi.bib}
 
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.1}
 
 \begin{document}
 	
@@ -88,12 +88,12 @@ italiano
 	\listofalgorithms
 	\newpage
 	
-	\section{Introduzione}
+	\chapter*{Introduzione}
 	L'obiettivo di questa tesi consiste nel trovare l'implementazione più efficiente, in linguaggio CUDA, dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem (SSSP). Allo scopo di svolgere un'analisi e una ricerca quanto più complete possibili, in questa tesi misuriamo le prestazioni di varie implementazioni utilizzando vari tipi di test su 3 macchine diverse. L'algoritmo di Bellman-Ford è stato uno dei primi ad essere proposto come soluzione del SSSP problem e, nonostante le varie ottimizzazioni che ha ricevuto, oggigiorno non è più molto utilizzato a causa di altri algoritmi più recenti ed efficienti. Tuttavia, è probabilmente l'algoritmo che meglio si presta alla parallelizzazione massiva offerta dal linguaggio CUDA.
 	
-	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perchè. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nel repository. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle metriche più comuni che è possibile misurare su GPU e si discuteranno.
+	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perché. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nel repository. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle metriche più comuni che è possibile misurare su GPU e si discuteranno.
 	
-	\section{Calcolo parallelo}
+	\chapter{Calcolo parallelo}
 	\label{section:storia}
 	Negli anni '60, Gordon Moore, futuro fondatore e direttore esecutivo di Intel, ipotizzò che il numero di componenti elettronici (transistor) contenuti all'interno di un chip sarebbe raddoppiato ogni 18 mesi circa. Tale previsione si rivelò corretta per tutti gli anni '70 e i tempi si allungarono a partire dagli anni '80. Intorno agli anni 2000 si è giunti all'epilogo di questa crescita, infatti era evidente già un decennio prima che si sarebbero raggiunti presto i limiti fisici all'interno di un processore. Nella figura \ref{fig:mooreslaw} si può notare l'incremento del numero di transistor all'interno di un chip su scala logaritmica. Per questo motivo, la potenza di calcolo dei processori single-core è cresciuta sempre più lentamente fino ad arrestarsi e si è dovuti ricorrere alle architetture parallele. Raddoppiare il numero di cores fisici all'interno di un chip può, in certi casi, raddoppiare le prestazioni e ridurre allo stesso tempo il consumo di energia ma richiede uno sforzo maggiore da parte del programmatore per lo sviluppo di codice parallelo. A causa di questa difficoltà e anche a causa della scarsità di programmatori qualificati, il software parallelo è molto meno presente dell'hardware parallelo.
 	
@@ -113,7 +113,7 @@ italiano
 		\label{fig:cpu-gpu-computing-architecture}
 	\end{figure}
 	
-	\subsection{GPU e CUDA}
+	\section{GPU e CUDA}
 	CUDA (acronimo di Compute Unified Device Architecture) è un'architettura hardware realizzata da NVIDIA, la cui prima versione è stata pubblicata nel 2007. Tramite CUDA è possibile scrivere programmi eseguibili su di una scheda grafica NVIDIA e su una CPU. CUDA basa tutto il suo funzionamento su alcuni concetti molto semplici: la CPU su cui viene lanciato il programma è chiamata \textit{host} e può interagire con una o più schede grafiche NVIDIA, chiamate \textit{device}. L'host può invocare alcune funzioni specifiche che vengono eseguite dal device, per questo motivo, ogni invocazione a queste funzioni è di fatto asincrona, ovvero il controllo viene restituito all'host subito, senza attendere il completamento della funzione invocata. Tuttavia, esistono alcune funzioni che permettono di sincronizzare esplicitamente l'host con un device. Le funzioni più importanti sono i \textit{kernel}, ovvero le funzioni che possono essere scritte dal programmatore per effettuare qualunque tipo di calcolo. I kernel, come le altre funzioni CUDA, sono invocati in maniera asincrona e, a differenza delle altre, richiedono due parametri obbligatori, ovvero il numero di blocchi e il numero di thread per blocco da utilizzare per eseguire quel kernel.
 	
 	CUDA raggruppa logicamente tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi (in genere da 1024) che a loro volta sono raggruppati in una griglia. Ogni device ha sempre e solo una griglia in esecuzione e ogni griglia esegue sempre e solo un singolo kernel. I blocchi all'interno della grigla sono indicizzabili con 1, 2 o 3 dimensioni e lo stesso vale per i thread all'interno di un blocco.
@@ -150,8 +150,8 @@ italiano
 		\label{fig:automatic-scalability}
 	\end{figure}
 	
-	\section{Teoria}
-	\subsection{Grafi}
+	\chapter{Teoria}
+	\section{Grafi}
 	Un grafo $G$ è genericamente indicato come una coppia ordinata di insiemi $(V,E)$ in cui $V$ rappresenta l'insieme dei nodi e $E$ l'insieme degli archi. Ogni elemento di $E$ è una coppia di elementi di $V$ da cui segue che $E \subseteq V \times V$. Ad esempio, per il grafo \ref{fig:grafo-esempio} un nodo può essere $A$ e un arco può essere $(B,C)$. Una prima classificazione dei grafi consiste nel peso degli archi: un grafo si dice \textbf{non pesato} se i suoi archi hanno lo stesso peso (o, per semplicità, non hanno peso), altrimenti si definisce \textbf{pesato}. Un'ulteriore classificazione dei grafi consiste nella simmetria degli archi: se ogni arco è simmetrico si dice che il grafo è \textbf{non orientato} (o indiretto), altrimenti si dice \textbf{orientato} (o diretto). Più formalmente, se $w:E \rightarrow \Re$ è una funzione che restituisce il peso di un arco, allora un arco $(u,v)$ è simmetrico se e solo se:
 	\begin{itemize}
 		\item $(u,v) \in E$ e $(v,u) \in E$
@@ -173,7 +173,7 @@ italiano
 	
 	Un grafo può essere memorizzato in molti modi. Il più conosciuto è la \textbf{matrice di adiacenza} che consiste in una matrice di dimensioni $|V|\times |V|$ in cui ogni elemento alla riga $i$ e alla colonna $j$ corrisponde al peso dell'arco diretto $(i,j)$. In tutto richiede spazio $O(|V|^2)$. Un altro metodo molto utilizzato è la \textbf{lista di adiacenza} in cui si memorizza una lista di nodi e ogni nodo memorizza la lista dei propri archi uscenti. In tutto, una lista di adiacenza richiede spazio $O(|V|+|E|)$. Infine, è possibile memorizzare un grafo come una lista di archi in cui ognuno contiene un riferimento ai nodi sorgente e destinazione e il proprio peso. Questo metodo richiede solamente $O(|E|)$ di memoria ma, essendo basato sugli archi, non considera i nodi isolati.
 	
-	\subsection{Cammini minimi e problema SSSP}
+	\section{Cammini minimi e problema SSSP}
 	\label{section:sssp}
 	In un grafo, un qualunque percorso che congiunge due nodi è detto \textbf{cammino} ed è rappresentabile come una lista ordinata di nodi. \'E importante notare la possibilità che uno stesso nodo sia presente più volte all'interno dello stesso cammino, quando ciò accade si parla di \textbf{cicli} (che approfondiremo di seguito). Il primo e l'ultimo nodo di questa lista ordinata sono chiamati rispettivamente \textbf{nodo sorgente} e \textbf{nodo destinazione}. In un grafo non pesato, il costo (o peso) di un cammino è pari al numero di nodi nella lista mentre in un grafo pesato è pari alla somma dei pesi degli archi coinvolti. Un cammino è detto \textbf{minimo} se non esiste un altro cammino nello stesso grafo, con uguali nodi sorgente e destinazione, con costo strettamente minore. Nello stesso grafo, a parità di nodi sorgente e destinazione, possono esistere numerosi cammini minimi diversi tra loro.
 	
@@ -185,9 +185,9 @@ italiano
 	
 	Dei tanti problemi che si possono applicare ad un grafo, il più studiato (su cui si concentra questa tesi) è senz'altro il Single-Source Shortest Path (abbreviato SSSP). Esso consiste, dato un grafo $G=(V,E)$ e un nodo sorgente $s$, nel trovare tutti i cammini minimi in $G$ che partono da $s$ e terminano in ogni altro nodo. Letteralmente significa "cammino minimo a singola sorgente", per differenziarlo dalla sua generalizzazione, l'All-Pairs Shortest Path (APSP) che invece chiede di trovare il cammino minimo per ogni coppia di vertici. Il risultato del SSSP consiste in un array di distanze dal nodo sorgente e in un array di predecessori tramite cui è possibile costruire l'albero dei cammini minimi.
 	
-	\section{Metriche di valutazione}
+	\chapter{Metriche di valutazione}
 	\label{section:metriche}
-	\subsection{Speedup}
+	\section{Speedup}
 	Lo speedup è la principale metrica di misurazione di un programma parallelo. Essa, infatti, rappresenta l'accelerazione che un dato programma ha ricevuto tramite la parallelizzazione. In particolare, lo speedup di un programma parallelizzato su $p$ cores si calcola come:
 	\begin{equation}
 		S(p) = \frac{T_s}{T(p)}
@@ -197,21 +197,21 @@ italiano
 	
 	In generale, $S(p) < p$. Idealmente, si vorrebbe mantenere uno \textbf{speedup lineare} nel proprio programma, ovvero $S(p) = p$ indipendentemente dal numero di processori utilizzati. Anche se può sembrare controintuitivo, raddoppiando il numero di processori utilizzati non si ottiene quasi mai un dimezzamento perfetto del tempo di esecuzione; ciò è dovuto all'aumentare dei tempi per la sincronizzazione e la comunicazione, oltre all'\textit{overhead} per l'allocazione della memoria necessaria. Nonostante questo, esistono alcuni rari casi in cui è possibile misurare nella realtà uno \textbf{speedup superlineare}, ovvero $S(p) > p$. In questi casi, la misurazione indica che raddoppiando il numero di processori il tempo di esecuzione si è più che dimezzato. Questo fenomeno, più unico che raro, è dovuto nella maggior parte dei casi alle elevate velocità e dimensioni delle cache integrate all'interno dei processori utilizzati.
 	
-	Come è possibile notare dalla formula \ref{eq:speedup}, lo speedup di un programma parallelo si osserva misurando il tempo di esecuzione man mano che si aumenta il numero di processori utilizzati. In questo modo, si osserva "quanto peggiora lo speedup" aumentando il numero di processori utilizzati. Tuttavia, questo non è possibile con un programma CUDA perchè il programmatore non ha potere decisionale sul numero di cores fisici da utilizzare nè sulla schedulazione dei thread logici: l'unico aspetto della computazione che può controllare è la dimensione della \textit{grid} (intesa come numero di blocchi e numero di thread per ciascun blocco). Per questo motivo, in genere non ha senso misurare lo speedup di un'applicazione parallela su CUDA semplicemente aumentando il numero di thread. Tuttavia, in questa tesi misuriamo un singolo valore di accelerazione per ogni algoritmo per meglio confrontare le varie versioni.
+	Come è possibile notare dalla formula \ref{eq:speedup}, lo speedup di un programma parallelo si osserva misurando il tempo di esecuzione man mano che si aumenta il numero di processori utilizzati. In questo modo, si osserva "quanto peggiora lo speedup" aumentando il numero di processori utilizzati. Tuttavia, questo non è possibile con un programma CUDA perché il programmatore non ha potere decisionale sul numero di cores fisici da utilizzare nè sulla schedulazione dei thread logici: l'unico aspetto della computazione che può controllare è la dimensione della \textit{grid} (intesa come numero di blocchi e numero di thread per ciascun blocco). Per questo motivo, in genere non ha senso misurare lo speedup di un'applicazione parallela su CUDA semplicemente aumentando il numero di thread. Tuttavia, in questa tesi misuriamo un singolo valore di accelerazione per ogni algoritmo per meglio confrontare le varie versioni.
 	
-	\subsection{Throughput}
+	\section{Throughput}
 	Il throughput (o produttività) è una metrica molto più rappresentativa delle prestazioni di un'applicazione CUDA per i motivi citati nella sezione precedente. Esso consiste nel numero di "elementi" processati in un secondo, oppure di "unità di lavoro" eseguite nello stesso tempo. Cosa si intenda per unità di lavoro, però, dipende dal problema, dal tipo di dati in input e dall'implementazione di un certo algoritmo. Ad esempio, per un'applicazione che applica filtri di colore ad un'immagine il throughput può essere misurato come numero di pixel modificati al secondo. Un altro esempio può essere un'algoritmo che cerca la mossa migliore in una partita di scacchi per il quale la produttività si può misurare come il numero di stati della scacchiera analizzati ogni secondo. Nel nostro caso, il throughput è misurato come il numero di rilassamenti di un arco effettuati ogni secondo.
 	
 	Ogni algoritmo ha un limite massimo di throughput che è possibile raggiungere solamente aumentando le dimensioni dei dati di input. In altre parole, è necessario fornire sufficienti dati all'algoritmo per farlo "andare a regime" (da cambiare assolutamente).
 	
-	\subsection{Intensità aritmetica}
+	\section{Intensità aritmetica}
 	L'intensità aritmetica (o intensità operativa) è una metrica per confrontare due implementazioni diverse dello stesso algoritmo. Si calcola come il rapporto tra il numero di operazioni necessarie a terminare una certa unità di lavoro e il numero di byte necessari per la memoria. Il valore ottenuto rappresenta "quanto è computation-based o memory-based" una certa implementazione di un algoritmo. Aggiungere esempio?
 	
 	Noi la utilizzeremo per spiegare meglio i valori ottenuti dalle misurazioni di speedup e throughput delle varie versioni dell'algoritmo.
 	
-	\section{L'algoritmo di Bellman Ford}
+	\chapter{L'algoritmo di Bellman Ford}
 	\label{section:analisi}
-	Proposto per primo da Alfonso Shimbel nel 1955 \cite{Shimbel1955}, ma è chiamato Bellman-Ford perchè Richard Bellman l'ha pubblicato nel 1958 \cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956 \cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 \cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
+	Proposto per primo da Alfonso Shimbel nel 1955 \cite{Shimbel1955}, ma è chiamato Bellman-Ford perché Richard Bellman l'ha pubblicato nel 1958 \cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956 \cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 \cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
 	
 	La versione che riportiamo di seguito e che andremo ad implementare è quella originale proposta prima da Lester Ford Jr. e poi da Richard Bellman.
 	
@@ -237,7 +237,7 @@ italiano
 
 	Come è possibile notare dallo pseudocodice, il corpo effettivo dell'algoritmo consiste nelle righe 2-6. Difatti, l'inizializzazione è una procedura molto semplice che imposta la distanza di ogni nodo dalla sorgente a $+\infty$ e poi azzera la distanza del nodo sorgente. Il codice nelle righe 7-11 consiste invece in un ciclo per verificare o meno la presenza di cicli di costo negativo.
 	
-	Il corpo dell'algoritmo esegue un'operazione di rilassamento (o meglio, invoca la procedura Relax) su ogni arco del grafo per $|V|-1$ iterazioni. Questo limite nasce dal numero di rilassamenti effettuati nel caso pessimo. Consideriamo un grafo in cui tutti i nodi sono collegati in linea, ognuno è collegato solo con il precedente ed il successivo tranne per il primo e l'ultimo. Se la sorgente è il primo nodo, Bellman-Ford dovrà effettuare esattamente $|V|-1$ iterazioni di rilassamento perchè coincide con il numero di archi nel cammino più lungo all'interno del grafo e ogni iterazione di rilassamento rilassa almeno un arco. Come si può notare, questo algoritmo effettua un'enorme quantità di calcoli inutili ed è proprio per questo che sono state proposte molte ottimizzazioni per ridurre il più possibile sia il numero complessivo di iterazioni di rilassamento che il numero di rilassamenti in ogni iterazione. Ad esempio, il limite massimo di iterazioni di rilassamento da effettuare corrisponde al diametro del grafo (molto inferiore al numero di nodi nel caso di grafi densi). Un'ulteriore ottimizzazione può essere il controllo sugli effettivi rilassamenti effettuati durante un'iterazione: se un'iterazione non ha prodotto alcun rilassamento, sicuramente non ne verranno prodotti altri e quindi l'algoritmo può terminare. Infine, è inefficiente effettuare un rilassamento su ogni arco del grafo al di fuori della prima iterazione. In tutte le successive iterazioni, è sufficiente effettuare un rilassamento solamente sugli archi adiacenti ad almeno un arco che è stato rilassato nell'iterazione precedente.
+	Il corpo dell'algoritmo esegue un'operazione di rilassamento (o meglio, invoca la procedura Relax) su ogni arco del grafo per $|V|-1$ iterazioni. Questo limite nasce dal numero di rilassamenti effettuati nel caso pessimo. Consideriamo un grafo in cui tutti i nodi sono collegati in linea, ognuno è collegato solo con il precedente ed il successivo tranne per il primo e l'ultimo. Se la sorgente è il primo nodo, Bellman-Ford dovrà effettuare esattamente $|V|-1$ iterazioni di rilassamento perché coincide con il numero di archi nel cammino più lungo all'interno del grafo e ogni iterazione di rilassamento rilassa almeno un arco. Come si può notare, questo algoritmo effettua un'enorme quantità di calcoli inutili ed è proprio per questo che sono state proposte molte ottimizzazioni per ridurre il più possibile sia il numero complessivo di iterazioni di rilassamento che il numero di rilassamenti in ogni iterazione. Ad esempio, il limite massimo di iterazioni di rilassamento da effettuare corrisponde al diametro del grafo (molto inferiore al numero di nodi nel caso di grafi densi). Un'ulteriore ottimizzazione può essere il controllo sugli effettivi rilassamenti effettuati durante un'iterazione: se un'iterazione non ha prodotto alcun rilassamento, sicuramente non ne verranno prodotti altri e quindi l'algoritmo può terminare. Infine, è inefficiente effettuare un rilassamento su ogni arco del grafo al di fuori della prima iterazione. In tutte le successive iterazioni, è sufficiente effettuare un rilassamento solamente sugli archi adiacenti ad almeno un arco che è stato rilassato nell'iterazione precedente.
 	
 	La procedura Relax\ref{alg:relax} richiede in input due nodi ($u$ e $v$) e la funzione $w$ che restituisce, dati due nodi, il peso dell'arco tra i due. Questa procedura non consiste in un effettivo rilassamento dell'arco $(u,v)$ ma è un tentativo di rilassamento, infatti viene verificato se una riduzione della distanza del nodo $v$ dalla sorgente sia possibile. In parole povere, la procedura Relax verifica se "arrivare al nodo $v$ passando per $u$ come ultimo nodo" sia meno costoso del valore già presente.
 	
@@ -266,32 +266,32 @@ italiano
 		\caption{La procedura di rilassamento di un arco}
 	\end{algorithm}
 
-	\subsection{Costo computazionale}
-	La procedura di inizializzazione\ref{alg:init} esegue due operazioni di costo $O(1)$ in ciascuna delle $|V|$ iterazioni e infine una singola istruzione da $O(1)$. Dunque, la procedura \texttt{Initialize-Single-Source} complessivamente ha un costo di $O(|V|)$. La procedura Relax\ref{alg:relax} esegue un confronto e, se verificato, esegue due istruzioni di costo $O(1)$. Complessivamente, dunque, la procedura Relax ha costo computazionale $O(1)$. Le istruzioni tra le righe 2-6 dell'algoritmo sono un doppio ciclo annidato che, per ognuna delle $|V|-1$ iterazioni, invoca la procedura Relax su ogni arco, dunque per $|E|$ volte. Quindi, questa porzione dell'algoritmo ha un costo computazionale di $O(|V|\cdot |E|)$. Le istruzioni sulle righe 7-11 complessivamente hanno un costo di $O(|E|)$ poichè esegue un confronto (di costo costante) per $|E|$ volte. Complessivamente, l'algoritmo ha costo computazionale $O(|V|\cdot |E|)$.
+	\section{Costo computazionale}
+	La procedura \texttt{Initialize-Single-Source} esegue due operazioni di costo $O(1)$ in ciascuna delle $|V|$ iterazioni e infine una singola istruzione da $O(1)$. Dunque, il suo costo computazionale complessivo è $O(|V|)$. La procedura Relax\ref{alg:relax} esegue un confronto e, se verificato, esegue due istruzioni di costo $O(1)$. Complessivamente, dunque, la procedura Relax ha costo computazionale $O(1)$. Le istruzioni tra le righe 2-6 dell'algoritmo sono un doppio ciclo annidato che, per ognuna delle $|V|-1$ iterazioni, invoca la procedura Relax su ogni arco, dunque per $|E|$ volte. Quindi, questa porzione dell'algoritmo ha un costo computazionale di $O(|V|\cdot |E|)$. Le istruzioni sulle righe 7-11 complessivamente hanno un costo di $O(|E|)$ poichè esegue un confronto (di costo costante) per $|E|$ volte. Complessivamente, l'algoritmo ha costo computazionale $O(|V|\cdot |E|)$.
 	
-	\subsection{Dove parallelizzare}
+	\section{Dove parallelizzare}
 	Analizziamo ora le dipendenze tra dati contenuti nell'algoritmo. Ognuna delle iterazioni del ciclo sulle righe 2-6 è dipendente dal risultato dell'iterazione precedente. Mentre ogni iterazione del ciclo tra le righe 3-5 presenta una dipendenza particolare: ogni rilassamento di un arco $(u,v)$ dipende dal risultato dell'ultimo rilassamento di un arco diretto verso $v$.
 	
 	Alternativamente, questo algoritmo può essere alterato scambiando l'ordine dei due cicli annidati. Questa variazione lo rende incorretto solamente se seriale. Se consideriamo una versione parallela di questa variante, si può interpretare il lavoro effettuato da un thread come un rilassamento seguito da massimo $|V|-1$ tentativi di aggiornamento concorrente del valore della distanza di $v$.
 	
-	\subsection{Precisazioni}
+	\section{Precisazioni}
 	Siccome, per lo scopo di questa tesi, non è necessario che l'algoritmo riesca a costruire l'albero dei cammini minimi, non è stata implementata questa funzionalità. Con riferimento allo pseudocodice, questa modifica si traduce nella rimozione della riga 3 dalla procedura Relax (\ref{alg:relax}) e dall'inizializzazione (\ref{alg:init}). Inoltre, i test utilizzati per le misurazioni non presentano archi di costo negativo e di conseguenza nessun ciclo di costo negativo. Per questo motivo, l'algoritmo implementato produce solamente un array di distanze di ogni nodo dalla sorgente.
 	(quest'ultimo paragrafo andrebbe spostato dentro il design o dentro i dettagli implementativi)
 	
-	\section{Design}
+	\chapter{Design}
 	\label{section:design}
 	Basandoci sull'analisi effettuata nel capitolo precedente, proponiamo di seguito tre implementazioni differenti dell'algoritmo di Bellman-Ford.
 	
-	\subsection{La versione \texttt{bf0}}
+	\section{La versione \texttt{bf0}}
 	La prima versione sfrutta pesantemente il parallelismo massivo offerto da CUDA, memorizzando il grafo di input come una lista di archi e parallelizzando il ciclo "interno" dell'algoritmo utilizzando un thread per ogni arco del grafo. Ad ogni iterazione, ogni thread esegue una procedura Relax su un singolo arco del grafo e poi si sincronizza con tutti gli altri.
 	
 	Il problema principale di questa versione consiste negli aggiornamenti concorrenti della distanza del nodo $v$. Come già accennato in precedenza, possiamo interpretare il lavoro svolto da ogni thread come $|V|-1$ tentativi di aggiornamento di un singolo valore. Per questo motivo, riteniamo possa essere comunque corretta una versione che non utilizza meccanismi di mutua esclusione. Tale versione sarà chiamata \texttt{bf0-none}. Ovviamente proponiamo anche la sua controparte \texttt{bf0-mutex} per sfruttare le operazioni atomiche offerte da CUDA.
 	
-	\subsection{Rimuovere le mutex: \texttt{bf1}}
+	\section{Rimuovere i mutex: \texttt{bf1}}
 	Il problema degli aggiornamenti concorrenti può essere risolto senza mutex ma utilizzando un numero molto inferiore di thread. Se il grafo di input viene memorizzato come lista di adiacenza in cui ogni nodo ha un riferimento solo ai nodi raggiungibili tramite archi uscenti, allora noi possiamo parallelizzare i rilassamenti da effettuare su ogni nodo. Nel dettaglio, fissato un nodo $u$, utilizziamo un thread per ogni arco uscente da $u$ che vi effettua un rilassamento. Com'è evidente, questa versione non presenta il problema di aggiornamenti concorrenti, ma utilizza molti meno thread. Le prestazioni di questa versione potrebbero essere comparabili a quella precedente solamente su grafi piccoli e completi, in cui ogni nodo ha un elevato numero di archi uscenti.
 	
-	\subsection{Sfruttare una reduction: \texttt{bf2}}
-	\'E possibile migliorare la versione \texttt{bf1} senza aggiungere aggiornamenti concorrenti. In questo caso il grafo dovrebbe essere memorizzato come una lista di adiacenza in cui ogni nodo memorizza il riferimento ai nodi che possono raggiungerlo, dunque gli archi entranti. Con questa modifica, il numero di thread utilizzabili aumenta perchè è possibile effettuare una min-reduction dei rilassamenti degli archi entranti su ogni nodo del grafo contemporaneamente.
+	\section{Sfruttare una riduzione: \texttt{bf2}}
+	\'E possibile migliorare la versione \texttt{bf1} senza aggiungere aggiornamenti concorrenti. In questo caso il grafo dovrebbe essere memorizzato come una lista di adiacenza in cui ogni nodo memorizza il riferimento ai nodi che possono raggiungerlo, dunque gli archi entranti. Con questa modifica, il numero di thread utilizzabili aumenta perché è possibile effettuare una min-reduction dei rilassamenti degli archi entranti su ogni nodo del grafo contemporaneamente.
 	
 	\begin{table}[!ht]
 		\centering
@@ -339,7 +339,7 @@ italiano
 		\caption{Tabella riassuntiva delle caratteristiche delle sotto-versioni dell'algoritmo \texttt{bf2}}
 	\end{table}
 	
-	\section{Dettagli implementativi}
+	\chapter{Dettagli implementativi}
 	\label{section:impl}
 	Di seguito si elencano alcuni dettagli o limiti presentati dalle versioni implementate.
 	
@@ -357,7 +357,7 @@ italiano
 	
 	Le versioni della famiglia \texttt{bf1}, siccome memorizzano il grafo come una lista di adiacenza basata sugli archi uscenti, se utilizzate su grafi in cui sono presenti nodi senza archi uscenti possono generare un comportamento imprevisto. Lo stesso problema è presente per le versioni della famiglia \texttt{bf2} riguardo agli archi entranti. Le versioni della famiglia \texttt{bf0}, invece, produrranno un valore di $+\infty$ per ogni nodo irraggiungibile.
 	
-	\section{Valutazione delle prestazioni}
+	\chapter{Valutazione delle prestazioni}
 	\label{section:perf}
 	Di seguito sono riportate le specifiche hardware e software delle macchine utilizzate per la valutazione delle prestazioni degli algoritmi proposti. Le macchine saranno identificate tramite il nome della propria scheda grafica.
 	
@@ -365,10 +365,10 @@ italiano
 		\centering
 		\begin{tabular}{|l|c|c|c|}
 			\hline
-			& \textbf{940MX} & \textbf{GTX 1070} & \textbf{RTX 2080} \\ \hline
+			& \textbf{940MX} & \textbf{GTX1070} & \textbf{RTX2080} \\ \hline
 			\textbf{Sistema Operativo} & Windows & Ubuntu & Windows \\ \hline
 			\textbf{Versione SO} & 10.0.19042.1165 & 16.04.7 & 10.0.19043.1165 \\ \hline
-			\textbf{Versione Compilatore C} & CL 19.29.30133 & GCC 5.4.0 & CL 19.29.30040 \\ \hline
+			\textbf{Compilatore C} & CL 19.29.30133 & GCC 5.4.0 & CL 19.29.30040 \\ \hline
 			\textbf{Nome CPU} & Intel Core i5-7200U & Intel Xeon E5-2603 v4 & Intel Core i7-8700 \\ \hline
 			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz & 1,2 - 1,7 GHz & 3,2 GHz \\ \hline
 			\textbf{Cores fisici} & 2 & 6 & 6 \\ \hline
@@ -379,24 +379,24 @@ italiano
 			\textbf{RAM totale} & 8 GB & 64 GB & 32 GB \\ \hline
 			\textbf{Frequenza RAM} & 2133 MHz & 2400 MHz & 2133 MHz \\ \hline
 			\textbf{Tipologia RAM} & DDR4 & DDR4 & DDR4 \\ \hline
-			\textbf{Nome GPU} & GeForce 940MX & GeForce GTX 1070 & GeForce RTX 2080 \\ \hline
-			\textbf{Versione CUDA Driver} & 11.4 & 10.1 & 11.4 \\ \hline
-			\textbf{Versione CUDA Runtime} & 11.1 & 8.0 & 11.1 \\ \hline
-			\textbf{CUDA compute capability} & 5.0 & 6.1 & 7.5 \\ \hline
+			\textbf{Nome GPU} & GeForce 940MX & GeForce GTX1070 & GeForce RTX2080 \\ \hline
+			\textbf{CUDA Driver} & 11.4 & 10.1 & 11.4 \\ \hline
+			\textbf{CUDA Runtime} & 11.1 & 8.0 & 11.1 \\ \hline
+			\textbf{CUDA capability} & 5.0 & 6.1 & 7.5 \\ \hline
 			\textbf{Architettura GPU} & Maxwell & Pascal & Turing \\ \hline
-			\textbf{Memoria globale GPU} & 2 GB & 8 GB & 8 GB \\ \hline
-			\textbf{Tipologia Memoria GPU} & GDDR5 & GDDR5 & GDDR6 \\ \hline
+			\textbf{Memoria globale} & 2 GB & 8 GB & 8 GB \\ \hline
+			\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
 			\textbf{Frequenza Memoria} & 2505 MHz & 4004 MHz & 7000 MHz \\ \hline
-			\textbf{Ampiezza Bus GPU} & 64 bit & 256 bit & 256 bit \\ \hline
-			\textbf{Streaming Multiprocessors} & 3 & 15 & 46 \\ \hline
+			\textbf{Ampiezza Bus} & 64 bit & 256 bit & 256 bit \\ \hline
+			\textbf{Numero S.M.} & 3 & 15 & 46 \\ \hline
 			\textbf{CUDA cores totali} & 384 & 1920 & 2944 \\ \hline
-			\textbf{Frequenza Cores} & 1189 MHz & 1797 MHz & 1860 MHz \\ \hline
+			\textbf{Frequenza cores} & 1189 MHz & 1797 MHz & 1860 MHz \\ \hline
 		\end{tabular}
 		\label{tab:specs}
 		\caption{Specifiche delle macchine utilizzate per le misurazioni}
 	\end{table}
 
-	\subsection{Prestazioni dell'algoritmo seriale}
+	\section{Prestazioni dell'algoritmo seriale}
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|c|c|c|}
@@ -417,7 +417,7 @@ italiano
 	\end{table}
 	\footnote{\label{foot:relax} numero di rilassamenti effettuati al secondo}
 
-	\subsection{Descrizione dei test}
+	\section{Descrizione dei test}
 	Nella tabella \ref{tab:riassunto_test} sono riassunte le caratteristiche più importanti dei grafi utilizzati come test.
 	
 	I primi cinque test sono rappresentazioni sotto forma di grafo delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi sono da considerarsi come situazioni reali in cui potrebbe essere utilizzato l'algoritmo. I successivi quattro test sono, invece, grafi sintetici casuali realizzati tramite il programma \texttt{graphgen} (disponibile nel repository) a densità crescente. L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi quattro test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
@@ -442,10 +442,10 @@ italiano
 		\caption{Tabella riassuntiva delle specifiche dei test utilizzati}
 	\end{table}
 
-	\subsection{Precisazioni preliminari}
+	\section{Precisazioni preliminari}
 	Tutti gli algoritmi producono il risultato corretto su ogni grafo utilizzato, tranne l'algoritmo \texttt{bf2-soa-sh} che produce valori errati per il grafo di Roma. Per questo motivo, tale algoritmo è considerato errato e non ne saranno riportate le misurazioni delle prestazioni.
 	
-	\subsection{Speedup}
+	\section{Speedup}
 	Di seguito riportiamo i valori di speedup di ogni versione, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}, misurati su ogni scheda.
 	
 	\begin{figure}[!ht]
@@ -504,7 +504,7 @@ italiano
 		\label{fig:speedup_bf0-mutex-soa-sh}
 	\end{figure}
 	
-	\subsection{Throughput}
+	\section{Throughput}
 	Di seguito riportiamo i valori di throughput di ogni versione, indicati come numero di rilassamenti al secondo, misurati su ogni scheda.
 	
 	\begin{figure}[!ht]
@@ -569,7 +569,7 @@ italiano
 		\item \url{http://users.diag.uniroma1.it/challenge9/download.shtml}
 	\end{itemize}
 	
-	\section{Conclusioni}
+	\chapter{Conclusioni}
 	\label{section:end}
 	Qui dovrei effettuare un'analisi di tutti i risultati ottenuti e scegliere infine la versione migliore da etichettare come "Bellman-Ford in CUDA".
 	
