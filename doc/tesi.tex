@@ -7,6 +7,7 @@
 \usepackage{hyperref}
 \usepackage{csquotes}
 \usepackage{graphicx}
+\usepackage{subcaption}
 
 \usepackage[
 backend=biber,
@@ -443,119 +444,91 @@ italiano
 	\section{Speedup}
 	Di seguito riportiamo i valori di speedup di ogni versione, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}, misurati su ogni scheda.
 	
-	\begin{figure}[!ht]
+	\begin{figure}[b]
 		\centering
-		\includegraphics[width=0.7\linewidth]{speedup_bf0-none-aos-nosh}
-		\caption{Speedup di \texttt{bf0-none-aos-nosh}}
-		\label{fig:speedup_bf0-none-aos-nosh}
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{speedup_bf0-none-aos-nosh}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{speedup_bf0-none-aos-sh}
+		\end{subfigure}
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{speedup_bf0-none-soa-nosh}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{speedup_bf0-none-soa-sh}
+		\end{subfigure}
+		\caption{Speedup algoritmi \texttt{bf0-none*}}
 	\end{figure}
 
-	\begin{figure}[!ht]
+	\begin{figure}[b]
 		\centering
-		\includegraphics[width=0.7\linewidth]{speedup_bf0-none-aos-sh}
-		\caption{Speedup di \texttt{bf0-none-aos-sh}}
-		\label{fig:speedup_bf0-none-aos-sh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{speedup_bf0-none-soa-nosh}
-		\caption{Speedup di \texttt{bf0-none-soa-nosh}}
-		\label{fig:speedup_bf0-none-soa-nosh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{speedup_bf0-none-soa-sh}
-		\caption{Speedup di \texttt{bf0-none-soa-sh}}
-		\label{fig:speedup_bf0-none-soa-sh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{speedup_bf0-mutex-aos-nosh}
-		\caption{Speedup di \texttt{bf0-mutex-aos-nosh}}
-		\label{fig:speedup_bf0-mutex-aos-nosh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{speedup_bf0-mutex-aos-sh}
-		\caption{Speedup di \texttt{bf0-mutex-aos-sh}}
-		\label{fig:speedup_bf0-mutex-aos-sh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{speedup_bf0-mutex-soa-nosh}
-		\caption{Speedup di \texttt{bf0-mutex-soa-nosh}}
-		\label{fig:speedup_bf0-mutex-soa-nosh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{speedup_bf0-mutex-soa-sh}
-		\caption{Speedup di \texttt{bf0-mutex-soa-sh}}
-		\label{fig:speedup_bf0-mutex-soa-sh}
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{speedup_bf0-mutex-aos-nosh}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{speedup_bf0-mutex-aos-sh}
+		\end{subfigure}
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{speedup_bf0-mutex-soa-nosh}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{speedup_bf0-mutex-soa-sh}
+		\end{subfigure}
+		\caption{Speedup algoritmi \texttt{bf0-mutex*}}
 	\end{figure}
 	
 	\section{Throughput}
 	Di seguito riportiamo i valori di throughput di ogni versione, indicati come numero di rilassamenti al secondo, misurati su ogni scheda.
 	
-	\begin{figure}[!ht]
+	\begin{figure}[b]
 		\centering
-		\includegraphics[width=0.7\linewidth]{throughput_bf0-none-aos-nosh}
-		\caption{Throughput di \texttt{bf0-none-aos-nosh}}
-		\label{fig:throughput_bf0-none-aos-nosh}
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{throughput_bf0-none-aos-nosh}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{throughput_bf0-none-aos-sh}
+		\end{subfigure}
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{throughput_bf0-none-soa-nosh}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{throughput_bf0-none-soa-sh}
+		\end{subfigure}
+		\caption{Throughput algoritmi \texttt{bf0-none*}}
 	\end{figure}
-
-	\begin{figure}[!ht]
+	
+	\begin{figure}[b]
 		\centering
-		\includegraphics[width=0.7\linewidth]{throughput_bf0-none-aos-sh}
-		\caption{Throughput di \texttt{bf0-none-aos-sh}}
-		\label{fig:throughput_bf0-none-aos-sh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{throughput_bf0-none-soa-nosh}
-		\caption{Throughput di \texttt{bf0-none-soa-nosh}}
-		\label{fig:throughput_bf0-none-soa-nosh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{throughput_bf0-none-soa-sh}
-		\caption{Throughput di \texttt{bf0-none-soa-sh}}
-		\label{fig:throughput_bf0-none-soa-sh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{throughput_bf0-mutex-aos-nosh}
-		\caption{Throughput di \texttt{bf0-mutex-aos-nosh}}
-		\label{fig:throughput_bf0-mutex-aos-nosh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{throughput_bf0-mutex-aos-sh}
-		\caption{Throughput di \texttt{bf0-mutex-aos-sh}}
-		\label{fig:throughput_bf0-mutex-aos-sh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{throughput_bf0-mutex-soa-nosh}
-		\caption{Throughput di \texttt{bf0-mutex-soa-nosh}}
-		\label{fig:throughput_bf0-mutex-soa-nosh}
-	\end{figure}
-
-	\begin{figure}[!ht]
-		\centering
-		\includegraphics[width=0.7\linewidth]{throughput_bf0-mutex-soa-sh}
-		\caption{Throughput di \texttt{bf0-mutex-soa-sh}}
-		\label{fig:throughput_bf0-mutex-soa-sh}
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{throughput_bf0-mutex-aos-nosh}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{throughput_bf0-mutex-aos-sh}
+		\end{subfigure}
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{throughput_bf0-mutex-soa-nosh}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{throughput_bf0-mutex-soa-sh}
+		\end{subfigure}
+		\caption{Throughput algoritmi \texttt{bf0-mutex*}}
 	\end{figure}
 	
 	Fonte dei test:
