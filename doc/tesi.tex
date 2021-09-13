@@ -93,12 +93,19 @@ italiano
 	\newpage
 	
 	\chapter*{Introduzione}
-	L'obiettivo di questa tesi consiste nel trovare l'implementazione più efficiente, in linguaggio CUDA, dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem (SSSP). Allo scopo di svolgere un'analisi e una ricerca quanto più complete possibili, in questa tesi misuriamo le prestazioni di varie implementazioni utilizzando vari tipi di test su 3 macchine diverse. L'algoritmo di Bellman-Ford è stato uno dei primi ad essere proposto come soluzione del SSSP problem e, nonostante le varie ottimizzazioni che ha ricevuto, oggigiorno non è più molto utilizzato a causa di altri algoritmi più recenti ed efficienti. Tuttavia, è probabilmente l'algoritmo che meglio si presta alla parallelizzazione massiva offerta dal linguaggio CUDA.
+	L'obiettivo di questa tesi consiste nel trovare l'implementazione più veloce ed efficiente, in CUDA, dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem (SSSP). Allo scopo di svolgere un'analisi e una ricerca quanto più complete possibili, in questa tesi misuriamo le prestazioni di varie implementazioni utilizzando vari tipi di test su 3 macchine diverse. L'algoritmo di Bellman-Ford è stato uno dei primi ad essere proposto come soluzione del SSSP problem e, nonostante le varie ottimizzazioni che ha ricevuto, oggigiorno non è più molto utilizzato a causa di altri algoritmi più recenti ed efficienti. Tuttavia, è probabilmente l'algoritmo che meglio si presta alla parallelizzazione massiva offerta da CUDA.
 	
-	Il capitolo \ref{section:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici, l'evoluzione dell'hardware fino ai giorni nostri e le strade verso cui potrebbe dirigersi. Nel capitolo \ref{section:analisi} si analizza il problema del Single-Source Shortest Path e poi l'algoritmo proposto da Bellman e Ford. Nella stessa sezione, inoltre, si mostra la sua correttezza e i suoi pregi e difetti. Nella sezione \ref{section:design}, partendo dall'analisi del capitolo precedente, si enumerano un insieme di possibili parallelizzazioni dell'algoritmo spiegando quale potrebbe essere la migliore e perché. Nel capitolo \ref{section:impl} si discuterà dei dettagli implementativi non trascurabili che saranno presenti nel repository. Infine, nel capitolo \ref{section:perf} si mostreranno i risultati delle metriche più comuni che è possibile misurare su GPU e si discuteranno.
+	Questa tesi è strutturata come segue:
+	\begin{itemize}
+		\item il capitolo \ref{chap:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici e poi una spiegazione del funzionamento di una GPU CUDA
+		\item nel capitolo \ref{chap:teoria} vengono illustrati i concetti teorici più semplici riguardanti grafi e cammini minimi
+		\item il capitolo \ref{chap:analisi} contiene un'analisi dello pseudocodice dell'algoritmo di Bellman-Ford
+		\item basandosi su quest'analisi si progettano, nel capitolo \ref{chap:progettazione}, tre versioni differenti
+		\item infine saranno mostrati e discussi i risultati nel capitolo \ref{chap:perf}
+	\end{itemize}
 	
 	\chapter{Calcolo parallelo}
-	\label{section:storia}
+	\label{chap:storia}
 	\section{La Legge di Moore}
 	Negli anni '60, Gordon Moore, futuro fondatore e direttore esecutivo di Intel, ipotizzò che il numero di componenti elettronici (transistor) contenuti all'interno di un chip sarebbe raddoppiato ogni 18 mesi circa. Tale previsione si rivelò corretta per tutti gli anni '70 e i tempi si allungarono a partire dagli anni '80. Intorno agli anni 2000 si è giunti all'epilogo di questa crescita, infatti era evidente già un decennio prima che si sarebbero raggiunti presto i limiti fisici all'interno di un processore. Nella figura \ref{fig:mooreslaw} si può notare l'incremento del numero di transistor all'interno di un chip su scala logaritmica. Per questo motivo, la potenza di calcolo dei processori single-core è cresciuta sempre più lentamente fino ad arrestarsi e si è dovuti ricorrere alle architetture parallele. Raddoppiare il numero di core fisici all'interno di un chip può, in certi casi, raddoppiare le prestazioni e ridurre allo stesso tempo il consumo di energia ma richiede uno sforzo maggiore da parte del programmatore per lo sviluppo di codice parallelo. A causa di questa difficoltà e anche a causa della scarsità di programmatori qualificati, il software parallelo è molto meno presente dell'hardware parallelo.
 	
@@ -172,6 +179,7 @@ italiano
 	
 	
 	\chapter{Teoria}
+	\label{chap:teoria}
 	\section{Grafi}
 	Un grafo $G$ è genericamente indicato come una coppia ordinata di insiemi $(V,E)$ in cui $V$ rappresenta l'insieme dei nodi e $E$ l'insieme degli archi. Ogni elemento di $E$ è una coppia di elementi di $V$ da cui segue che $E \subseteq V \times V$. Ad esempio, per il grafo \ref{fig:grafo-esempio} un nodo può essere $A$ e un arco può essere $(B,C)$. Una prima classificazione dei grafi consiste nel peso degli archi: un grafo si dice \textbf{non pesato} se i suoi archi hanno lo stesso peso (o, per semplicità, non hanno peso), altrimenti si definisce \textbf{pesato}. Un'ulteriore classificazione dei grafi consiste nella simmetria degli archi: se ogni arco è simmetrico si dice che il grafo è \textbf{non orientato} (o indiretto), altrimenti si dice \textbf{orientato} (o diretto). Più formalmente, se $w:E \rightarrow \Re$ è una funzione che restituisce il peso di un arco, allora un arco $(u,v)$ è simmetrico se e solo se:
 	\begin{itemize}
@@ -208,7 +216,7 @@ italiano
 	Dei tanti problemi che si possono applicare ad un grafo, il più studiato (su cui si concentra questa tesi) è senz'altro il Single-Source Shortest Path (abbreviato SSSP). Esso consiste, dato un grafo $G=(V,E)$ e un nodo sorgente $s$, nel trovare tutti i cammini minimi in $G$ che partono da $s$ e terminano in ogni altro nodo. Letteralmente significa "cammino minimo a singola sorgente", per differenziarlo dalla sua generalizzazione, l'All-Pairs Shortest Path (APSP) che invece chiede di trovare il cammino minimo per ogni coppia di vertici. Il risultato del SSSP consiste in un array di distanze dal nodo sorgente e in un array di predecessori tramite cui è possibile costruire l'albero dei cammini minimi.
 	
 	\chapter{L'algoritmo di Bellman Ford}
-	\label{section:analisi}
+	\label{chap:analisi}
 	Proposto per primo da Alfonso Shimbel nel 1955 \cite{Shimbel1955}, ma è chiamato Bellman-Ford perché Richard Bellman l'ha pubblicato nel 1958 \cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956 \cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 \cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
 	
 	La versione che riportiamo di seguito e che andremo ad implementare è quella originale proposta prima da Lester Ford Jr. e poi da Richard Bellman.
@@ -277,7 +285,7 @@ italiano
 	(quest'ultimo paragrafo andrebbe spostato dentro il design o dentro i dettagli implementativi)
 	
 	\chapter{Progettazione}
-	\label{section:design}
+	\label{chap:progettazione}
 	Basandoci sull'analisi effettuata nel capitolo precedente, proponiamo di seguito tre implementazioni differenti dell'algoritmo di Bellman-Ford.
 	
 	\section{La versione \texttt{bf0}}
@@ -375,8 +383,7 @@ italiano
 	Ogni algoritmo ha un limite massimo di throughput che è possibile raggiungere solamente aumentando le dimensioni dei dati di input. In altre parole, è necessario fornire sufficienti dati all'algoritmo per farlo "andare a regime" (da cambiare assolutamente).
 	
 	\chapter{Valutazione delle prestazioni}
-	\label{section:perf}
-	
+	\label{chap:perf}
 	\section{Descrizione dei test}
 	Nella tabella \ref{tab:riassunto_test} sono riassunte le caratteristiche più importanti dei grafi utilizzati come test.
 	
