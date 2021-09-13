@@ -8,6 +8,7 @@
 \usepackage{csquotes}
 \usepackage{graphicx}
 \usepackage{subcaption}
+\usepackage{caption}
 
 \usepackage[
 backend=biber,
@@ -25,6 +26,8 @@ italiano
 \addbibresource{tesi.bib}
 
 \renewcommand{\arraystretch}{1.1}
+
+\newcommand{\source}[1]{\caption*{Fonte: {\small\texttt{#1}}} }
 
 \begin{document}
 	
@@ -102,6 +105,7 @@ italiano
 		\centering
 		\includegraphics[width=0.7\linewidth]{Moores_Law}
 		\caption[Legge di Moore]{Rappresentazione della legge di Moore: l'aumento di transistor in un chip su scala logaritmica rispetto al passare degli anni}
+		\source{https://medium.com/predict/moores-law-is-alive-and-well-eaa49a450188}
 		\label{fig:mooreslaw}
 	\end{figure}
 	
@@ -111,6 +115,7 @@ italiano
 		\centering
 		\includegraphics[width=0.7\linewidth]{cpu-gpu-computing-architecture}
 		\caption[Differenza architetturale tra CPU e GPU]{A sinistra l'architettura di una classica CPU, a destra l'architettura di una GPGPU.}
+		\source{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}
 		\label{fig:cpu-gpu-computing-architecture}
 	\end{figure}
 	
@@ -123,6 +128,7 @@ italiano
 		\centering
 		\includegraphics[width=0.7\linewidth]{grid-of-thread-blocks}
 		\caption[Struttura della griglia di una GPU CUDA]{Suddivisione della griglia di una GPU CUDA in blocchi di thread}
+		\source{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}
 		\label{fig:grid-of-thread-blocks}
 	\end{figure}
 	
@@ -139,6 +145,7 @@ italiano
 		\centering
 		\includegraphics[width=0.5\linewidth]{CUDA-memory-model}
 		\caption[Struttura della memoria di una GPU CUDA]{Struttura e gerarchia delle varie memorie all'interno di una GPU CUDA}
+		\source{https://www.researchgate.net/figure/CUDA-memory-model-from-7\_fig1\_4373162}
 		\label{fig:cuda-memory-model}
 	\end{figure}
 	
@@ -148,6 +155,7 @@ italiano
 		\centering
 		\includegraphics[width=0.5\linewidth]{automatic-scalability}
 		\caption{Schedulazione automatica dei thread in una GPU CUDA}
+		\source{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}
 		\label{fig:automatic-scalability}
 	\end{figure}
 	
@@ -163,6 +171,7 @@ italiano
 		\centering
 		\includegraphics[width=0.5\linewidth]{grafo-esempio}
 		\caption{Un esempio di grafo non orientato}
+		\source{https://it.wikipedia.org/wiki/Grafo}
 		\label{fig:grafo-esempio}
 	\end{figure}
 
