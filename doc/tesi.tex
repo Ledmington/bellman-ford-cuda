@@ -276,8 +276,8 @@ italiano
 	\section{Rimuovere i mutex: \texttt{bf1}}
 	Il problema degli aggiornamenti concorrenti può essere risolto senza mutex ma utilizzando un numero molto inferiore di thread. Se il grafo di input viene memorizzato come lista di adiacenza in cui ogni nodo ha un riferimento solo ai nodi raggiungibili tramite archi uscenti, allora noi possiamo parallelizzare i rilassamenti da effettuare su ogni nodo. Nel dettaglio, fissato un nodo $u$, utilizziamo un thread per ogni arco uscente da $u$ che vi effettua un rilassamento. Com'è evidente, questa versione non presenta il problema di aggiornamenti concorrenti, ma utilizza molti meno thread. Le prestazioni di questa versione potrebbero essere comparabili a quella precedente solamente su grafi piccoli e completi, in cui ogni nodo ha un elevato numero di archi uscenti.
 	
-	\section{Sfruttare una riduzione: \texttt{bf2}}
-	\'E possibile migliorare la versione \texttt{bf1} senza aggiungere aggiornamenti concorrenti. In questo caso il grafo dovrebbe essere memorizzato come una lista di adiacenza in cui ogni nodo memorizza il riferimento ai nodi che possono raggiungerlo, dunque gli archi entranti. Con questa modifica, il numero di thread utilizzabili aumenta perché è possibile effettuare una min-reduction dei rilassamenti degli archi entranti su ogni nodo del grafo contemporaneamente.
+	\section{Sfruttare più thread: \texttt{bf2}}
+	Il difetto maggiore della versione \texttt{bf1} è il suo ridottissimo numero di thread. \'E possibile, però, sfruttare un numero maggiore di thread al prezzo di introdurre nuovamente degli aggiornamenti concorrenti. In questo caso il grafo dovrebbe essere memorizzato come una lista di adiacenza in cui ogni nodo memorizza il riferimento ai nodi che possono raggiungerlo, dunque gli archi entranti. Con questa modifica, il numero di thread utilizzabili aumenta considerevolmente perché è possibile effettuare tutti i rilassamenti degli archi entranti su ogni nodo del grafo contemporaneamente. Per questi motivi, la versione \texttt{bf2} utilizzerà un blocco di thread per ogni nodo del grafo.
 	
 	\begin{table}[!ht]
 		\centering
