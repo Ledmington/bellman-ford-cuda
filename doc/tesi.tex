@@ -99,6 +99,7 @@ italiano
 	
 	\chapter{Calcolo parallelo}
 	\label{section:storia}
+	\section{La Legge di Moore}
 	Negli anni '60, Gordon Moore, futuro fondatore e direttore esecutivo di Intel, ipotizzò che il numero di componenti elettronici (transistor) contenuti all'interno di un chip sarebbe raddoppiato ogni 18 mesi circa. Tale previsione si rivelò corretta per tutti gli anni '70 e i tempi si allungarono a partire dagli anni '80. Intorno agli anni 2000 si è giunti all'epilogo di questa crescita, infatti era evidente già un decennio prima che si sarebbero raggiunti presto i limiti fisici all'interno di un processore. Nella figura \ref{fig:mooreslaw} si può notare l'incremento del numero di transistor all'interno di un chip su scala logaritmica. Per questo motivo, la potenza di calcolo dei processori single-core è cresciuta sempre più lentamente fino ad arrestarsi e si è dovuti ricorrere alle architetture parallele. Raddoppiare il numero di core fisici all'interno di un chip può, in certi casi, raddoppiare le prestazioni e ridurre allo stesso tempo il consumo di energia ma richiede uno sforzo maggiore da parte del programmatore per lo sviluppo di codice parallelo. A causa di questa difficoltà e anche a causa della scarsità di programmatori qualificati, il software parallelo è molto meno presente dell'hardware parallelo.
 	
 	\begin{figure}[!ht]
@@ -151,13 +152,24 @@ italiano
 	
 	Lo scheduling in una scheda CUDA funziona in modo particolare. Innanzitutto, va precisato che, nonostante il numero di core fisici (Streaming Multiprocessors) vari in quasi ogni scheda, non è possibile scegliere quali e quanti utilizzare per l'esecuzione di una funzione kernel. Quando invochiamo un kernel, infatti, i thread che abbiamo richiesto vengono creati in memoria ma poi è l'hardware che sceglie la schedulazione migliore di questi thread sui SM a disposizione. Per questo motivo, si utilizza il concetto di \textit{thread warp}: un gruppo di thread (genericamente massimo 32) appartenenti allo stesso blocco che devono eseguire la stessa porzione di codice vengono schedulati tutti insieme sullo stesso SM ed eseguiti contemporaneamente. In caso di una biforcazione del flusso di controllo (ad esempio a causa di un \texttt{if-else}), viene verificata la condizione per tutti i thread, dopodichè vengono eseguiti tutti insieme solamente quelli che hanno verificato la condizione, poi vengono eseguiti tutti insieme tutti gli altri, poi l'esecuzione procede normalmente.
 	
-	\begin{figure}
+	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=0.5\linewidth]{automatic-scalability}
 		\caption{Schedulazione automatica dei thread in una GPU CUDA}
 		\source{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}
 		\label{fig:automatic-scalability}
 	\end{figure}
+
+	Va posta particolare attenzione anche al modo con cui i thread di una GPU CUDA accedono alla memoria. Infatti, la caratteristica più importante è il raggruppamento delle letture in memoria: se un certo numero di thread deve accedere in locazioni di memoria adiacenti, viene effettuata una singola operazione di lettura che trsferisce tutti i dati richiesti dai thread nelle rispettive memorie locali. Può sembrare una funzionalità irrilevante, ma in realtà può determinare enormi differenze di prestazioni in programmi che non memorizzano i dati in maniera corretta. In particolare, esistono due pattern generali di memorizzazione: Array-of-Structures (AoS) e Structure-of-Arrays (SoA). Il primo, il più utilizzato, consiste nel memorizzare le caratteristiche di uno stesso elemento (come le coordinate di un punto) in locazioni adiacenti di memoria. Il secondo, invece, memorizza ogni dato in un array separato.
+	
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=0.7\linewidth]{aos-vs-soa}
+		\caption{Differenza tra AoS e SoA}
+		\source{https://arxiv.org/ftp/arxiv/papers/1907/1907.05560.pdf}
+		\label{fig:aos-vs-soa}
+	\end{figure}
+	
 	
 	\chapter{Teoria}
 	\section{Grafi}
