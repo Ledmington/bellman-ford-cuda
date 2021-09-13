@@ -596,8 +596,7 @@ italiano
 	\end{itemize}
 	
 	\chapter*{Conclusioni e sviluppi futuri}
-	\label{section:end}
-	Qui dovrei effettuare un'analisi di tutti i risultati ottenuti e scegliere infine la versione migliore da etichettare come "Bellman-Ford in CUDA".
+	In questa tesi sono state analizzate varie implementazioni dell'algoritmo di Bellman-Ford in CUDA, con un'ampia esplorazione delle ottimizzazioni possibili e molti test effettuati. Nonostante la differenza sia molto ridotta rispetto agli altri algoritmi della stessa famiglia, l'algoritmo effettivamente più veloce risulta essere \texttt{bf0-none-soa-nosh}, che riesce a processare in poco più di 13 secondi la mappa stradale del Nevada, uno stato grande quasi quanto l'Italia, sulla scheda RTX 2080. Se consideriamo che l'algoritmo implementato è assolutamente privo di ogni ottimizzazione, questo dato fa riflettere sulle potenzialità che Bellman-Ford presenta riguardo all'impiego su GPGPU. Per questo motivo, un possibile sviluppo futuro di questo progetto consisterebbe nell'implementazione delle varie ottimizzazioni proposte negli anni. Inoltre, la struttura di Bellman-Ford suggerisce una facile divisione del lavoro per un sistema multi-GPU. Effettuando anche questa ottimizzazione, l'algoritmo potrebbe essere anche utilizzato per processare il grafo contenente la struttura di Internet in tempi non proibitivi.
 	
 	\printbibliography
 	
