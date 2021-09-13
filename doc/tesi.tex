@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper,draft]{book} % remove 'draft' when ready
+\documentclass[12pt,a4paper]{book} % remove 'draft' when ready
 
 \usepackage[italian]{babel}
 \usepackage[T1]{fontenc}
@@ -355,70 +355,13 @@ italiano
 	
 	\chapter{Valutazione delle prestazioni}
 	\label{section:perf}
-	Di seguito sono riportate le specifiche hardware e software delle macchine utilizzate per la valutazione delle prestazioni degli algoritmi proposti. Le macchine saranno identificate tramite il nome della propria scheda grafica.
 	
-	\begin{table}[!ht]
-		\centering
-		\begin{tabular}{|l|c|c|c|}
-			\hline
-			& \textbf{940MX} & \textbf{GTX1070} & \textbf{RTX2080} \\ \hline
-			\textbf{Sistema Operativo} & Windows & Ubuntu & Windows \\ \hline
-			\textbf{Versione SO} & 10.0.19042.1165 & 16.04.7 & 10.0.19043.1165 \\ \hline
-			\textbf{Compilatore C} & CL 19.29.30133 & GCC 5.4.0 & CL 19.29.30040 \\ \hline
-			\textbf{Nome CPU} & Intel Core i5-7200U & Intel Xeon E5-2603 v4 & Intel Core i7-8700 \\ \hline
-			\textbf{Frequenza CPU} & 2,5 - 2,7 GHz & 1,2 - 1,7 GHz & 3,2 GHz \\ \hline
-			\textbf{Cores fisici} & 2 & 6 & 6 \\ \hline
-			\textbf{Hyper-Threading} & si & no & si \\ \hline
-			\textbf{L1 cache} & 128 KB & 32 KB & 384 KB \\ \hline
-			\textbf{L2 cache} & 512 KB & 256 KB & 1,5 MB \\ \hline
-			\textbf{L3 cache} & 3 MB & 15 MB & 12 MB \\ \hline
-			\textbf{RAM totale} & 8 GB & 64 GB & 32 GB \\ \hline
-			\textbf{Frequenza RAM} & 2133 MHz & 2400 MHz & 2133 MHz \\ \hline
-			\textbf{Tipologia RAM} & DDR4 & DDR4 & DDR4 \\ \hline
-			\textbf{Nome GPU} & GeForce 940MX & GeForce GTX1070 & GeForce RTX2080 \\ \hline
-			\textbf{CUDA Driver} & 11.4 & 10.1 & 11.4 \\ \hline
-			\textbf{CUDA Runtime} & 11.1 & 8.0 & 11.1 \\ \hline
-			\textbf{CUDA capability} & 5.0 & 6.1 & 7.5 \\ \hline
-			\textbf{Architettura GPU} & Maxwell & Pascal & Turing \\ \hline
-			\textbf{Memoria globale} & 2 GB & 8 GB & 8 GB \\ \hline
-			\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
-			\textbf{Frequenza Memoria} & 2505 MHz & 4004 MHz & 7000 MHz \\ \hline
-			\textbf{Ampiezza Bus} & 64 bit & 256 bit & 256 bit \\ \hline
-			\textbf{Numero S.M.} & 3 & 15 & 46 \\ \hline
-			\textbf{CUDA cores totali} & 384 & 1920 & 2944 \\ \hline
-			\textbf{Frequenza cores} & 1189 MHz & 1797 MHz & 1860 MHz \\ \hline
-		\end{tabular}
-		\label{tab:specs}
-		\caption{Specifiche delle macchine utilizzate per le misurazioni}
-	\end{table}
-
-	\section{Prestazioni dell'algoritmo seriale}
-	\begin{table}[!ht]
-		\centering
-		\begin{tabular}{|c|c|c|}
-			\hline
-			\textbf{Nome test} & \textbf{Wall Clock Time [s]} & \textbf{Throughput [$10^6$ relax/s]\ref{foot:relax}} \\ \hline
-			       rome & 0,38 & 78 \\ \hline
-			        DE & 81,45 & 75 \\ \hline
-			        VT & 217,06 & 95,8 \\ \hline
-			        ME & 874,61 & 94 \\ \hline
-			        NV & 1743,02 & 92 \\ \hline
-			        025 & 2,39 & 104,2 \\ \hline
-			        050 & 4,55 & 109,4 \\ \hline
-			        075 & 6,8 & 109,8 \\ \hline
-			        100 & 8,12 & 122,4 \\ \hline
-		\end{tabular}
-		\label{tab:performance_serial}
-		\caption{Prestazioni dell'algoritmo seriale su CPU della macchina "940MX"}
-	\end{table}
-	\footnote{\label{foot:relax} numero di rilassamenti effettuati al secondo}
-
 	\section{Descrizione dei test}
 	Nella tabella \ref{tab:riassunto_test} sono riassunte le caratteristiche più importanti dei grafi utilizzati come test.
 	
 	I primi cinque test sono rappresentazioni sotto forma di grafo delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi sono da considerarsi come situazioni reali in cui potrebbe essere utilizzato l'algoritmo. I successivi quattro test sono, invece, grafi sintetici casuali realizzati tramite il programma \texttt{graphgen} (disponibile nel repository) a densità crescente. L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi quattro test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
 	
-	Entrando più nello specifico, tutti i grafi elencati sono orientati, pesati e semplici. I primi 5 sono planari mentre gli altri 4 no. L'ultimo grafo, \texttt{100}, è l'unico completo. I primi cinque grafi sono considerati sparsi, gli ultimi quattro sono considerati densi. In nessuno di questi grafi sono presenti nodi isolati.
+	Entrando più nello specifico, tutti i grafi elencati sono orientati, pesati e semplici. Solamente i primi 5 grafi sono planari. L'ultimo grafo, \texttt{100}, è l'unico completo. I primi cinque grafi sono considerati sparsi, gli ultimi quattro sono considerati densi. In nessuno di questi grafi sono presenti nodi isolati.
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|c|c|c|c|}
@@ -434,15 +377,82 @@ italiano
 			075 & 1000 & 749262 & Grafo casuale con densità 0.75 \\ \hline
 			100 & 1000 & 999000 & Grafo casuale completo \\ \hline
 		\end{tabular}
-		\label{tab:riassunto_test}
 		\caption{Tabella riassuntiva delle specifiche dei test utilizzati}
+		\label{tab:riassunto_test}
+	\end{table}
+	
+	\section{Specifiche hardware}
+	Di seguito sono riportate le specifiche hardware e software delle macchine utilizzate per la valutazione delle prestazioni degli algoritmi proposti. Le macchine saranno identificate tramite il nome della propria scheda grafica.
+	
+	\begin{table}[!ht]
+		\resizebox{\textwidth}{!}{
+			\begin{tabular}{|l|c|c|c|}
+				\hline
+				& \textbf{940MX} & \textbf{GTX1070} & \textbf{RTX2080} \\ \hline
+				\textbf{Sistema Operativo} & Windows & Ubuntu & Windows \\ \hline
+				\textbf{Versione SO} & 10.0.19042.1165 & 16.04.7 & 10.0.19043.1165 \\ \hline
+				\textbf{Compilatore C} & CL 19.29.30133 & GCC 5.4.0 & CL 19.29.30040 \\ \hline
+				\textbf{Nome CPU} & Intel Core i5-7200U & Intel Xeon E5-2603 v4 & Intel Core i7-8700 \\ \hline
+				\textbf{Frequenza CPU} & 2,5 - 2,7 GHz & 1,2 - 1,7 GHz & 3,2 GHz \\ \hline
+				\textbf{Cores fisici} & 2 & 6 & 6 \\ \hline
+				\textbf{Hyper-Threading} & si & no & si \\ \hline
+				\textbf{L1 cache} & 128 KB & 32 KB & 384 KB \\ \hline
+				\textbf{L2 cache} & 512 KB & 256 KB & 1,5 MB \\ \hline
+				\textbf{L3 cache} & 3 MB & 15 MB & 12 MB \\ \hline
+				\textbf{RAM totale} & 8 GB & 64 GB & 32 GB \\ \hline
+				\textbf{Frequenza RAM} & 2133 MHz & 2400 MHz & 2133 MHz \\ \hline
+				\textbf{Tipologia RAM} & DDR4 & DDR4 & DDR4 \\ \hline
+				\textbf{Nome GPU} & GeForce 940MX & GeForce GTX1070 & GeForce RTX2080 \\ \hline
+				\textbf{CUDA Driver} & 11.4 & 10.1 & 11.4 \\ \hline
+				\textbf{CUDA Runtime} & 11.1 & 8.0 & 11.1 \\ \hline
+				\textbf{CUDA capability} & 5.0 & 6.1 & 7.5 \\ \hline
+				\textbf{Architettura GPU} & Maxwell & Pascal & Turing \\ \hline
+				\textbf{Memoria globale} & 2 GB & 8 GB & 8 GB \\ \hline
+				\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
+				\textbf{Frequenza Memoria} & 2505 MHz & 4004 MHz & 7000 MHz \\ \hline
+				\textbf{Ampiezza Bus} & 64 bit & 256 bit & 256 bit \\ \hline
+				\textbf{Numero S.M.} & 3 & 15 & 46 \\ \hline
+				\textbf{CUDA cores totali} & 384 & 1920 & 2944 \\ \hline
+				\textbf{Frequenza cores} & 1189 MHz & 1797 MHz & 1860 MHz \\ \hline
+			\end{tabular}
+		}
+		\caption{Specifiche delle macchine utilizzate per le misurazioni}
+		\label{tab:specs}
+	\end{table}
+
+	\section{Prestazioni dell'algoritmo seriale}
+	Nella tabella di seguito sono riportati i valori di Wall Clock Time (tempo di esecuzione) e di throughput misurati sull'algoritmo \texttt{bf-serial} sulla CPU della macchina 940MX. Il tempo di esecuzione è espresso in secondi. Il throughput è espresso in milioni di operazioni di rilassamento effettuati al secondo ($10^6$ relax/s).
+	
+	\begin{table}[!ht]
+		\centering
+		\begin{tabular}{|c|c|c|}
+			\hline
+			\textbf{Nome test} & \textbf{Wall Clock Time} & \textbf{Throughput} \\ \hline
+			       rome & 0,38 & 78 \\ \hline
+			        DE & 81,45 & 75 \\ \hline
+			        VT & 217,06 & 95,8 \\ \hline
+			        ME & 874,61 & 94 \\ \hline
+			        NV & 1743,02 & 92 \\ \hline
+			        025 & 2,39 & 104,2 \\ \hline
+			        050 & 4,55 & 109,4 \\ \hline
+			        075 & 6,8 & 109,8 \\ \hline
+			        100 & 8,12 & 122,4 \\ \hline
+		\end{tabular}
+		\label{tab:performance_serial}
+		\caption{Prestazioni dell'algoritmo seriale su CPU}
 	\end{table}
 
 	\section{Precisazioni preliminari}
 	Tutti gli algoritmi producono il risultato corretto su ogni grafo utilizzato, tranne l'algoritmo \texttt{bf2-soa-sh} che produce valori errati per il grafo di Roma. Per questo motivo, tale algoritmo è considerato errato e non ne saranno riportate le misurazioni delle prestazioni.
 	
+	Inoltre, per gli algoritmi delle famiglie \texttt{bf1} e \texttt{bf2} non sono riportate le misurazioni per alcuni test come \texttt{NV}, \texttt{ME} e in alcuni casi \texttt{VT}. Non si è ritenuto utile riportarle in quanto i tempi di esecuzione, superiori ad un'ora, non sono comparabili con quelli raggiunti dagli algoritmi della famiglia \texttt{bf0}. Allo stesso modo, per gli stessi algoritmi e gli stessi test non sono riportati neanche i valori di throughput.
+	
 	\section{Speedup}
-	Di seguito riportiamo i valori di speedup di ogni versione, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}, misurati su ogni scheda.
+	Di seguito riportiamo i valori di speedup di ogni versione, misurati sui test a disposizione e su ogni scheda, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}.
+	
+	Innanzitutto, è possibile notare l'enorme differenza di speedup in generale tra la scheda 940MX e le altre. Evidente in particolar modo nelle figure \ref{fig:speedup_bf0-none} e \ref{fig:speedup_bf0-mutex}, ciò è dovuto soprattutto alla superiore potenza computazionale determinata dalle risorse hardware. Come già specificato nella tabella \ref{tab:specs}, non solo la frequenza di clock dei cores CUDA è maggiore ma il numero stesso di cores a disposizione è moltiplicato nelle schede GTX1070 e RTX2080.
+	
+	Nonostante i valori di speedup per gli algoritmi \texttt{bf0} siano molto simili tra di loro, si nota un modesto miglioramento da una qualunque versione \texttt{nosh} alla corrispettiva \texttt{sh}. Ciò era prevedibile 
 	
 	\begin{figure}[b]
 		\centering
@@ -463,6 +473,7 @@ italiano
 			\includegraphics[width=\textwidth]{speedup_bf0-none-soa-sh}
 		\end{subfigure}
 		\caption{Speedup algoritmi \texttt{bf0-none*}}
+		\label{fig:speedup_bf0-none}
 	\end{figure}
 
 	\begin{figure}[b]
@@ -484,6 +495,7 @@ italiano
 			\includegraphics[width=\textwidth]{speedup_bf0-mutex-soa-sh}
 		\end{subfigure}
 		\caption{Speedup algoritmi \texttt{bf0-mutex*}}
+		\label{fig:speedup_bf0-mutex}
 	\end{figure}
 
 	\begin{figure}[b]
