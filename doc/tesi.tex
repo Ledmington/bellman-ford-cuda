@@ -421,7 +421,7 @@ italiano
 	\end{table}
 
 	\section{Prestazioni dell'algoritmo seriale}
-	Nella tabella di seguito sono riportati i valori di Wall Clock Time (tempo di esecuzione) e di throughput misurati sull'algoritmo \texttt{bf-serial} sulla CPU della macchina 940MX. Il tempo di esecuzione è espresso in secondi. Il throughput è espresso in milioni di operazioni di rilassamento effettuati al secondo ($10^6$ relax/s).
+	Nella tabella \ref{tab:performance_serial} sono riportati i valori di Wall Clock Time (tempo di esecuzione) e di throughput misurati sull'algoritmo \texttt{bf-serial} sulla CPU della macchina 940MX. Il tempo di esecuzione è espresso in secondi. Il throughput è espresso in milioni di operazioni di rilassamento effettuati al secondo ($10^6$ relax/s).
 	
 	\begin{table}[!ht]
 		\centering
@@ -438,8 +438,8 @@ italiano
 			        075 & 6,8 & 109,8 \\ \hline
 			        100 & 8,12 & 122,4 \\ \hline
 		\end{tabular}
-		\label{tab:performance_serial}
 		\caption{Prestazioni dell'algoritmo seriale su CPU}
+		\label{tab:performance_serial}
 	\end{table}
 
 	\section{Precisazioni preliminari}
@@ -517,10 +517,11 @@ italiano
 			\includegraphics[width=\textwidth]{speedup_bf1-soa-sh}
 		\end{subfigure}
 		\caption{Speedup algoritmi \texttt{bf1*}}
+		\label{fig:speedup_bf1}
 	\end{figure}
 	
 	\section{Throughput}
-	Di seguito riportiamo i valori di throughput di ogni versione, indicati come numero di rilassamenti al secondo, misurati su ogni scheda.
+	Di seguito riportiamo i valori di throughput di ogni versione. Come nella tabella \ref{tab:performance_serial}, i valori sono indicati come milioni di operazioni di rilassamento effettuate ogni secondo ($10^6$ relax/s).
 	
 	\begin{figure}[b]
 		\centering
@@ -541,6 +542,7 @@ italiano
 			\includegraphics[width=\textwidth]{throughput_bf0-none-soa-sh}
 		\end{subfigure}
 		\caption{Throughput algoritmi \texttt{bf0-none*}}
+		\label{fig:throughput_bf0-none}
 	\end{figure}
 	
 	\begin{figure}[b]
@@ -562,6 +564,7 @@ italiano
 			\includegraphics[width=\textwidth]{throughput_bf0-mutex-soa-sh}
 		\end{subfigure}
 		\caption{Throughput algoritmi \texttt{bf0-mutex*}}
+		\label{fig:throughput_bf0-mutex}
 	\end{figure}
 
 	\begin{figure}[b]
@@ -583,6 +586,7 @@ italiano
 			\includegraphics[width=\textwidth]{throughput_bf1-soa-sh}
 		\end{subfigure}
 		\caption{Throughput algoritmi \texttt{bf1*}}
+		\label{fig:throughput_bf1}
 	\end{figure}
 	
 	Fonte dei test:
