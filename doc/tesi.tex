@@ -323,6 +323,7 @@ italiano
 	\end{table}
 	
 	\section{Rimuovere i mutex: \texttt{bf1}}
+	\label{section:intro-bf1}
 	Il problema degli aggiornamenti concorrenti può essere risolto senza mutex ma utilizzando un numero molto inferiore di thread. Se il grafo di input viene memorizzato come lista di adiacenza in cui ogni nodo ha un riferimento solo ai nodi raggiungibili tramite archi uscenti, allora noi possiamo parallelizzare i rilassamenti da effettuare su ogni nodo. Nel dettaglio, fissato un nodo $u$, utilizziamo un thread per ogni arco uscente da $u$ che vi effettua un rilassamento. Com'è evidente, questa versione non presenta il problema di aggiornamenti concorrenti, ma utilizza molti meno thread. Probabilmente, le prestazioni di questa versione potrebbero essere comparabili a quella precedente solamente su grafi piccoli e completi, in cui ogni nodo ha un elevato numero di archi uscenti.
 	
 	\begin{table}[!ht]
@@ -406,11 +407,9 @@ italiano
 	\chapter{Valutazione delle prestazioni}
 	\label{chap:perf}
 	\section{Descrizione dei test}
-	Nella tabella \ref{tab:riassunto_test} sono riassunte le caratteristiche più importanti dei grafi utilizzati come test.
+	I primi cinque test sono rappresentazioni sotto forma di grafo delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi file sono reperibili ai link {\small\url{https://www.moreno.marzolla.name/teaching/LabASD/handouts/bellman-ford.html}} e {\small\url{http://users.diag.uniroma1.it/challenge9/download.shtml}}. I successivi quattro test sono, invece, grafi sintetici casuali realizzati tramite il programma \texttt{graphgen} (disponibile nel repository \footnote{\url{https://github.com/Ledmington/bellman-ford-cuda}}) a densità crescente. L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi quattro test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
 	
-	I primi cinque test sono rappresentazioni sotto forma di grafo delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi sono da considerarsi come situazioni reali in cui potrebbe essere utilizzato l'algoritmo. I successivi quattro test sono, invece, grafi sintetici casuali realizzati tramite il programma \texttt{graphgen} (disponibile nel repository) a densità crescente. L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi quattro test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
-	
-	Entrando più nello specifico, tutti i grafi elencati sono orientati, pesati e semplici. Solamente i primi 5 grafi sono planari. L'ultimo grafo, \texttt{100}, è l'unico completo. I primi cinque grafi sono considerati sparsi, gli ultimi quattro sono considerati densi. In nessuno di questi grafi sono presenti nodi isolati.
+	Entrando più nello specifico, tutti i grafi elencati sono orientati, pesati e semplici. Solamente i primi 5 grafi sono planari. L'ultimo grafo, \texttt{100}, è l'unico completo. I primi cinque grafi sono considerati sparsi, gli ultimi quattro sono considerati densi. In nessuno di questi grafi sono presenti nodi isolati. La tabella \ref{tab:riassunto_test} contiene un breve riassunto delle caratteristiche di ogni test.
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|c|c|c|c|}
@@ -431,8 +430,9 @@ italiano
 	\end{table}
 	
 	\section{Specifiche hardware}
-	Di seguito sono riportate le specifiche hardware e software delle macchine utilizzate per la valutazione delle prestazioni degli algoritmi proposti. Le macchine saranno identificate tramite il nome della propria scheda grafica.
+	Nella tabella \ref{tab:specs} sono riportate le specifiche hardware e software delle macchine utilizzate per la valutazione delle prestazioni degli algoritmi proposti. Le macchine saranno identificate tramite il nome della propria scheda grafica.
 	
+	\renewcommand{\arraystretch}{1.2}
 	\begin{table}[!ht]
 		\resizebox{\textwidth}{!}{
 			\begin{tabular}{|l|c|c|c|}
@@ -460,14 +460,15 @@ italiano
 				\textbf{Tipologia Memoria} & GDDR5 & GDDR5 & GDDR6 \\ \hline
 				\textbf{Frequenza Memoria} & 2505 MHz & 4004 MHz & 7000 MHz \\ \hline
 				\textbf{Ampiezza Bus} & 64 bit & 256 bit & 256 bit \\ \hline
-				\textbf{Numero S.M.} & 3 & 15 & 46 \\ \hline
+				\textbf{Numero SM} & 3 & 15 & 46 \\ \hline
 				\textbf{CUDA core totali} & 384 & 1920 & 2944 \\ \hline
 				\textbf{Frequenza core} & 1189 MHz & 1797 MHz & 1860 MHz \\ \hline
 			\end{tabular}
 		}
-		\caption{Specifiche delle macchine utilizzate per le misurazioni}
+		\caption{Specifiche hardware e software delle macchine utilizzate per le misurazioni}
 		\label{tab:specs}
 	\end{table}
+	\renewcommand{\arraystretch}{1.1}
 
 	\section{Prestazioni dell'algoritmo seriale}
 	Nella tabella \ref{tab:performance_serial} sono riportati i valori di Wall Clock Time (tempo di esecuzione) e di throughput misurati sull'algoritmo \texttt{bf-serial} sulla CPU della macchina 940MX. Il tempo di esecuzione è espresso in secondi. Il throughput è espresso in milioni di operazioni di rilassamento effettuati al secondo ($10^6$ relax/s).
@@ -477,15 +478,15 @@ italiano
 		\begin{tabular}{|c|c|c|}
 			\hline
 			\textbf{Nome test} & \textbf{Wall Clock Time} & \textbf{Throughput} \\ \hline
-			       rome & 0,38 & 78 \\ \hline
-			        DE & 81,45 & 75 \\ \hline
-			        VT & 217,06 & 95,8 \\ \hline
-			        ME & 874,61 & 94 \\ \hline
-			        NV & 1743,02 & 92 \\ \hline
-			        025 & 2,39 & 104,2 \\ \hline
-			        050 & 4,55 & 109,4 \\ \hline
-			        075 & 6,8 & 109,8 \\ \hline
-			        100 & 8,12 & 122,4 \\ \hline
+			       rome        &           0,38           &         78          \\ \hline
+			        DE         &          81,45           &         75          \\ \hline
+			        VT         &          217,06          &        95,8         \\ \hline
+			        ME         &          874,61          &         94          \\ \hline
+			        NV         &         1743,02          &         92          \\ \hline
+			       025         &           2,39           &        104,2        \\ \hline
+			       050         &           4,55           &        109,4        \\ \hline
+			       075         &           6,8            &        109,8        \\ \hline
+			       100         &           8,12           &        122,4        \\ \hline
 		\end{tabular}
 		\caption{Prestazioni dell'algoritmo seriale su CPU}
 		\label{tab:performance_serial}
@@ -546,6 +547,8 @@ italiano
 		\caption{Speedup algoritmi \texttt{bf0-mutex*}}
 		\label{fig:speedup_bf0-mutex}
 	\end{figure}
+
+	Riguardo alle versioni \texttt{bf1}, invece, si nota subito dai grafici della figura \ref{fig:speedup_bf1} che la scala dello speedup ottenuto è molto più ridotta rispetto a quanto ottenuto con le versioni \texttt{bf0}. Infatti, solamente sui grafi sintetici si ottiene uno speedup significativo, mentre sui grafi "reali" lo speedup misurato è molto vicino allo $0$. Ciò era prevedibile a causa del ridottissimo numero di thread impiegati che, come già accennato nella sezione \ref{section:intro-bf1}, si sarebbero rivelati utili solamente su grafi molto piccoli e densi. Anche qui si osserva, in generale, un lieve miglioramento delle prestazioni grazie all'impiego della memoria condivisa e del pattern SoA.
 
 	\begin{figure}[b]
 		\centering
@@ -637,12 +640,6 @@ italiano
 		\caption{Throughput algoritmi \texttt{bf1*}}
 		\label{fig:throughput_bf1}
 	\end{figure}
-	
-	Fonte dei test:
-	\begin{itemize}
-		\item \url{https://www.moreno.marzolla.name/teaching/LabASD/handouts/bellman-ford.html}
-		\item \url{http://users.diag.uniroma1.it/challenge9/download.shtml}
-	\end{itemize}
 	
 	\chapter*{Conclusioni e sviluppi futuri}
 	In questa tesi sono state analizzate varie implementazioni dell'algoritmo di Bellman-Ford in CUDA, con un'ampia esplorazione delle ottimizzazioni possibili e molti test effettuati. Nonostante la differenza sia molto ridotta rispetto agli altri algoritmi della stessa famiglia, l'algoritmo effettivamente più veloce risulta essere \texttt{bf0-none-soa-nosh}, che riesce a processare in poco più di 13 secondi la mappa stradale del Nevada, uno stato grande quasi quanto l'Italia, sulla scheda RTX 2080. Se consideriamo che l'algoritmo implementato è assolutamente privo di ogni ottimizzazione, questo dato fa riflettere sulle potenzialità che Bellman-Ford presenta riguardo all'impiego su GPGPU. Per questo motivo, un possibile sviluppo futuro di questo progetto consisterebbe nell'implementazione delle varie ottimizzazioni proposte negli anni. Inoltre, la struttura di Bellman-Ford suggerisce una facile divisione del lavoro per un sistema multi-GPU. Effettuando anche questa ottimizzazione, l'algoritmo potrebbe essere anche utilizzato per processare il grafo contenente la struttura di Internet in tempi non proibitivi.
