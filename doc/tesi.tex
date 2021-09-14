@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{book}
+\documentclass[12pt,a4paper,twoside]{book}
 
 \usepackage[italian]{babel}
 \usepackage[T1]{fontenc}
@@ -28,6 +28,8 @@ italiano
 \renewcommand{\arraystretch}{1.1}
 
 \newcommand{\source}[1]{\caption*{Fonte: {\small\texttt{#1}}} }
+
+\pagestyle{plain}
 
 \begin{document}
 	
@@ -78,19 +80,11 @@ italiano
 		\end{center}
 	\end{titlepage}
 	\restoregeometry
-	\newpage
-	
+
 	\tableofcontents
-	\newpage
-	
 	\listoffigures
-	\newpage
-	
 	\listoftables
-	\newpage
-	
 	\listofalgorithms
-	\newpage
 	
 	\chapter*{Introduzione}
 	L'obiettivo di questa tesi consiste nel trovare l'implementazione più veloce ed efficiente, in CUDA, dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem (SSSP). Allo scopo di svolgere un'analisi e una ricerca quanto più complete possibili, in questa tesi misuriamo le prestazioni di varie implementazioni utilizzando vari tipi di test su 3 macchine diverse. L'algoritmo di Bellman-Ford è stato uno dei primi ad essere proposto come soluzione del SSSP problem e, nonostante le varie ottimizzazioni che ha ricevuto, oggigiorno non è più molto utilizzato a causa di altri algoritmi più recenti ed efficienti. Tuttavia, è probabilmente l'algoritmo che meglio si presta alla parallelizzazione massiva offerta da CUDA.
@@ -233,8 +227,7 @@ italiano
 	
 	La versione che riportiamo di seguito e che andremo ad implementare è quella originale proposta prima da Lester Ford Jr. e poi da Richard Bellman.
 	
-	\begin{algorithm}[H]
-		\label{alg:bf}
+	\begin{algorithm}
 		\SetAlgorithmName{Bellman-Ford}{}{}
 		\KwIn{G, w, s}
 		\KwResult{FALSE se il grafo G contiene cicli di costo negativo, TRUE altrimenti}
@@ -251,12 +244,12 @@ italiano
 		}
 		\Return TRUE\;
 		\caption{L'algoritmo di Bellman-Ford}
+		\label{alg:bf}
 	\end{algorithm}
 
 	Come è possibile notare dallo pseudocodice, il corpo effettivo dell'algoritmo consiste nelle righe 2-6. Difatti, \texttt{Initialize-Single-Source} (algoritmo \ref{alg:init}) è una procedura molto semplice che imposta la distanza di ogni nodo dalla sorgente a $+\infty$ e poi azzera la distanza del nodo sorgente. Il codice nelle righe 7-11 consiste invece in un ciclo per verificare o meno la presenza di cicli di costo negativo.
 	
-	\begin{algorithm}[H]
-		\label{alg:init}
+	\begin{algorithm}
 		\SetAlgorithmName{Initialize-Single-Source}{}{}
 		\KwIn{G, s}
 		\ForEach{vertex v $\in$ G.V}{
@@ -265,14 +258,14 @@ italiano
 		}
 		s.d = 0\;
 		\caption{La procedura di inizializzazione del grafo}
+		\label{alg:init}
 	\end{algorithm}
 	
 	Il corpo dell'algoritmo esegue un'operazione di rilassamento (o meglio, invoca la procedura Relax) su ogni arco del grafo per $|V|-1$ iterazioni. Questo limite nasce dal numero di rilassamenti effettuati nel caso pessimo. Consideriamo, ad esempio, un grafo in cui tutti i nodi sono collegati in linea, ognuno è collegato solo con il precedente ed il successivo tranne il primo e l'ultimo che hanno un solo arco. Se la sorgente è il primo nodo, l'algoritmo di Bellman-Ford dovrà effettuare esattamente $|V|-1$ iterazioni di rilassamento perché coincide con il numero di archi nel cammino più lungo all'interno del grafo e ogni iterazione di rilassamento rilassa almeno un arco. Come si può notare, questo algoritmo effettua un'enorme quantità di calcoli inutili ed è proprio per questo che sono state proposte molte ottimizzazioni per ridurre il più possibile sia il numero complessivo di iterazioni di rilassamento che il numero di rilassamenti in ogni iterazione. Ad esempio, il limite massimo di iterazioni di rilassamento da effettuare corrisponde alla lunghezza del cammino minimo più lungo del grafo (molto inferiore al numero di nodi nel caso di grafi densi). Un'ulteriore ottimizzazione può essere il controllo sugli effettivi rilassamenti effettuati durante un'iterazione: se non sono stati effettuati rilassamenti nell'iterazione corrente, sicuramente non ne verranno effettuati altri in quelle successive e quindi l'algoritmo può terminare. Infine, è inefficiente effettuare un rilassamento su ogni arco del grafo al di fuori della prima iterazione. In tutte le successive iterazioni, è sufficiente effettuare un rilassamento solamente sugli archi adiacenti ad almeno un arco che è stato rilassato nell'iterazione precedente.
 	
 	La procedura Relax (algoritmo \ref{alg:relax}) richiede in input due nodi ($u$ e $v$) e la funzione $w$ che restituisce, dati due nodi, il peso dell'arco tra i due. Questa procedura non consiste in un effettivo rilassamento dell'arco $(u,v)$ ma è un tentativo di rilassamento, infatti viene verificato se una riduzione della distanza del nodo $v$ dalla sorgente sia possibile. In parole povere, la procedura Relax verifica se "arrivare al nodo $v$ passando per $u$ come ultimo nodo" sia meno costoso del valore già presente.
 	
-	\begin{algorithm}[H]
-		\label{alg:relax}
+	\begin{algorithm}
 		\SetAlgorithmName{Relax}{}{}
 		\KwIn{u, v, w}
 		\If{v.d > u.d + w(u,v)}{
@@ -280,6 +273,7 @@ italiano
 			v.$\pi$ = u\;
 		}
 		\caption{La procedura di rilassamento di un arco}
+		\label{alg:relax}
 	\end{algorithm}
 	
 	L'algoritmo di Bellman-Ford riesce a rilevare i cicli di costo negativo verificando se è possibile rilassare un arco alla fine delle $|V|-1$ iterazioni. Se in un grafo è presente un ciclo di costo negativo, almeno un arco di quel ciclo verrà rilassato ad ogni iterazione. Questo è dovuto alla presenza di almeno un arco di costo negativo che permette sempre di ridurre la distanza dal nodo sorgente. Come già spiegato nella sezione \ref{section:sssp}, quando è presente un ciclo di costo negativo è sempre possibile ridurre il costo di un cammino che passa per esso. Per questo motivo, se alla fine delle $|V|-1$ iterazioni, almeno un arco è ancora rilassabile, allora vuol dire che è presente un ciclo di costo negativo e l'arco rilassabile ne fa parte.
@@ -365,14 +359,14 @@ italiano
 	
 	Inoltre, in tutte le versioni implementate il peso di un arco è memorizzato come un numero intero. L'unica eccezione è costituita dalle versioni \texttt{bf0-mutex} in cui il peso di un arco è implementato mediante un \texttt{float} a 32 bit. Ciò è dovuto alla necessità di implementare il meccanismo di mutua esclusione: rispetto ad un'esplicita acquisizione e rilascio di una variabile mutex si è preferito utilizzare la funzione CUDA \texttt{atomicCAS}. L'utilizzo di un numero intero per il peso di un arco si è tradotto in un overflow durante il rilassamento, per questo motivo, in tutte le versioni (esclusa \texttt{bf0-mutex}) è stato implementato un controllo che non produce overflow che però non ha più la stessa struttura della procedura Relax (algoritmo \ref{alg:relax}). L'algoritmo \ref{alg:relax-no-overflow} rappresenta lo pseudocodice della procedura Relax effettivamente implementata.
 	
-	\begin{algorithm}[H]
-		\label{alg:relax-no-overflow}
+	\begin{algorithm}
 		\SetAlgorithmName{Relax-No-Overflow}{}{}
 		\KwIn{u, v, w}
 		\If{v.d > u.d \textbf{and} v.d - u.d > w(u,v)}{
 			v.d = u.d + w(u,v)\;
 		}
 		\caption{La procedura di rilassamento di un arco che non produce overflow}
+		\label{alg:relax-no-overflow}
 	\end{algorithm}
 
 	Tutti gli algoritmi che utilizzano un buffer all'interno della memoria condivisa (ovvero tutti i programmi con nome "\texttt{*-sh}"), lo utilizzano per ottimizzare gli accessi in lettura all'array dei dati di input (nel caso si usi AoS, altrimenti sui vari array di input per SoA). Nonostante l'array \texttt{distances} sia acceduto più volte, esso richiede anche un accesso in scrittura e tutti i suoi accessi in lettura non sono allineati. Questi fattori contribuiscono ad un peggioramento significativo delle prestazioni, anche in caso di utilizzo ibrido del buffer, misurato in maniera empirica i cui risultati non sono riportati in questa tesi.
