@@ -13,7 +13,6 @@
 
 \usepackage[
 backend=biber,
-style=alphabetic,
 sorting=ynt
 ]{biblatex}
 
@@ -227,9 +226,10 @@ italiano
 	
 	Dei tanti problemi che si possono applicare ad un grafo, il più studiato (su cui si concentra questa tesi) è senz'altro il Single-Source Shortest Path (abbreviato SSSP). Esso consiste, dato un grafo $G=(V,E)$ e un nodo sorgente $s$, nel trovare tutti i cammini minimi in $G$ che partono da $s$ e terminano in ogni altro nodo. Letteralmente significa "cammino minimo a singola sorgente", per differenziarlo dalla sua versione generalizzata, l'All-Pairs Shortest Path (APSP) che invece chiede di trovare il cammino minimo per ogni coppia di vertici. Il risultato del SSSP consiste in un array di distanze dal nodo sorgente e in un array di predecessori tramite cui è possibile costruire l'albero dei cammini minimi.
 	
-	\chapter{L'algoritmo di Bellman Ford}
+	\chapter{L'algoritmo di Bellman-Ford}
 	\label{chap:analisi}
-	Proposto per primo da Alfonso Shimbel nel 1955 \cite{Shimbel1955}, ma è chiamato Bellman-Ford perché Richard Bellman l'ha pubblicato nel 1958 \cite{Bellman1958} e Lester Ford Jr. l'ha pubblicato nel 1956 \cite{Ford1956}. Edward F. Moore ha pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore). La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha proposto una nuova variante per ridurre il numero di passi di rilassamento. Bannister e Eppstein nel 2012 \cite{Bannister2012} hanno proposto una nuova variante per ridurre ulteriormente i passi di rilassamento.
+	\section{Analisi dello pseudocodice}
+	Proposto per primo dal matematico Alfonso Shimbel nel 1955 \cite{Shimbel1955}, questo algoritmo è chiamato Bellman-Ford perché Richard Bellman, nel 1958 \cite{Bellman1958}, e Lester Ford Jr., nel 1956 \cite{Ford1956}, hanno pubblicato un articolo in cui presentavano lo stesso algoritmo. Ford lo propose come soluzione al problema logistico di trasportare un certo numero di beni da un punto A ad un punto B. Invece, Bellman lo propose come soluzione al problema più realistico di trovare il percorso più veloce attraverso una rete di città collegate tra loro. Edward F. Moore ha poi pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore) che riduce drasticamente il numero di rilassamenti da effettuare ad ogni iterazione. La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha pubblicato una complicata ottimizzazione che riduce il numero totale di iterazioni da $|V|-1$ a $|V|/2$. Bannister e Eppstein, infine, nel 2012 \cite{Bannister2012} hanno migliorato la variante di Yen riducendo il numero di iterazioni a $|V|/3$.
 	
 	La versione che riportiamo di seguito e che andremo ad implementare è quella originale proposta prima da Lester Ford Jr. e poi da Richard Bellman.
 	
@@ -253,14 +253,8 @@ italiano
 		\caption{L'algoritmo di Bellman-Ford}
 	\end{algorithm}
 
-	Come è possibile notare dallo pseudocodice, il corpo effettivo dell'algoritmo consiste nelle righe 2-6. Difatti, l'inizializzazione è una procedura molto semplice che imposta la distanza di ogni nodo dalla sorgente a $+\infty$ e poi azzera la distanza del nodo sorgente. Il codice nelle righe 7-11 consiste invece in un ciclo per verificare o meno la presenza di cicli di costo negativo.
+	Come è possibile notare dallo pseudocodice, il corpo effettivo dell'algoritmo consiste nelle righe 2-6. Difatti, \texttt{Initialize-Single-Source} (algoritmo \ref{alg:init}) è una procedura molto semplice che imposta la distanza di ogni nodo dalla sorgente a $+\infty$ e poi azzera la distanza del nodo sorgente. Il codice nelle righe 7-11 consiste invece in un ciclo per verificare o meno la presenza di cicli di costo negativo.
 	
-	Il corpo dell'algoritmo esegue un'operazione di rilassamento (o meglio, invoca la procedura Relax) su ogni arco del grafo per $|V|-1$ iterazioni. Questo limite nasce dal numero di rilassamenti effettuati nel caso pessimo. Consideriamo un grafo in cui tutti i nodi sono collegati in linea, ognuno è collegato solo con il precedente ed il successivo tranne per il primo e l'ultimo. Se la sorgente è il primo nodo, Bellman-Ford dovrà effettuare esattamente $|V|-1$ iterazioni di rilassamento perché coincide con il numero di archi nel cammino più lungo all'interno del grafo e ogni iterazione di rilassamento rilassa almeno un arco. Come si può notare, questo algoritmo effettua un'enorme quantità di calcoli inutili ed è proprio per questo che sono state proposte molte ottimizzazioni per ridurre il più possibile sia il numero complessivo di iterazioni di rilassamento che il numero di rilassamenti in ogni iterazione. Ad esempio, il limite massimo di iterazioni di rilassamento da effettuare corrisponde al diametro del grafo (molto inferiore al numero di nodi nel caso di grafi densi). Un'ulteriore ottimizzazione può essere il controllo sugli effettivi rilassamenti effettuati durante un'iterazione: se un'iterazione non ha prodotto alcun rilassamento, sicuramente non ne verranno prodotti altri e quindi l'algoritmo può terminare. Infine, è inefficiente effettuare un rilassamento su ogni arco del grafo al di fuori della prima iterazione. In tutte le successive iterazioni, è sufficiente effettuare un rilassamento solamente sugli archi adiacenti ad almeno un arco che è stato rilassato nell'iterazione precedente.
-	
-	La procedura Relax\ref{alg:relax} richiede in input due nodi ($u$ e $v$) e la funzione $w$ che restituisce, dati due nodi, il peso dell'arco tra i due. Questa procedura non consiste in un effettivo rilassamento dell'arco $(u,v)$ ma è un tentativo di rilassamento, infatti viene verificato se una riduzione della distanza del nodo $v$ dalla sorgente sia possibile. In parole povere, la procedura Relax verifica se "arrivare al nodo $v$ passando per $u$ come ultimo nodo" sia meno costoso del valore già presente.
-	
-	Questo algoritmo riesce a rilevare i cicli di costo negativo verificando se è possibile rilassare un arco alla fine delle $|V|-1$ iterazioni. Se in un grafo è presente un ciclo di costo negativo, almeno un arco di quel ciclo verrà rilassato ad ogni iterazione. Questo è dovuto alla presenza di un arco di costo negativo che permette sempre di ridurre la distanza dal nodo sorgente. Come già spiegato nella sezione \ref{section:sssp}, quando è presente un ciclo di costo negativo è sempre possibile ridurre il costo di un cammino che passa per esso, fino a $-\infty$. Per questo motivo, se alla fine delle $|V|-1$ iterazioni, almeno un arco è ancora rilassabile, allora vuol dire che è presente un ciclo di costo negativo e l'arco rilassabile ne fa parte.
-
 	\begin{algorithm}[H]
 		\label{alg:init}
 		\SetAlgorithmName{Initialize-Single-Source}{}{}
@@ -272,7 +266,11 @@ italiano
 		s.d = 0\;
 		\caption{La procedura di inizializzazione del grafo}
 	\end{algorithm}
-
+	
+	Il corpo dell'algoritmo esegue un'operazione di rilassamento (o meglio, invoca la procedura Relax) su ogni arco del grafo per $|V|-1$ iterazioni. Questo limite nasce dal numero di rilassamenti effettuati nel caso pessimo. Consideriamo, ad esempio, un grafo in cui tutti i nodi sono collegati in linea, ognuno è collegato solo con il precedente ed il successivo tranne il primo e l'ultimo che hanno un solo arco. Se la sorgente è il primo nodo, l'algoritmo di Bellman-Ford dovrà effettuare esattamente $|V|-1$ iterazioni di rilassamento perché coincide con il numero di archi nel cammino più lungo all'interno del grafo e ogni iterazione di rilassamento rilassa almeno un arco. Come si può notare, questo algoritmo effettua un'enorme quantità di calcoli inutili ed è proprio per questo che sono state proposte molte ottimizzazioni per ridurre il più possibile sia il numero complessivo di iterazioni di rilassamento che il numero di rilassamenti in ogni iterazione. Ad esempio, il limite massimo di iterazioni di rilassamento da effettuare corrisponde alla lunghezza del cammino minimo più lungo del grafo (molto inferiore al numero di nodi nel caso di grafi densi). Un'ulteriore ottimizzazione può essere il controllo sugli effettivi rilassamenti effettuati durante un'iterazione: se non sono stati effettuati rilassamenti nell'iterazione corrente, sicuramente non ne verranno effettuati altri in quelle successive e quindi l'algoritmo può terminare. Infine, è inefficiente effettuare un rilassamento su ogni arco del grafo al di fuori della prima iterazione. In tutte le successive iterazioni, è sufficiente effettuare un rilassamento solamente sugli archi adiacenti ad almeno un arco che è stato rilassato nell'iterazione precedente.
+	
+	La procedura Relax (algoritmo \ref{alg:relax}) richiede in input due nodi ($u$ e $v$) e la funzione $w$ che restituisce, dati due nodi, il peso dell'arco tra i due. Questa procedura non consiste in un effettivo rilassamento dell'arco $(u,v)$ ma è un tentativo di rilassamento, infatti viene verificato se una riduzione della distanza del nodo $v$ dalla sorgente sia possibile. In parole povere, la procedura Relax verifica se "arrivare al nodo $v$ passando per $u$ come ultimo nodo" sia meno costoso del valore già presente.
+	
 	\begin{algorithm}[H]
 		\label{alg:relax}
 		\SetAlgorithmName{Relax}{}{}
@@ -283,18 +281,19 @@ italiano
 		}
 		\caption{La procedura di rilassamento di un arco}
 	\end{algorithm}
+	
+	L'algoritmo di Bellman-Ford riesce a rilevare i cicli di costo negativo verificando se è possibile rilassare un arco alla fine delle $|V|-1$ iterazioni. Se in un grafo è presente un ciclo di costo negativo, almeno un arco di quel ciclo verrà rilassato ad ogni iterazione. Questo è dovuto alla presenza di almeno un arco di costo negativo che permette sempre di ridurre la distanza dal nodo sorgente. Come già spiegato nella sezione \ref{section:sssp}, quando è presente un ciclo di costo negativo è sempre possibile ridurre il costo di un cammino che passa per esso. Per questo motivo, se alla fine delle $|V|-1$ iterazioni, almeno un arco è ancora rilassabile, allora vuol dire che è presente un ciclo di costo negativo e l'arco rilassabile ne fa parte.
 
 	\section{Costo computazionale}
-	La procedura \texttt{Initialize-Single-Source} esegue due operazioni di costo $O(1)$ in ciascuna delle $|V|$ iterazioni e infine una singola istruzione da $O(1)$. Dunque, il suo costo computazionale complessivo è $O(|V|)$. La procedura Relax\ref{alg:relax} esegue un confronto e, se verificato, esegue due istruzioni di costo $O(1)$. Complessivamente, dunque, la procedura Relax ha costo computazionale $O(1)$. Le istruzioni tra le righe 2-6 dell'algoritmo sono un doppio ciclo annidato che, per ognuna delle $|V|-1$ iterazioni, invoca la procedura Relax su ogni arco, dunque per $|E|$ volte. Quindi, questa porzione dell'algoritmo ha un costo computazionale di $O(|V|\cdot |E|)$. Le istruzioni sulle righe 7-11 complessivamente hanno un costo di $O(|E|)$ poichè esegue un confronto (di costo costante) per $|E|$ volte. Complessivamente, l'algoritmo ha costo computazionale $O(|V|\cdot |E|)$.
+	La procedura \texttt{Initialize-Single-Source} esegue due operazioni di costo $O(1)$ in ciascuna delle $|V|$ iterazioni e infine una singola istruzione di costo $O(1)$. Dunque, il suo costo computazionale complessivo è $O(|V|)$. La procedura Relax esegue un confronto e, se verificato, esegue due istruzioni di costo $O(1)$. Complessivamente, dunque, la procedura Relax ha costo computazionale $O(1)$. Le istruzioni tra le righe 2-6 dell'algoritmo sono un doppio ciclo annidato che, per ognuna delle $|V|-1$ iterazioni, invoca la procedura Relax su ogni arco, dunque per $|E|$ volte. Quindi, questa porzione dell'algoritmo ha un costo computazionale di $O(|V|\cdot |E|)$. Le istruzioni sulle righe 7-11 complessivamente hanno un costo di $O(|E|)$ poichè esegue un confronto (di costo costante) per $|E|$ volte. Complessivamente, l'algoritmo ha costo computazionale $O(|V|\cdot |E|)$.
 	
 	\section{Dove parallelizzare}
 	Analizziamo ora le dipendenze tra dati contenuti nell'algoritmo. Ognuna delle iterazioni del ciclo sulle righe 2-6 è dipendente dal risultato dell'iterazione precedente. Mentre ogni iterazione del ciclo tra le righe 3-5 presenta una dipendenza particolare: ogni rilassamento di un arco $(u,v)$ dipende dal risultato dell'ultimo rilassamento di un arco diretto verso $v$.
 	
-	Alternativamente, questo algoritmo può essere alterato scambiando l'ordine dei due cicli annidati. Questa variazione lo rende incorretto solamente se seriale. Se consideriamo una versione parallela di questa variante, si può interpretare il lavoro effettuato da un thread come un rilassamento seguito da massimo $|V|-1$ tentativi di aggiornamento concorrente del valore della distanza di $v$.
+	Alternativamente, questo algoritmo può essere alterato scambiando l'ordine dei due cicli annidati. Questa variazione lo rende incorretto solamente se seriale. Se consideriamo una versione parallela di questa variante, si può interpretare il lavoro effettuato da un singolo thread come un rilassamento seguito da massimo $|V|-1$ tentativi di aggiornamento concorrente del valore della distanza di $v$.
 	
 	\section{Precisazioni}
-	Siccome, per lo scopo di questa tesi, non è necessario che l'algoritmo riesca a costruire l'albero dei cammini minimi, non è stata implementata questa funzionalità. Con riferimento allo pseudocodice, questa modifica si traduce nella rimozione della riga 3 dalla procedura Relax (\ref{alg:relax}) e dall'inizializzazione (\ref{alg:init}). Inoltre, i test utilizzati per le misurazioni non presentano archi di costo negativo e di conseguenza nessun ciclo di costo negativo. Per questo motivo, l'algoritmo implementato produce solamente un array di distanze di ogni nodo dalla sorgente.
-	(quest'ultimo paragrafo andrebbe spostato dentro il design o dentro i dettagli implementativi)
+	Siccome, per lo scopo di questa tesi, non è necessario che l'algoritmo riesca a costruire l'albero dei cammini minimi, non è stata implementata questa funzionalità. Con riferimento allo pseudocodice, questa modifica si traduce nella rimozione della riga 3 dalle procedure Relax (algoritmo \ref{alg:relax}) e di inizializzazione (algoritmo \ref{alg:init}). Inoltre, i test utilizzati per le misurazioni non presentano archi di costo negativo e di conseguenza nessun ciclo di costo negativo. Per questo motivo, l'algoritmo implementato produce solamente un array di distanze di ogni nodo dalla sorgente.
 	
 	\chapter{Progettazione}
 	\label{chap:progettazione}
