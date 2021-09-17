@@ -13,5 +13,6 @@ doc/*
 !doc/*.bib
 !doc/*.png
 !doc/*.jpg
+!doc/*.jpeg
 
 bin/
