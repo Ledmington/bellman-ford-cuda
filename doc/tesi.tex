@@ -102,36 +102,33 @@ italiano
 	\chapter{Calcolo parallelo}
 	\label{chap:storia}
 	\section{La Legge di Moore}
-	Negli anni '60, Gordon Moore, futuro fondatore e direttore esecutivo di Intel, ipotizzò che il numero di componenti elettronici (transistor) contenuti all'interno di un chip sarebbe raddoppiato ogni 18 mesi circa. Tale previsione si rivelò corretta per tutti gli anni '70 e i tempi si allungarono a partire dagli anni '80. Intorno agli anni 2000 si è giunti all'epilogo di questa crescita, infatti era evidente già un decennio prima che si sarebbero raggiunti presto i limiti fisici all'interno di un processore. Nella figura \ref{fig:mooreslaw} si può notare l'incremento del numero di transistor (per millimetro quadrato) su scala logaritmica. Per questo motivo, la potenza di calcolo dei processori a singolo core è cresciuta sempre più lentamente fino ad arrestarsi e si è dovuti ricorrere alle architetture parallele. Raddoppiare il numero di core fisici all'interno di un chip può, in certi casi, raddoppiare le prestazioni e ridurre allo stesso tempo il consumo di energia ma richiede uno sforzo maggiore da parte del programmatore per lo sviluppo di codice parallelo. A causa di questa difficoltà e anche a causa della scarsità di programmatori qualificati, al giorno d'oggi il software parallelo è molto meno presente dell'hardware parallelo.
+	Negli anni '60, Gordon Moore, futuro fondatore e direttore esecutivo di Intel, ipotizzò che il numero di componenti elettronici (transistor) contenuti all'interno di un chip sarebbe raddoppiato ogni 18 mesi circa\cite{moore1975progress}. Tale previsione si rivelò corretta per tutti gli anni '70 e i tempi si allungarono a partire dagli anni '80, per poi giungere all'epilogo di questa crescita intorno agli anni 2000. Nella figura \ref{fig:mooreslaw} si può notare l'incremento del numero di transistor per millimetro quadrato, in funzione del tempo, su scala logaritmica. Per questo motivo, la potenza di calcolo dei processori a singolo core è cresciuta sempre più lentamente fino ad arrestarsi e si è dovuti ricorrere alle architetture parallele. Raddoppiare il numero di core fisici all'interno di un chip può, in certi casi, raddoppiare le prestazioni e ridurre allo stesso tempo il consumo di energia ma richiede uno sforzo maggiore da parte del programmatore per lo sviluppo di codice parallelo. A causa di questa difficoltà e anche a causa della scarsità di programmatori qualificati, al giorno d'oggi il software parallelo è molto meno presente dell'hardware parallelo.
 	
 	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=0.76\linewidth]{Moores_Law}
-		\caption[Legge di Moore]{Rappresentazione della legge di Moore: l'aumento di transistor in un chip su scala logaritmica rispetto al passare degli anni}
-		\source{https://medium.com/predict/moores-law-is-alive-and-well-eaa49a450188}
+		\caption[Legge di Moore]{Rappresentazione della legge di Moore: l'aumento del numero di transistor in un chip su scala logaritmica rispetto al passare degli anni. Fonte: \url{https://medium.com/predict/moores-law-is-alive-and-well-eaa49a450188}}
 		\label{fig:mooreslaw}
 	\end{figure}
 	
-	Intorno al 2007, sono apparse sul mercato le prime General-Purpose Graphic Processing Unit (GPGPU), ovvero le prime schede grafiche programmabili in maniera generica. Ciò non significa che, prima di quella data, non fossero programmabili ma si intende dire che erano utilizzabili solamente per applicazioni strettamente legate alla grafica, come i videogiochi. Le GPGPU hanno aperto una nuova era del calcolo parallelo, permettendo ai programmatori di sfruttare l'elevatissimo numero di core fisici per computazioni estremamente parallelizzabili. La differenza principale, a livello hardware, tra una CPU multi-core e una GPGPU consiste infatti nel numero di core quasi "centuplicato" a parità di prezzo. Questa abbondanza di risorse di calcolo ha cambiato anche il modo di strutturare e progettare i programmi paralleli. Le GPGPU hanno determinato un cambiamento così importante in ambito HPC che si può notare come tutti i nuovi super-computer, costruiti circa dal 2010 in poi, posseggano un elevato numero di GPGPU affiancate alle CPU.
+	Intorno al 2007, sono apparse sul mercato le prime General-Purpose Graphic Processing Unit (GPGPU), ovvero le prime schede grafiche programmabili in maniera generica. Ciò non significa che, prima di quella data, non fossero programmabili ma si intende dire che erano utilizzabili solamente per applicazioni strettamente legate alla grafica. Le GPGPU hanno aperto una nuova era del calcolo parallelo, permettendo ai programmatori di sfruttare l'elevatissimo numero di core fisici per computazioni estremamente parallelizzabili. La differenza principale, a livello hardware, tra una CPU multi-core e una GPGPU consiste infatti nel numero di core molto maggiore nella seconda, come mostra la figura \ref{fig:cpu-gpu-computing-architecture}. Questa abbondanza di risorse di calcolo ha cambiato anche il modo di strutturare e progettare i programmi paralleli.
 	
 	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=\linewidth]{cpu-gpu-computing-architecture}
-		\caption[Differenza architetturale tra CPU e GPU]{A sinistra l'architettura di una classica CPU, a destra l'architettura di una GPGPU.}
-		\source{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}
+		\caption[Differenza architetturale tra CPU e GPU]{A sinistra l'architettura di una classica CPU, a destra l'architettura di una GPGPU. Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
 		\label{fig:cpu-gpu-computing-architecture}
 	\end{figure}
 	
 	\section{GPU e CUDA}
-	CUDA (acronimo di Compute Unified Device Architecture) è un'architettura hardware realizzata da NVIDIA, la cui prima versione è stata pubblicata nel 2007. Tramite CUDA è possibile scrivere programmi eseguibili su una scheda grafica NVIDIA e su una CPU. CUDA basa tutto il suo funzionamento su alcuni concetti molto semplici: la CPU su cui viene lanciato il programma è chiamata \textit{host} e può interagire con una o più schede grafiche NVIDIA, chiamate \textit{device}. L'host può invocare alcune funzioni specifiche che vengono eseguite dal device e per questo motivo ogni esecuzione di queste funzioni è, di fatto, asincrona, ovvero il controllo viene restituito subito all'host, senza attendere il termine dell'esecuzione. Tuttavia, esiste la possibilità di sincronizzare esplicitamente l'host con un device. Le funzioni più importanti sono i \textit{kernel}, le uniche che possono essere scritte dal programmatore, che possono effettuare qualunque tipo di calcolo. Anche i kernel sono eseguiti in maniera asincrona ma, a differenza delle altre funzioni, richiedono due parametri obbligatori, ovvero il numero di blocchi e il numero di thread per ogni blocco da utilizzare per l'esecuzione.
+	CUDA (acronimo di Compute Unified Device Architecture) è un'architettura hardware realizzata da NVIDIA, la cui prima versione è stata pubblicata nel 2007. Tramite CUDA è possibile scrivere programmi che eseguono parte del loro codice su una scheda grafica NVIDIA. CUDA basa tutto il suo funzionamento su alcuni concetti molto semplici: la CPU su cui viene lanciato il programma è chiamata \textit{host} e può interagire con una o più schede grafiche NVIDIA, chiamate \textit{device}. L'host può invocare alcune funzioni specifiche che vengono eseguite dal device. L'esecuzione di queste funzioni è asincrona, ovvero il controllo viene restituito subito all'host, senza attendere il termine dell'esecuzione. Tuttavia, esiste la possibilità di sincronizzare esplicitamente l'host con un device. Le funzioni più importanti sono i \textit{kernel}, le uniche che possono essere scritte dal programmatore, che possono effettuare qualunque tipo di calcolo. Anche i kernel sono eseguiti in maniera asincrona ma, a differenza delle altre funzioni, richiedono due parametri obbligatori, ovvero il numero di blocchi e il numero di thread per ogni blocco da utilizzare per l'esecuzione.
 	
-	CUDA raggruppa logicamente tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi (in genere da 1024) che a loro volta sono raggruppati in una griglia. Ogni device ha sempre e solo una griglia in esecuzione e ogni griglia esegue sempre e solo un singolo kernel. \'E possibile identificare i blocchi e i thread mediante un indice a 1, 2 o 3 dimensioni in base all'occorrenza. Nella figura \ref{fig:grid-of-thread-blocks} è mostrato l'esempio di indicizzazione per una griglia bidimensionale formata da blocchi bidimensionali di thread.
+	CUDA raggruppa logicamente tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi che a loro volta sono raggruppati in una griglia. Ogni device ha sempre e solo una griglia in esecuzione e ogni griglia esegue sempre e solo un singolo kernel. \'E possibile identificare i blocchi e i thread mediante un indice a 1, 2 o 3 dimensioni in base all'occorrenza. Nella figura \ref{fig:grid-of-thread-blocks} è mostrato l'esempio di indicizzazione per una griglia bidimensionale formata da blocchi bidimensionali di thread.
 	
 	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=0.5\textwidth]{grid-of-thread-blocks}
-		\caption[Struttura della griglia di una GPU CUDA]{Suddivisione della griglia di una GPU CUDA in blocchi di thread}
-		\source{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}
+		\caption[Struttura della griglia di una GPU CUDA]{Suddivisione della griglia di una GPU CUDA in blocchi di thread. Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
 		\label{fig:grid-of-thread-blocks}
 	\end{figure}
 	
@@ -147,40 +144,36 @@ italiano
 	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=0.5\textwidth]{CUDA-memory-model}
-		\caption[Struttura della memoria di una GPU CUDA]{Struttura e gerarchia delle varie memorie all'interno di una GPU CUDA}
-		\source{https://www.researchgate.net/figure/CUDA-memory-model-from-7\_fig1\_4373162}
+		\caption[Struttura della memoria di una GPU CUDA]{Struttura e gerarchia delle varie memorie all'interno di una GPU CUDA. Fonte: \url{https://www.researchgate.net/figure/CUDA-memory-model-from-7\_fig1\_4373162}}
 		\label{fig:cuda-memory-model}
 	\end{figure}
 
 	\begin{wrapfigure}{r}{0.5\textwidth}
 		\centering
 		\includegraphics[width=0.45\textwidth]{automatic-scalability}
-		\caption{Schedulazione automatica dei thread in una GPU CUDA}
-		\source{https://docs.nvidia.com/cuda/\\cuda-c-programming-guide/index.html}
+		\caption{Schedulazione automatica dei thread in una GPU CUDA.\\Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
 		\label{fig:automatic-scalability}
 	\end{wrapfigure}
 	
-	Lo scheduling in una scheda CUDA funziona in modo particolare. Innanzitutto, va precisato che, nonostante il numero di core fisici (che in una scheda NVIDIA vengono chiamati Streaming Multiprocessors) vari tra una scheda e l'altra, non è possibile scegliere quali e quanti utilizzare per l'esecuzione di un kernel. Quando viene invocato un kernel, infatti, i thread richiesti vengono creati in memoria ma poi è l'hardware che sceglie automaticamente a \textit{runtime} la schedulazione migliore di questi thread sui SM a disposizione. La figura \ref{fig:automatic-scalability} mostra l'esempio di uno stesso programma eseguito su due schede con numero diverso di SM.
+	Lo scheduling dei thread in una scheda CUDA funziona in modo particolare. Innanzitutto, va precisato che, nonostante il numero di core fisici (che in una scheda NVIDIA vengono chiamati Streaming Multiprocessors) vari tra una scheda e l'altra, non è possibile scegliere quali e quanti utilizzare per l'esecuzione di un kernel. Quando viene invocato un kernel, infatti, i thread richiesti vengono creati in memoria ma poi è l'hardware che sceglie automaticamente a \textit{runtime} la schedulazione migliore di questi thread sui SM a disposizione. La figura \ref{fig:automatic-scalability} mostra l'esempio di uno stesso programma eseguito su due schede con numero diverso di SM.
 
-	Per questo motivo, si utilizza il concetto di \textit{thread warp}: un gruppo di thread (genericamente massimo 32) appartenenti allo stesso blocco che devono eseguire la stessa porzione di codice vengono schedulati tutti insieme sullo stesso SM ed eseguiti contemporaneamente. In caso di una biforcazione del flusso di controllo (ad esempio a causa di un costrutto \texttt{if-else} nel codice), viene calcolata la condizione per tutti i thread, dopodichè vengono eseguiti tutti insieme solamente quelli che hanno verificato la condizione (ovvero il ramo \texttt{if}), poi vengono eseguiti tutti insieme tutti gli altri (il ramo \texttt{else}). Nella figura \ref{fig:thread-warp} è mostrato l'esempio di una porzione di codice in cui i primi 16 thread eseguono il blocco di codice A mentre gli altri eseguono il blocco B.
+	Per questo motivo, si utilizza il concetto di \textit{thread warp}: un gruppo di thread (genericamente massimo 32) appartenenti allo stesso blocco che devono eseguire la stessa porzione di codice vengono schedulati tutti insieme sullo stesso SM ed eseguiti contemporaneamente. In caso di una biforcazione del flusso di controllo (ad esempio a causa di un costrutto \texttt{if-else} nel codice), viene calcolata la condizione per tutti i thread, dopodiché vengono eseguiti tutti insieme solamente quelli che hanno verificato la condizione (ovvero il ramo \texttt{if}), poi vengono eseguiti tutti insieme tutti gli altri (il ramo \texttt{else}). Nella figura \ref{fig:thread-warp} è mostrato l'esempio di una porzione di codice in cui i primi 16 thread eseguono il blocco di codice A mentre gli altri eseguono il blocco B.
 	
 	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=0.7\linewidth]{thread-warp}
-		\caption{Esecuzione di un thread warp in caso di biforcazione}
-		\source{https://subscription.packtpub.com/book/programming/9781788996242/3/\\ch03lvl1sec23/minimizing-the-cuda-warp-divergence-effect}
+		\caption{Esecuzione di un thread warp in caso di biforcazione.\\Fonte: \url{https://subscription.packtpub.com/book/programming/9781788996242/3/ch03lvl1sec23/minimizing-the-cuda-warp-divergence-effect}}
 		\label{fig:thread-warp}
 	\end{figure}
 
 	\begin{wrapfigure}{r}{0.5\textwidth}
 		\centering
 		\includegraphics[width=0.5\textwidth]{aos-vs-soa}
-		\caption{Differenza tra AoS e SoA}
-		\source{https://arxiv.org/ftp/arxiv/\\papers/1907/1907.05560.pdf}
+		\caption{Differenza tra AoS e SoA. Fonte: \url{https://arxiv.org/ftp/arxiv/papers/1907/1907.05560.pdf}}
 		\label{fig:aos-vs-soa}
 	\end{wrapfigure}
 
-	Va posta particolare attenzione anche al modo con cui i thread di una GPU CUDA accedono alla memoria. Infatti, la caratteristica più importante è il raggruppamento delle letture in memoria: se un certo numero di thread deve accedere in locazioni di memoria adiacenti, viene effettuata una singola operazione di lettura che trasferisce tutti i dati richiesti dai thread nelle rispettive memorie locali. Può sembrare una funzionalità irrilevante, ma in realtà può determinare enormi differenze di prestazioni in programmi che non memorizzano i dati in maniera corretta. In particolare, esistono due pattern generali di memorizzazione: Array-of-Structures (AoS) e Structure-of-Arrays (SoA). Il primo, il più utilizzato, consiste nel memorizzare le caratteristiche di uno stesso elemento (come le coordinate di un punto) in locazioni adiacenti di memoria. Il secondo, invece, memorizza ogni dato in un array separato.
+	Va posta particolare attenzione anche al modo con cui i thread di una GPU CUDA accedono alla memoria. Infatti, la caratteristica più importante è il raggruppamento delle letture in memoria: se un certo numero di thread, appartenenti allo stesso warp, deve accedere in locazioni di memoria adiacenti, viene effettuata una singola operazione di lettura che trasferisce tutti i dati richiesti dai thread nelle rispettive memorie locali. Può sembrare una funzionalità irrilevante, ma in realtà può determinare differenze significative di prestazioni in programmi che non memorizzano i dati in maniera corretta. In particolare, esistono due pattern generali di memorizzazione: Array-of-Structures (AoS) e Structure-of-Arrays (SoA). Il primo, il più utilizzato, consiste nel memorizzare le caratteristiche di uno stesso elemento (come le coordinate di un punto) in locazioni adiacenti di memoria. Il secondo, invece, memorizza ogni dato in un array separato. Ipotizziamo che tutti i thread appartenenti ad un warp debbano leggere un valore dal vettore x (con riferimento alla figura \ref{fig:aos-vs-soa}) in posizioni adiacenti. Se i dati in questione fossero memorizzati come Structure-of-Arrays, tutti i valori richiesti si troverebbero all'interno dello stesso array adiacenti tra loro a partire da una certa posizione iniziale. La vicinanza in memoria di questi valori determina quindi un ridotto numero di letture effettive e un maggiore utilizzo del bus dati. Al contrario, se i dati fossero memorizzati tramite Array-of-Structures, i valori sarebbero più lontani fra loro e quindi richiederebbero un maggior numero di letture in memoria.
 	
 	\chapter{Teoria}
 	\label{chap:teoria}
