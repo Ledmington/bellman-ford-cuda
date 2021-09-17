@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper,twoside]{book}
+\documentclass[12pt,a4paper,oneside]{book}
 
 \usepackage[italian]{babel}
 \usepackage[T1]{fontenc}
@@ -87,15 +87,16 @@ italiano
 	\listofalgorithms
 	
 	\chapter*{Introduzione}
-	L'obiettivo di questa tesi consiste nel trovare l'implementazione più veloce ed efficiente, in CUDA, dell'algoritmo di Bellman-Ford per il Single-Source Shortest Path problem (SSSP). Allo scopo di svolgere un'analisi e una ricerca quanto più complete possibili, in questa tesi misuriamo le prestazioni di varie implementazioni utilizzando vari tipi di test su 3 macchine diverse. L'algoritmo di Bellman-Ford è stato uno dei primi ad essere proposto come soluzione del SSSP problem e, nonostante le varie ottimizzazioni che ha ricevuto, oggigiorno non è più molto utilizzato a causa di altri algoritmi più recenti ed efficienti. Tuttavia, è probabilmente l'algoritmo che meglio si presta alla parallelizzazione massiva offerta da CUDA.
+	L'obiettivo di questa tesi consiste nello sviluppo e analisi di implementazioni efficienti dell'algoritmo di Bellman-Ford su GPU. Allo scopo di svolgere un'analisi e una ricerca quanto più complete possibili, in questa tesi misuriamo le prestazioni di varie implementazioni utilizzando vari tipi di test su tre macchine diverse. L'algoritmo di Bellman-Ford è stato uno dei primi ad essere proposto come soluzione del problema SSSP ed è probabilmente l'algoritmo che meglio si presta alla parallelizzazione massiva offerta da CUDA.
 	
 	Questa tesi è strutturata come segue:
 	\begin{itemize}
-		\item il capitolo \ref{chap:storia} è un'introduzione al calcolo parallelo: alcuni cenni storici e poi una spiegazione del funzionamento di una GPU CUDA
-		\item nel capitolo \ref{chap:teoria} vengono illustrati i concetti teorici più semplici riguardanti grafi e cammini minimi
-		\item il capitolo \ref{chap:analisi} contiene un'analisi dello pseudocodice dell'algoritmo di Bellman-Ford
-		\item basandosi su quest'analisi si progettano, nel capitolo \ref{chap:progettazione}, tre versioni differenti
-		\item infine saranno mostrati e discussi i risultati nel capitolo \ref{chap:perf}
+		\item il capitolo \ref{chap:storia} è un'introduzione al calcolo parallelo: vengono presentati alcuni cenni storici e poi una spiegazione del funzionamento di una GPU CUDA
+		\item nel capitolo \ref{chap:teoria} vengono illustrati i concetti base riguardanti grafi e cammini minimi
+		\item il capitolo \ref{chap:analisi} contiene una descrizione dell'algoritmo di Bellman-Ford
+		\item nel capitolo \ref{chap:progettazione}, basandosi sull'analisi effettuata, si progettano tre implementazioni differenti
+		\item il capitolo \ref{chap:metriche} illustra brevemente le metriche di valutazione utilizzate
+		\item il capitolo \ref{chap:perf} contiene i risultati dei test effettuai
 	\end{itemize}
 	
 	\chapter{Calcolo parallelo}
@@ -124,7 +125,7 @@ italiano
 	\section{GPU e CUDA}
 	CUDA (acronimo di Compute Unified Device Architecture) è un'architettura hardware realizzata da NVIDIA, la cui prima versione è stata pubblicata nel 2007. Tramite CUDA è possibile scrivere programmi eseguibili su una scheda grafica NVIDIA e su una CPU. CUDA basa tutto il suo funzionamento su alcuni concetti molto semplici: la CPU su cui viene lanciato il programma è chiamata \textit{host} e può interagire con una o più schede grafiche NVIDIA, chiamate \textit{device}. L'host può invocare alcune funzioni specifiche che vengono eseguite dal device e per questo motivo ogni esecuzione di queste funzioni è, di fatto, asincrona, ovvero il controllo viene restituito subito all'host, senza attendere il termine dell'esecuzione. Tuttavia, esiste la possibilità di sincronizzare esplicitamente l'host con un device. Le funzioni più importanti sono i \textit{kernel}, le uniche che possono essere scritte dal programmatore, che possono effettuare qualunque tipo di calcolo. Anche i kernel sono eseguiti in maniera asincrona ma, a differenza delle altre funzioni, richiedono due parametri obbligatori, ovvero il numero di blocchi e il numero di thread per ogni blocco da utilizzare per l'esecuzione.
 	
-	CUDA raggruppa logicamente tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi (in genere da 1024) che a loro volta sono raggruppati in una griglia. Ogni device ha sempre e solo una griglia in esecuzione e ogni griglia esegue sempre e solo un singolo kernel. \'E possibile idenetificare i blocchi e i thread mediante un indice a 1, 2 o 3 dimensioni in base all'occorrenza. Nella figura \ref{fig:grid-of-thread-blocks} è mostrato l'esempio di indicizzazione per una griglia bidimensionale formata da blocchi bidimensionali di thread.
+	CUDA raggruppa logicamente tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi (in genere da 1024) che a loro volta sono raggruppati in una griglia. Ogni device ha sempre e solo una griglia in esecuzione e ogni griglia esegue sempre e solo un singolo kernel. \'E possibile identificare i blocchi e i thread mediante un indice a 1, 2 o 3 dimensioni in base all'occorrenza. Nella figura \ref{fig:grid-of-thread-blocks} è mostrato l'esempio di indicizzazione per una griglia bidimensionale formata da blocchi bidimensionali di thread.
 	
 	\begin{figure}[!ht]
 		\centering
@@ -179,7 +180,7 @@ italiano
 		\label{fig:aos-vs-soa}
 	\end{wrapfigure}
 
-	Va posta particolare attenzione anche al modo con cui i thread di una GPU CUDA accedono alla memoria. Infatti, la caratteristica più importante è il raggruppamento delle letture in memoria: se un certo numero di thread deve accedere in locazioni di memoria adiacenti, viene effettuata una singola operazione di lettura che trsferisce tutti i dati richiesti dai thread nelle rispettive memorie locali. Può sembrare una funzionalità irrilevante, ma in realtà può determinare enormi differenze di prestazioni in programmi che non memorizzano i dati in maniera corretta. In particolare, esistono due pattern generali di memorizzazione: Array-of-Structures (AoS) e Structure-of-Arrays (SoA). Il primo, il più utilizzato, consiste nel memorizzare le caratteristiche di uno stesso elemento (come le coordinate di un punto) in locazioni adiacenti di memoria. Il secondo, invece, memorizza ogni dato in un array separato.
+	Va posta particolare attenzione anche al modo con cui i thread di una GPU CUDA accedono alla memoria. Infatti, la caratteristica più importante è il raggruppamento delle letture in memoria: se un certo numero di thread deve accedere in locazioni di memoria adiacenti, viene effettuata una singola operazione di lettura che trasferisce tutti i dati richiesti dai thread nelle rispettive memorie locali. Può sembrare una funzionalità irrilevante, ma in realtà può determinare enormi differenze di prestazioni in programmi che non memorizzano i dati in maniera corretta. In particolare, esistono due pattern generali di memorizzazione: Array-of-Structures (AoS) e Structure-of-Arrays (SoA). Il primo, il più utilizzato, consiste nel memorizzare le caratteristiche di uno stesso elemento (come le coordinate di un punto) in locazioni adiacenti di memoria. Il secondo, invece, memorizza ogni dato in un array separato.
 	
 	\chapter{Teoria}
 	\label{chap:teoria}
@@ -204,7 +205,7 @@ italiano
 	
 	\section{Cammini minimi e problema SSSP}
 	\label{section:sssp}
-	In un grafo, un qualunque percorso che congiunge due nodi è detto \textbf{cammino} ed è rappresentabile come una lista ordinata di nodi. \'E importante notare la possibilità che uno stesso nodo sia presente più volte all'interno dello stesso cammino: quando ciò accade si parla di \textbf{cicli} (che approfondiremo di seguito). Il primo e l'ultimo nodo di questa lista ordinata sono chiamati rispettivamente \textbf{nodo sorgente} e \textbf{nodo destinazione}. In un grafo non pesato, il costo (o peso) di un cammino è pari al numero di nodi nella lista mentre in uno pesato è pari alla somma dei pesi degli archi coinvolti. Un cammino è detto \textbf{minimo} se non esiste un altro cammino nello stesso grafo, con uguali nodi sorgente e destinazione, con costo strettamente minore. Ad esempio, nel grafo della figura \ref{fig:grafo-esempio}, un cammino dal nodo B al nodo E può essere (B,A,F,E) mentre (B,A,E) è un cammino minimo. Va precisato che Nello stesso grafo, a parità di nodi sorgente e destinazione, possono esistere numerosi cammini minimi diversi tra loro.
+	In un grafo, un qualunque percorso che congiunge due nodi è detto \textbf{cammino} ed è rappresentabile come una lista ordinata di nodi. \'E importante notare la possibilità che uno stesso nodo sia presente più volte all'interno dello stesso cammino: quando ciò accade si parla di \textbf{cicli} (che approfondiremo di seguito). Il primo e l'ultimo nodo di questa lista ordinata sono chiamati rispettivamente \textbf{nodo sorgente} e \textbf{nodo destinazione}. In un grafo non pesato, il costo (o peso) di un cammino è pari al numero di nodi nella lista mentre in uno pesato è pari alla somma dei pesi degli archi coinvolti. Un cammino è detto \textbf{minimo} se non esiste un altro cammino nello stesso grafo, con uguali nodi sorgente e destinazione, con costo strettamente minore. Ad esempio, nel grafo della figura \ref{fig:grafo-esempio}, un cammino dal nodo B al nodo E può essere (B,A,F,E) mentre (B,A,E) è un cammino minimo. Va precisato che nello stesso grafo, a parità di nodi sorgente e destinazione, possono esistere numerosi cammini minimi diversi tra loro.
 	
 	Un ciclo consiste in un sottoinsieme di nodi di un grafo tali per cui è possibile raggiungere indirettamente, da qualunque nodo, uno qualunque degli altri nodi. Un albero, ad esempio, è un tipo particolare di grafo che non presenta cicli. Il costo (o peso) di un ciclo è pari alla somma dei pesi degli archi tra i nodi da cui è composto (nei grafi non pesati, invece, è pari al numero di nodi). Nel grafo della figura \ref{fig:grafo-esempio}, l'unico ciclo presente è (A,F,E). \'E possibile che in un grafo pesato siano presenti archi di costo negativo: sebbene siano poche le situazioni reali modellabili in questo modo, è molto importante determinare la presenza di cicli di costo negativo. Se in un grafo è presente un ciclo di costo negativo, allora ogni cammino minimo (in cui è possibile raggiungere tale ciclo dal nodo sorgente) avrà costo $-\infty$. Ai fini computazionali, non riuscire ad individuare un ciclo di costo negativo può determinare lo spreco di molte risorse di calcolo e di tempo eseguendo un algoritmo che produce un risultato inutile. Per questo motivo, in genere si utilizzano grafi con pesi strettamente positivi oppure algoritmi capaci di rilevare tali cicli.
 	
@@ -380,7 +381,7 @@ italiano
 	Le versioni \texttt{bf1}, siccome memorizzano il grafo come una lista di adiacenza basata sugli archi uscenti, se utilizzate su grafi in cui sono presenti nodi senza archi uscenti possono generare un comportamento imprevisto. Lo stesso problema è presente per le versioni \texttt{bf2} riguardo agli archi entranti. Le versioni \texttt{bf0}, invece, produrranno un valore di $+\infty$ per ogni nodo irraggiungibile.
 	
 	\chapter{Metriche di valutazione}
-	\label{section:metriche}
+	\label{chap:metriche}
 	\section{Speedup}
 	Lo speedup è la principale metrica di misurazione di un programma parallelo. Essa, infatti, rappresenta l'accelerazione che un dato programma ha ricevuto tramite la parallelizzazione. In particolare, lo speedup di un programma parallelo eseguito con $p$ core si calcola come:
 	\begin{equation}
