@@ -27,8 +27,6 @@ italiano
 
 \renewcommand{\arraystretch}{1.1}
 
-\newcommand{\source}[1]{\caption*{Fonte: {\small\texttt{#1}}} }
-
 \pagestyle{plain}
 
 \begin{document}
@@ -151,7 +149,7 @@ italiano
 	\begin{wrapfigure}{r}{0.5\textwidth}
 		\centering
 		\includegraphics[width=0.45\textwidth]{automatic-scalability}
-		\caption{Schedulazione automatica dei thread in una GPU CUDA.\\Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
+		\caption[Schedulazione automatica dei thread in una GPU CUDA]{Schedulazione automatica dei thread in una GPU CUDA.\\Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
 		\label{fig:automatic-scalability}
 	\end{wrapfigure}
 	
@@ -162,14 +160,14 @@ italiano
 	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=0.7\linewidth]{thread-warp}
-		\caption{Esecuzione di un thread warp in caso di biforcazione.\\Fonte: \url{https://subscription.packtpub.com/book/programming/9781788996242/3/ch03lvl1sec23/minimizing-the-cuda-warp-divergence-effect}}
+		\caption[Esecuzione di un thread warp in caso di biforcazione]{Esecuzione di un thread warp in caso di biforcazione.\\Fonte: \url{https://subscription.packtpub.com/book/programming/9781788996242/3/ch03lvl1sec23/minimizing-the-cuda-warp-divergence-effect}}
 		\label{fig:thread-warp}
 	\end{figure}
 
 	\begin{wrapfigure}{r}{0.5\textwidth}
 		\centering
 		\includegraphics[width=0.5\textwidth]{aos-vs-soa}
-		\caption{Differenza tra AoS e SoA. Fonte: \url{https://arxiv.org/ftp/arxiv/papers/1907/1907.05560.pdf}}
+		\caption[Differenza tra Aos e SoA]{Differenza tra AoS e SoA. Fonte: \url{https://arxiv.org/ftp/arxiv/papers/1907/1907.05560.pdf}}
 		\label{fig:aos-vs-soa}
 	\end{wrapfigure}
 
@@ -197,7 +195,8 @@ italiano
 	\label{section:sssp}
 	In un grafo, un qualunque percorso che congiunge due nodi è detto cammino ed è rappresentabile come una lista ordinata di nodi. \'E importante notare la possibilità che uno stesso nodo sia presente più volte all'interno dello stesso cammino: quando ciò accade si parla di cicli (che approfondiremo di seguito). Il primo e l'ultimo nodo di questa lista ordinata sono chiamati rispettivamente nodo sorgente e nodo destinazione. In un grafo non pesato, il costo (o peso) di un cammino è pari al numero di nodi nella lista mentre in uno pesato è pari alla somma dei pesi degli archi coinvolti. Un cammino è detto minimo se non esiste un altro cammino nello stesso grafo, con uguali nodi sorgente e destinazione, con costo strettamente minore. Ad esempio, nel grafo della figura \ref{fig:grafo-esempio}, un cammino dal nodo B al nodo E può essere (B,A,F,E) mentre (B,A,E) è un cammino minimo. Va precisato che nello stesso grafo possono esistere cammini minimi diversi che collegano la stessa coppia di nodi.
 	
-	Un ciclo consiste in un sottoinsieme di nodi di un grafo tali per cui è possibile raggiungere indirettamente, da qualunque nodo, uno qualunque degli altri nodi. Un albero, ad esempio, è un tipo particolare di grafo che non presenta cicli. Il costo (o peso) di un ciclo è pari alla somma dei pesi degli archi tra i nodi da cui è composto (nei grafi non pesati, invece, è pari al numero di nodi). Nel grafo della figura \ref{fig:grafo-esempio}, l'unico ciclo semplice presente è (A,F,E). \begin{wrapfigure}{r}{0.5\textwidth}
+	Un ciclo consiste in un sottoinsieme di nodi di un grafo tali per cui è possibile raggiungere indirettamente, da qualunque nodo, uno qualunque degli altri nodi. Un albero, ad esempio, è un tipo particolare di grafo che non presenta cicli. Il costo (o peso) di un ciclo è pari alla somma dei pesi degli archi tra i nodi da cui è composto (nei grafi non pesati, invece, è pari al numero di nodi). Nel grafo della figura \ref{fig:grafo-esempio-2}, ad esempio, (B,C,D,B) è un ciclo di costo $5$ mentre (A,D,F,E,C,A) è un ciclo di costo $23$.
+	\begin{wrapfigure}{r}{0.5\textwidth}
 		\centering
 		\includegraphics[width=0.5\textwidth]{grafo-esempio-2}
 		\caption{Un esempio di grafo pesato non orientato.}
@@ -211,10 +210,10 @@ italiano
 	
 	\chapter{L'algoritmo di Bellman-Ford}
 	\label{chap:analisi}
-	\section{Analisi dello pseudocodice}
-	Proposto per primo dal matematico Alfonso Shimbel nel 1955 \cite{Shimbel1955}, questo algoritmo è chiamato Bellman-Ford perché Richard Bellman, nel 1958 \cite{Bellman1958}, e Lester Ford Jr., nel 1956 \cite{Ford1956}, hanno pubblicato un articolo in cui presentavano lo stesso algoritmo. Ford lo propose come soluzione al problema logistico di trasportare un certo numero di beni da un punto A ad un punto B. Invece, Bellman lo propose come soluzione al problema più realistico di trovare il percorso più veloce attraverso una rete di città collegate tra loro. Edward F. Moore ha poi pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore) che riduce drasticamente il numero di rilassamenti da effettuare ad ogni iterazione. La variante di Moore è nota come Shortest Path Faster Algorithm. Yen nel 1970 \cite{Yen1970} ha pubblicato una complicata ottimizzazione che riduce il numero totale di iterazioni da $|V|-1$ a $|V|/2$. Bannister e Eppstein, infine, nel 2012 \cite{Bannister2012} hanno migliorato la variante di Yen riducendo il numero di iterazioni a $|V|/3$.
+	\section{Descrizione dell'algoritmo}
+	Proposto per primo dal matematico Alfonso Shimbel nel 1955 \cite{Shimbel1955}, questo algoritmo è chiamato Bellman-Ford perché Richard Bellman, nel 1958 \cite{Bellman1958}, e Lester Ford Jr., nel 1956 \cite{Ford1956}, hanno pubblicato un articolo in cui presentavano lo stesso algoritmo. Ford lo propose come soluzione al problema logistico di trasportare un certo numero di beni da un punto A ad un punto B. Invece, Bellman lo propose come soluzione al problema più realistico di trovare il percorso più veloce attraverso una rete di città collegate tra loro. Edward F. Moore ha poi pubblicato una sua variante nel 1959 \cite{Moore1959} (per questo a volte viene chiamato Bellman-Ford-Moore) che riduce drasticamente il numero di rilassamenti da effettuare ad ogni iterazione. La variante di Moore è nota come Shortest Path Faster Algorithm. Nel 1970 Yen\cite{Yen1970} ha pubblicato una complicata ottimizzazione che riduce il numero totale di iterazioni da $|V|-1$ a $|V|/2$. Nel 2012 Bannister e Eppstein \cite{Bannister2012} hanno migliorato la variante di Yen riducendo il numero di iterazioni a $|V|/3$.
 	
-	La versione che riportiamo di seguito e che andremo ad implementare è quella originale proposta prima da Lester Ford Jr. e poi da Richard Bellman.
+	La versione che riportiamo di seguito e che verrà implementata è quella originale proposta prima da Lester Ford Jr. e poi da Richard Bellman.
 	
 	\begin{algorithm}
 		\SetAlgorithmName{Bellman-Ford}{}{}
