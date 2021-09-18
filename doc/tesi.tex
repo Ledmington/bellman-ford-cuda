@@ -395,9 +395,9 @@ italiano
 	\chapter{Valutazione delle prestazioni}
 	\label{chap:perf}
 	\section{Descrizione dei test}
-	I primi cinque test sono rappresentazioni sotto forma di grafo delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi file sono reperibili ai link \cite{testUSA} e \cite{testRoma}. I successivi quattro test sono, invece, grafi sintetici casuali realizzati tramite il programma \texttt{graphgen} (disponibile nel repository \footnote{\url{https://github.com/Ledmington/bellman-ford-cuda}}) a densità crescente. L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi quattro test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
+	I primi cinque test sono rappresentazioni, in forma di grafo, delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi file sono reperibili ai link \cite{testUSA} e \cite{testRoma}. Gli altri quattro test sono, invece, grafi sintetici casuali, realizzati tramite il programma \texttt{graphgen} (disponibile nel repository \footnote{\url{https://github.com/Ledmington/bellman-ford-cuda}}), a densità crescente. L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi quattro test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
 	
-	Entrando più nello specifico, tutti i grafi elencati sono orientati, pesati e semplici. Solamente i primi 5 grafi sono planari. L'ultimo grafo, \texttt{100}, è l'unico completo. I primi cinque grafi sono considerati sparsi, gli ultimi quattro sono considerati densi. In nessuno di questi grafi sono presenti nodi isolati. La tabella \ref{tab:riassunto_test} contiene un breve riassunto delle caratteristiche di ogni test.
+	Entrando più nello specifico, tutti i grafi elencati sono orientati, pesati e semplici. Nessuno di questi grafi presenta archi di costo negativo.Solamente i primi 5 grafi sono planari. L'ultimo grafo, \texttt{100}, è l'unico completo. In nessuno di questi grafi sono presenti nodi isolati. La tabella \ref{tab:riassunto_test} contiene un breve riassunto delle caratteristiche di ogni test.
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|c|c|c|c|}
@@ -413,12 +413,12 @@ italiano
 			075 & 1000 & 749262 & Grafo casuale con densità 0.75 \\ \hline
 			100 & 1000 & 999000 & Grafo casuale completo \\ \hline
 		\end{tabular}
-		\caption{Tabella riassuntiva delle specifiche dei test utilizzati}
+		\caption{Tabella riassuntiva delle caratteristiche dei test utilizzati}
 		\label{tab:riassunto_test}
 	\end{table}
 	
 	\section{Specifiche hardware}
-	Nella tabella \ref{tab:specs} sono riportate le specifiche hardware e software delle macchine utilizzate per la valutazione delle prestazioni degli algoritmi proposti. Le macchine saranno identificate tramite il nome della propria scheda grafica.
+	Al fine di effettuare una ricerca quanto più completa possibile, si è scelto di effettuare le misurazioni su tre macchine dotate di schede grafiche NVIDIA molto diverse tra loro. Nella tabella \ref{tab:specs} sono riportate le specifiche hardware e software delle macchine utilizzate. Le macchine saranno identificate tramite il nome della propria scheda grafica.
 	
 	\renewcommand{\arraystretch}{1.2}
 	\begin{table}[!ht]
@@ -459,7 +459,7 @@ italiano
 	\renewcommand{\arraystretch}{1.1}
 
 	\section{Prestazioni dell'algoritmo seriale}
-	Nella tabella \ref{tab:performance_serial} sono riportati i valori di Wall Clock Time (tempo di esecuzione) e di throughput misurati sull'algoritmo \texttt{bf-serial} sulla CPU della macchina 940MX. Il tempo di esecuzione è espresso in secondi. Il throughput è espresso in milioni di operazioni di rilassamento effettuati al secondo ($10^6$ relax/s).
+	Nella tabella \ref{tab:performance_serial} sono riportati i tempi di esecuzione e di throughput misurati sull'algoritmo \texttt{bf-serial} sulla CPU della macchina 940MX. Il tempo di esecuzione è espresso in secondi. Il throughput è espresso in milioni di operazioni di rilassamento effettuati al secondo ($10^6$ relax/s).
 	
 	\begin{table}[!ht]
 		\centering
@@ -481,14 +481,14 @@ italiano
 	\end{table}
 
 	\section{Precisazioni preliminari}
-	Tutti gli algoritmi producono il risultato corretto su ogni grafo utilizzato, tranne l'algoritmo \texttt{bf2-soa-sh} che produce valori errati per il grafo di Roma. Per questo motivo, tale algoritmo è considerato errato e non ne saranno riportate le misurazioni delle prestazioni.
+	Tutti gli algoritmi producono il risultato corretto su ogni grafo utilizzato, tranne l'algoritmo \texttt{bf2-soa-sh} che produce valori errati con il grafo \texttt{rome}. Per questo motivo, tale algoritmo è considerato errato e non ne saranno riportate le misurazioni delle prestazioni.
 	
-	Inoltre, per gli algoritmi delle famiglie \texttt{bf1} e \texttt{bf2} non sono riportate le misurazioni per alcuni test come \texttt{NV}, \texttt{ME} e in alcuni casi \texttt{VT}. Non si è ritenuto utile riportarle in quanto i tempi di esecuzione, superiori ad un'ora, non sono comparabili con quelli raggiunti dagli algoritmi della famiglia \texttt{bf0}. Allo stesso modo, per gli stessi algoritmi e gli stessi test non sono riportati neanche i valori di throughput.
+	Inoltre, per gli algoritmi \texttt{bf1} e \texttt{bf2} non sono riportate le misurazioni per alcuni test come \texttt{NV}, \texttt{ME} e in alcuni casi \texttt{VT}. Non si è ritenuto utile riportarle in quanto i tempi di esecuzione, superiori ad un'ora, non sono comparabili con quelli raggiunti dagli algoritmi \texttt{bf0}. Allo stesso modo, per gli stessi algoritmi e gli stessi test non sono riportati neanche i valori di throughput.
 	
 	\section{Speedup}
-	Di seguito sono riportati i valori di speedup di ogni versione, misurati sui test a disposizione e su ogni scheda, rispetto al tempo d'esecuzione dell'algoritmo \texttt{bf-serial}.
+	Di seguito sono riportati i valori di speedup di ogni versione, misurati sui test a disposizione e su ogni macchina, rispetto ai valori riportati nella tabella \ref{tab:performance_serial}.
 	
-	Innanzitutto, è possibile notare l'enorme differenza di speedup in generale tra la scheda 940MX e le altre. Evidente in particolar modo nelle figure \ref{fig:speedup_bf0-none} e \ref{fig:speedup_bf0-mutex}, ciò è dovuto soprattutto alla superiore potenza computazionale determinata dalle risorse hardware. Come già specificato nella tabella \ref{tab:specs}, non solo la frequenza di clock dei core CUDA è maggiore ma il numero stesso di core a disposizione è moltiplicato nelle schede GTX1070 e RTX2080.
+	Innanzitutto, è possibile notare l'enorme differenza di speedup in generale tra la scheda 940MX e le altre. Evidente in particolar modo nelle figure \ref{fig:speedup_bf0-none} e \ref{fig:speedup_bf0-mutex}, ciò è dovuto soprattutto alla superiore potenza computazionale determinata dalle risorse hardware. Come specificato nella tabella \ref{tab:specs}, non solo la frequenza di clock dei core CUDA è maggiore ma il loro numero è moltiplicato nelle schede GTX1070 e RTX2080.
 	
 	Nonostante i valori di speedup per gli algoritmi \texttt{bf0} siano molto simili tra di loro, si nota un modesto miglioramento da una qualunque versione \texttt{nosh} alla corrispettiva \texttt{sh}. I valori maggiori si ottengono su versioni che utilizzano AoS anche se sono molto più variabili rispetto ai valori misurati sugli algoritmi che utilizzano SoA.
 	
@@ -538,7 +538,7 @@ italiano
 		\label{fig:speedup_bf0-mutex}
 	\end{figure}
 
-	Riguardo alle versioni \texttt{bf1}, invece, si nota subito dai grafici della figura \ref{fig:speedup_bf1} che la scala dello speedup ottenuto è molto più ridotta rispetto a quanto ottenuto con le versioni \texttt{bf0}. Infatti, solamente sui grafi sintetici si ottiene uno speedup significativo, mentre sui grafi "reali" lo speedup misurato è molto vicino allo $0$. Ciò era prevedibile a causa del ridottissimo numero di thread impiegati che, come già accennato nella sezione \ref{section:intro-bf1}, si sarebbe rivelato utile solamente su grafi molto piccoli e densi. Anche qui si osserva, in generale, un lieve miglioramento delle prestazioni grazie all'impiego della memoria condivisa e del pattern SoA.
+	Riguardo agli algoritmi \texttt{bf1}, invece, si nota subito dai grafici della figura \ref{fig:speedup_bf1} che la scala dello speedup ottenuto è molto più ridotta rispetto a quanto ottenuto con gli algoritmi \texttt{bf0}. Infatti, solamente sui grafi sintetici si ottiene uno speedup significativo, mentre sui grafi "reali" il valore misurato è molto vicino allo $0$. Ciò era prevedibile a causa del ridottissimo numero di thread impiegati che, come già accennato nella sezione \ref{section:intro-bf1}, si sarebbe rivelato utile solamente su grafi molto piccoli e densi. Anche qui si osserva, in generale, un lieve miglioramento delle prestazioni grazie all'impiego della memoria condivisa e del pattern SoA.
 	
 	I valori misurati sui grafi \texttt{rome} e \texttt{DE} sono prossimi allo $0$.
 
@@ -564,7 +564,7 @@ italiano
 		\label{fig:speedup_bf1}
 	\end{figure}
 
-	Infine con le versioni \texttt{bf2} si notano valori di speedup decisamente più alti rispetto alle versioni \texttt{bf1}, ma solamente sui grafi sintetici. Nella figura \ref{fig:speedup_bf2}, si può notare che sugli altri grafi sono stati registrati valori intorno ad $1$ e quindi non significativi. Questa grande differenza rispecchia perfettamente la struttura degli algoritmi \texttt{bf2}: utilizzando solamente $1024$ thread per rilassare gli archi entranti di ogni nodo l'incremento di prestazioni diventa significativo solamente su grafi con elevata densità. Va notato, però, che l'unica versione che impiega SoA riporta valori di speedup molto più elevati rispetto alle due versioni \texttt{bf2-aos}.
+	Infine con gli algoritmi \texttt{bf2} si notano valori di speedup decisamente più alti rispetto agli algoritmi \texttt{bf1}, ma solamente sui grafi sintetici. Nella figura \ref{fig:speedup_bf2}, si può notare che sugli altri grafi sono stati misurati valori intorno ad $1$ e quindi non significativi. Questa grande differenza rispecchia perfettamente la struttura degli algoritmi \texttt{bf2}: utilizzando solamente $1024$ thread per rilassare gli archi entranti di ogni nodo l'incremento di prestazioni diventa significativo solamente su grafi con elevata densità. Va notato, però, che l'unica versione che impiega SoA riporta valori di speedup molto più elevati rispetto alle due versioni \texttt{bf2-aos}.
 
 	\begin{figure}[b]
 		\centering
@@ -587,7 +587,7 @@ italiano
 	\section{Throughput}
 	Di seguito sono riportati i valori di throughput di ogni versione, misurati sui test a disposizione e su ogni scheda, indicati in milioni di operazioni di rilassamento effettuate ogni secondo ($10^6$ relax/s).
 	
-	Come già spiegato più sopra per lo speedup, nelle figure \ref{fig:throughput_bf0-none} e \ref{fig:throughput_bf0-mutex} si nota l'enorme differenza tra la scheda 940MX e le altre. \'E comunque interessante notare come i valori della scheda GTX1070, pur sempre elevati, risultino meno variabili di quelli misurati sulla scheda RTX2080.
+	Come già spiegato nella sezione precedente, nelle figure \ref{fig:throughput_bf0-none} e \ref{fig:throughput_bf0-mutex} si nota l'enorme differenza tra la scheda 940MX e le altre. \'E comunque interessante notare come i valori della scheda GTX1070, pur sempre elevati, risultino meno variabili di quelli misurati sulla scheda RTX2080.
 	
 	I valori misurati sul grafo \texttt{rome}, come per lo speedup, risultano di almeno due ordini di grandezza minori rispetto ai valori misurati sugli altri test.
 	
@@ -635,7 +635,7 @@ italiano
 		\label{fig:throughput_bf0-mutex}
 	\end{figure}
 
-	In figura \ref{fig:throughput_bf1} osserviamo come l'impiego di un singolo blocco per l'esecuzione dei kernel, delle versioni \texttt{bf1}, abbia determinato una riduzione di prestazioni pari a circa un ordine di grandezza, nel caso migliore, rispetto agli algoritmi \texttt{bf0}.
+	In figura \ref{fig:throughput_bf1} osserviamo come l'impiego di un singolo blocco per l'esecuzione dei kernel abbia determinato una riduzione di prestazioni pari a circa un fattore 10, nel caso migliore, rispetto agli algoritmi \texttt{bf0}.
 	
 	I valori misurati sui grafi \texttt{rome} e \texttt{DE} sono prossimi a $0$ a causa dell'elevato tempo di esecuzione impiegato.
 
@@ -661,7 +661,7 @@ italiano
 		\label{fig:throughput_bf1}
 	\end{figure}
 
-	Come già osservato per lo speedup, in figura \ref{fig:throughput_bf2} osserviamo un aumento delle prestazioni, rispetto agli algoritmi \texttt{bf1}, di almeno un fattore 4. Nonostante sia un incremento importante, il throughput delle versioni \texttt{bf2} risulta di molto inferiore rispetto alle prestazioni degli algoritmi \texttt{bf0}.
+	Come già osservato per lo speedup, in figura \ref{fig:throughput_bf2} osserviamo un aumento delle prestazioni, rispetto agli algoritmi \texttt{bf1}, di almeno un fattore 4. Nonostante sia un incremento importante, il throughput delle versioni \texttt{bf2} risulta molto inferiore rispetto alle prestazioni degli algoritmi \texttt{bf0}.
 
 	\begin{figure}[b]
 		\centering
