@@ -119,6 +119,7 @@ italiano
 	\end{figure}
 	
 	\section{GPU e CUDA}
+	\ref{section:cuda}
 	CUDA (acronimo di Compute Unified Device Architecture) è un'architettura hardware realizzata da NVIDIA, la cui prima versione è stata pubblicata nel 2007. Tramite CUDA è possibile scrivere programmi che eseguono parte del loro codice su una scheda grafica NVIDIA. CUDA basa tutto il suo funzionamento su alcuni concetti molto semplici: la CPU su cui viene lanciato il programma è chiamata \textit{host} e può interagire con una o più schede grafiche NVIDIA, chiamate \textit{device}. L'host può invocare alcune funzioni specifiche che vengono eseguite dal device. L'esecuzione di queste funzioni è asincrona, ovvero il controllo viene restituito subito all'host, senza attendere il termine dell'esecuzione. Tuttavia, esiste la possibilità di sincronizzare esplicitamente l'host con un device. Le funzioni più importanti sono i \textit{kernel}, le uniche che possono essere scritte dal programmatore, che possono effettuare qualunque tipo di calcolo. Anche i kernel sono eseguiti in maniera asincrona ma, a differenza delle altre funzioni, richiedono due parametri obbligatori, ovvero il numero di blocchi e il numero di thread per ogni blocco da utilizzare per l'esecuzione.
 	
 	CUDA raggruppa logicamente tutti i thread, ovvero le singole unità di esecuzione logiche, in blocchi che a loro volta sono raggruppati in una griglia. Ogni device può avere solo una griglia in esecuzione e ogni griglia può eseguire un singolo kernel. \'E possibile identificare i blocchi e i thread mediante un indice a 1, 2 o 3 dimensioni in base all'occorrenza. Nella figura \ref{fig:grid-of-thread-blocks} è mostrato l'esempio di indicizzazione per una griglia bidimensionale formata da blocchi bidimensionali di thread.
@@ -286,15 +287,15 @@ italiano
 	Basandoci sull'analisi effettuata nel capitolo precedente, proponiamo di seguito tre implementazioni differenti dell'algoritmo di Bellman-Ford.
 	
 	\section{La versione \texttt{bf0}}
-	La prima versione sfrutta pesantemente il parallelismo massivo offerto da CUDA, memorizzando il grafo di input come un array di archi e parallelizzando il ciclo alle righe 3-5 dell'algoritmo \ref{alg:bf} utilizzando un thread per ogni arco del grafo. Ad ogni iterazione, ogni thread esegue una procedura Relax su un singolo arco del grafo e poi si sincronizza con tutti gli altri.
+	La prima versione sfrutta ampiamente il parallelismo massivo offerto da CUDA, memorizzando il grafo di input come un array di archi e parallelizzando il ciclo alle righe 3-5 dell'algoritmo \ref{alg:bf}, utilizzando un thread per ogni arco del grafo. Ad ogni iterazione, ogni thread invoca la procedura Relax (algoritmo \ref{alg:relax}) su un singolo arco del grafo. Infine, tutti i thread si sincronizzano prima di eseguire l'iterazione successiva.
 	
-	Il problema principale di questa versione consiste negli aggiornamenti concorrenti della distanza del nodo $v$. Come già accennato in precedenza, possiamo interpretare il lavoro svolto da ogni thread come $|V|-1$ tentativi di aggiornamento di un singolo valore. Per questo motivo, riteniamo possa essere comunque corretta una versione che non utilizza meccanismi di mutua esclusione. Tale versione sarà chiamata \texttt{bf0-none}. Ovviamente proponiamo anche la sua controparte \texttt{bf0-mutex} perché garantisce la correttezza del risultato al prezzo dell'impiego di operazioni atomiche.
+	Il problema principale di questa versione consiste negli aggiornamenti concorrenti della distanza del nodo $v$. Come già accennato in precedenza, possiamo interpretare il lavoro svolto da ogni thread come $|V|-1$ tentativi di aggiornamento di un singolo valore. Per questo motivo, riteniamo possa essere comunque corretta una versione che non utilizza meccanismi di mutua esclusione. Tale versione sarà chiamata \texttt{bf0-none}. Ovviamente proponiamo anche la sua controparte \texttt{bf0-mutex} perché garantisce la correttezza del risultato al prezzo dell'impiego di operazioni atomiche. Nella tabella \ref{tab:riassunto_bf0} sono riassunte le caratteristiche delle varie versioni implementate di questo algoritmo.
 	
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|l|c|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\textbf{Nome versione} & \textbf{Mutex} & \textbf{AoS/SoA} & \textbf{Memoria condivisa} \\ \hline
 			\texttt{bf0-none-aos-nosh}  & no & AoS & no \\ \hline
 			\texttt{bf0-none-aos-sh}    & no & AoS & si \\ \hline
 			\texttt{bf0-none-soa-nosh}  & no & SoA & no \\ \hline
@@ -304,43 +305,44 @@ italiano
 			\texttt{bf0-mutex-soa-nosh} & si & SoA & no \\ \hline
 			\texttt{bf0-mutex-soa-sh}   & si & SoA & si \\ \hline
 		\end{tabular}
-		\label{tab:riassunto_bf0}
 		\caption{Tabella riassuntiva delle caratteristiche delle versioni dell'algoritmo \texttt{bf0}}
+		\label{tab:riassunto_bf0}
 	\end{table}
 	
 	\section{Rimuovere i mutex: \texttt{bf1}}
 	\label{section:intro-bf1}
-	Il problema degli aggiornamenti concorrenti può essere risolto senza mutex ma utilizzando un numero molto inferiore di thread. Se il grafo di input viene memorizzato come lista di adiacenza in cui ogni nodo ha un riferimento solo ai nodi raggiungibili tramite archi uscenti, allora noi possiamo parallelizzare i rilassamenti da effettuare su ogni nodo. Nel dettaglio, fissato un nodo $u$, utilizziamo un thread per ogni arco uscente da $u$ che vi effettua un rilassamento. Com'è evidente, questa versione non presenta il problema di aggiornamenti concorrenti, ma utilizza molti meno thread. Probabilmente, le prestazioni di questa versione potrebbero essere comparabili a quella precedente solamente su grafi piccoli e completi, in cui ogni nodo ha un elevato numero di archi uscenti.
+	Il problema degli aggiornamenti concorrenti può essere risolto senza impiego di mutex ma utilizzando un numero molto inferiore di thread. Se il grafo di input viene memorizzato mediante una lista di adiacenza in cui ogni nodo ha un riferimento solo ai nodi raggiungibili tramite archi uscenti, allora è possibile parallelizzare i rilassamenti da effettuare su ogni nodo. Nel dettaglio, fissato un nodo $u$, utilizziamo un thread per ogni arco uscente da $u$ che vi effettua un rilassamento. Com'è evidente, questa versione non presenta il problema di aggiornamenti concorrenti, ma utilizza molti meno thread. Probabilmente, le prestazioni di questa versione potrebbero essere comparabili alle prestazioni dell'algoritmo \texttt{bf0} solamente su grafi piccoli e completi, in cui ogni nodo ha un elevato numero di archi uscenti. Nella tabella \ref{tab:riassunto_bf1} sono riassunte le caratteristiche delle varie versioni implementate dell'algoritmo \texttt{bf1}.
 	
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|l|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\textbf{Nome versione} & \textbf{AoS/SoA} & \textbf{Memoria condivisa} \\ \hline
 			\texttt{bf1-aos-nosh}  & AoS & no \\ \hline
 			\texttt{bf1-aos-sh}    & AoS & si \\ \hline
 			\texttt{bf1-soa-nosh}  & SoA & no \\ \hline
 			\texttt{bf1-soa-sh}    & SoA & si \\ \hline
 		\end{tabular}
-		\label{tab:riassunto_bf1}
 		\caption{Tabella riassuntiva delle caratteristiche delle versioni dell'algoritmo \texttt{bf1}}
+		\label{tab:riassunto_bf1}
 	\end{table}
 	
 	\section{Sfruttare più thread: \texttt{bf2}}
-	Il difetto maggiore della versione \texttt{bf1} è il suo ridottissimo numero di thread. \'E possibile, però, sfruttare un numero maggiore di thread al prezzo di introdurre nuovamente degli aggiornamenti concorrenti. In questo caso il grafo dovrebbe essere memorizzato come una lista di adiacenza in cui ogni nodo memorizza il riferimento ai nodi che possono raggiungerlo, dunque gli archi entranti. Con questa modifica, il numero di thread utilizzabili aumenta considerevolmente perché è possibile effettuare tutti i rilassamenti degli archi entranti su ogni nodo del grafo contemporaneamente. Per questi motivi, la versione \texttt{bf2} utilizzerà un blocco di thread per ogni nodo del grafo.
+	\label{section:intro-bf2}
+	Il difetto maggiore della versione \texttt{bf1} è il suo ridottissimo numero di thread. \'E possibile, però, sfruttare un numero maggiore di thread al prezzo di introdurre nuovamente aggiornamenti concorrenti nell'algoritmo. In questo caso il grafo dovrebbe essere memorizzato mediante una lista di adiacenza in cui ogni nodo memorizza il riferimento ai nodi che possono raggiungerlo, dunque gli archi entranti. Con questa modifica, il numero di thread utilizzabili aumenta considerevolmente perché è possibile effettuare tutti i rilassamenti degli archi entranti su ogni nodo del grafo contemporaneamente. Per questi motivi, l'algoritmo \texttt{bf2} utilizza un blocco di thread per ogni nodo del grafo. Nella tabella \ref{tab:riassunto_bf2} sono riassunte le caratteristiche delle varie versioni implementate di questo algoritmo.
 
 	\begin{table}[!ht]
 		\centering
 		\begin{tabular}{|l|c|c|}
 			\hline
-			\textbf{Nome versione} & \textbf{AoS/SoA} & \textbf{Shared Memory} \\ \hline
+			\textbf{Nome versione} & \textbf{AoS/SoA} & \textbf{Memoria condivisa} \\ \hline
 			\texttt{bf2-aos-nosh}  & AoS & no \\ \hline
 			\texttt{bf2-aos-sh}    & AoS & si \\ \hline
 			\texttt{bf2-soa-nosh}  & SoA & no \\ \hline
 			\texttt{bf2-soa-sh}    & SoA & si \\ \hline
 		\end{tabular}
-		\label{tab:riassunto_bf2}
 		\caption{Tabella riassuntiva delle caratteristiche delle versioni dell'algoritmo \texttt{bf2}}
+		\label{tab:riassunto_bf2}
 	\end{table}
 	
 	\section{Dettagli implementativi}
@@ -349,7 +351,7 @@ italiano
 	
 	Come già spiegato nel capitolo \ref{chap:analisi}, ogni algoritmo che risolve il problema SSSP necessita dell'indice del nodo sorgente. In tutte le versioni implementate, il nodo sorgente è il nodo di indice $0$.
 	
-	Inoltre, in tutte le versioni implementate il peso di un arco è memorizzato come un numero intero. L'unica eccezione è costituita dalle versioni \texttt{bf0-mutex} in cui il peso di un arco è implementato mediante un \texttt{float} a 32 bit. Ciò è dovuto alla necessità di implementare il meccanismo di mutua esclusione: rispetto ad un'esplicita acquisizione e rilascio di una variabile mutex si è preferito utilizzare la funzione CUDA \texttt{atomicCAS}. L'utilizzo di un numero intero per il peso di un arco si è tradotto in un overflow durante il rilassamento, per questo motivo, in tutte le versioni (esclusa \texttt{bf0-mutex}) è stato implementato un controllo che non produce overflow e che non ha più la stessa struttura della procedura Relax (algoritmo \ref{alg:relax}). L'algoritmo \ref{alg:relax-no-overflow} rappresenta lo pseudocodice della procedura Relax effettivamente implementata.
+	Inoltre, in tutte le versioni implementate il peso di un arco è memorizzato come un numero intero. L'unica eccezione è costituita dalle versioni \texttt{bf0-mutex} in cui il peso di un arco è implementato mediante un \texttt{float} a 32 bit. Ciò è dovuto alla necessità di implementare il meccanismo di mutua esclusione: rispetto ad un'esplicita acquisizione e rilascio di una variabile mutex si è preferito utilizzare la funzione CUDA \texttt{atomicCAS}. L'utilizzo di un numero intero per il peso di un arco si è tradotto però in un overflow durante l'esecuzione di un rilassamento. Per questo motivo, in tutte le versioni (esclusa \texttt{bf0-mutex}) è stato implementato un controllo che non produce overflow e che non ha più la stessa struttura della procedura Relax (algoritmo \ref{alg:relax}). L'algoritmo \ref{alg:relax-no-overflow} rappresenta lo pseudocodice della procedura Relax effettivamente implementata.
 	
 	\begin{algorithm}
 		\SetAlgorithmName{Relax-No-Overflow}{}{}
@@ -361,15 +363,15 @@ italiano
 		\label{alg:relax-no-overflow}
 	\end{algorithm}
 
-	Tutti gli algoritmi che utilizzano un buffer all'interno della memoria condivisa (ovvero tutti i programmi con nome "\texttt{*-sh}"), ottimizzano gli accessi in lettura all'array dei dati di input (nel caso si usi AoS, altrimenti sui vari array di input per SoA). Nonostante l'array \texttt{distances} sia acceduto più volte, esso richiede anche un accesso in scrittura e tutti i suoi accessi in lettura non sono allineati. Questi fattori contribuiscono ad un peggioramento significativo delle prestazioni.Tale peggioramento è stato rilevato mediante misurazioni empiriche cui risultati non sono riportati in questa tesi.
+	Tutti gli algoritmi che utilizzano un buffer all'interno della memoria condivisa (ovvero tutti i programmi con nome "\texttt{*-sh}"), ottimizzano gli accessi in lettura all'array dei dati di input (nel caso si usi AoS, altrimenti sui vari array di input per SoA). Nonostante l'array \texttt{distances} sia acceduto più volte, esso richiede anche un accesso in scrittura e tutti i suoi accessi in lettura non sono allineati. Come già spiegato nella sezione \ref{section:cuda}, questi fattori contribuiscono ad un peggioramento significativo delle prestazioni. Tale peggioramento è stato rilevato mediante misurazioni empiriche i cui risultati non sono riportati in questa tesi.
 	
-	Tutte le versioni \texttt{bf0} utilizzano un thread per ogni arco del grafo e, considerato che nella maggior parte delle schede grafiche CUDA il numero massimo di thread per blocco è pari a 1024 e il numero massimo di blocchi utilizzabili è pari a $2^{31}-1$\cite{cudaSpecifications}, il loro limite è pari a $(2^{31}-1)\cdot 1024$. Utilizzare come input un grafo con un numero maggiore di archi genererebbe un comportamento imprevisto.
+	Gli algoritmi \texttt{bf0} utilizzano un thread per ogni arco del grafo e, considerato che nella maggior parte delle schede grafiche CUDA il numero massimo di thread per blocco è pari a 1024 e il numero massimo di blocchi utilizzabili è pari a $2^{31}-1$\cite{cudaSpecifications}, il loro limite è pari a $(2^{31}-1)\cdot 1024$. Utilizzare come input un grafo con un numero maggiore di archi genererebbe un comportamento imprevisto.
 	
-	Le versioni \texttt{bf1} utilizzano un singolo blocco di $1024$ thread che opera su ogni nodo del grafo, ma non presenta limitazioni in questo senso.
+	Gli algoritmi \texttt{bf1} utilizzano un singolo blocco di $1024$ thread che opera su ogni nodo del grafo, ma non presentano limitazioni in questo senso.
 	
-	Le versioni \texttt{bf2}, siccome utilizzano un blocco di thread per ogni nodo, se utilizzate su grafi con un numero di nodi maggiore di $2^{31}-1$, possono generare un comportamento imprevisto.
+	Gli algoritmi \texttt{bf2}, come spiegato nella sezione \ref{section:intro-bf2}, utilizzano un blocco di thread per ogni nodo. Dunque, se venissero utilizzati su grafi con un numero di nodi maggiore di $2^{31}-1$, potrebbero generare un comportamento imprevisto.
 	
-	Le versioni \texttt{bf1}, siccome memorizzano il grafo come una lista di adiacenza basata sugli archi uscenti, se utilizzate su grafi in cui sono presenti nodi senza archi uscenti possono generare un comportamento imprevisto. Lo stesso problema è presente per le versioni \texttt{bf2} riguardo agli archi entranti. Le versioni \texttt{bf0}, invece, produrranno un valore di $+\infty$ per ogni nodo irraggiungibile.
+	Gli algoritmi \texttt{bf1}, come già spiegato nella sezione \ref{section:intro-bf1}, memorizzano il grafo come una lista di adiacenza basata sugli archi uscenti. Dunque, se fossero utilizzati su grafi in cui sono presenti nodi senza tali archi potrebbero generare un comportamento imprevisto. Lo stesso problema è presente per gli algoritmi \texttt{bf2} riguardo agli archi entranti. Gli algoritmi \texttt{bf0}, invece, produrranno un valore di $+\infty$ per ogni nodo irraggiungibile.
 	
 	\chapter{Metriche di valutazione}
 	\label{chap:metriche}
