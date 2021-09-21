@@ -13,8 +13,8 @@ if "%1" == "all" (
 	for /f tokens^=* %%A in ('where "bin:*.exe"') do (
 		echo =======================================
 		echo TESTING %%~nA
-		bin\%%~nA.exe < %2.in > result.out
-		fc result.out %2.sol
+		bin\%%~nA.exe < test\%2.in > result.out
+		fc result.out test\%2.sol
 	)
 	exit /b 1
 )
@@ -23,6 +23,6 @@ if not exist bin\%1.exe (
 	echo The file bin\%1.exe does not exist, compile the source code first
 	exit /b 1
 )
-bin\%1.exe < %2.in > result.out
-fc result.out %2.sol
+bin\%1.exe < test\%2.in > result.out
+fc result.out test\%2.sol
 exit /b 1
