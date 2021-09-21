@@ -249,8 +249,14 @@ italiano
 		\caption{La procedura di inizializzazione del grafo}
 		\label{alg:init}
 	\end{algorithm}
+	\begin{wrapfigure}{r}{0.4\textwidth}
+		\centering
+		\includegraphics[width=0.4\textwidth]{grafo-lineare}
+		\caption{Esempio di un grafo lineare.}
+		\label{fig:grafo-lineare}
+	\end{wrapfigure}
 	
-	Il corpo dell'algoritmo esegue un'operazione di rilassamento (o meglio, invoca la procedura Relax) su ogni arco del grafo per $|V|$--$1$ iterazioni. Questo limite nasce dal numero di rilassamenti effettuati nel caso pessimo. Consideriamo, ad esempio, un grafo in cui tutti i nodi sono collegati in linea: ognuno è collegato solo con il precedente ed il successivo tranne il primo e l'ultimo che hanno un solo arco. Se la sorgente è il primo nodo, ad ogni iterazione verrà rilassato un singolo arco. Nel grafo in questione sono presenti esattamente $|V|$--$1$ archi e, quindi, l'algoritmo dovrà effettuare altrettante iterazioni.
+	Il corpo dell'algoritmo esegue un'operazione di rilassamento (o meglio, invoca la procedura Relax) su ogni arco del grafo per $|V|$--$1$ iterazioni. Questo limite nasce dal numero di rilassamenti effettuati nel caso pessimo. Consideriamo, ad esempio, il grafo della figura \ref{fig:grafo-lineare} in cui tutti i nodi sono collegati in linea: ognuno è collegato solo con il precedente ed il successivo tranne i nodi A ed I che hanno un solo arco. Se la sorgente è il nodo A, ad ogni iterazione verrà rilassato un singolo arco. Nel grafo in questione sono presenti esattamente $|V|$--$1$ archi e, quindi, l'algoritmo dovrà effettuare altrettante iterazioni.
 	
 	Come si nota, la procedura Relax (algoritmo \ref{alg:relax}) viene invocata un gran numero di volte e, su determinati tipi di grafi, non risulta spesso in un effettivo rilassamento. Per questo motivo, sono state proposte alcune ottimizzazioni per ridurre sia il numero complessivo di iterazioni che il numero di rilassamenti in ogni iterazione.
 	
