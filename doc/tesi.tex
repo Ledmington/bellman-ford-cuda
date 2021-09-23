@@ -89,12 +89,12 @@ italiano
 	
 	Questa tesi è strutturata come segue:
 	\begin{itemize}
-		\item il capitolo \ref{chap:storia} è un'introduzione al calcolo parallelo: vengono presentati alcuni cenni storici e poi una spiegazione del funzionamento di una GPU CUDA
-		\item nel capitolo \ref{chap:teoria} vengono illustrati i concetti base riguardanti grafi e cammini minimi
-		\item il capitolo \ref{chap:analisi} contiene una descrizione dell'algoritmo di Bellman-Ford
-		\item nel capitolo \ref{chap:progettazione}, basandosi sull'analisi effettuata, si progettano tre implementazioni differenti
-		\item il capitolo \ref{chap:metriche} illustra brevemente le metriche di valutazione utilizzate
-		\item il capitolo \ref{chap:perf} contiene i risultati dei test effettuati
+		\item il capitolo \ref{chap:storia} è un'introduzione al calcolo parallelo: vengono presentati alcuni cenni storici e poi una spiegazione del funzionamento di una GPU CUDA;
+		\item nel capitolo \ref{chap:teoria} vengono illustrati i concetti base riguardanti grafi e cammini minimi;
+		\item il capitolo \ref{chap:analisi} contiene una descrizione dell'algoritmo di Bellman-Ford;
+		\item nel capitolo \ref{chap:progettazione}, basandosi sull'analisi effettuata, si progettano tre implementazioni differenti;
+		\item il capitolo \ref{chap:metriche} illustra brevemente le metriche di valutazione utilizzate;
+		\item il capitolo \ref{chap:perf} contiene i risultati dei test effettuati.
 	\end{itemize}
 	
 	\chapter{Calcolo parallelo}
@@ -114,7 +114,7 @@ italiano
 	\begin{figure}[!ht]
 		\centering
 		\includegraphics[width=\linewidth]{cpu-gpu-computing-architecture}
-		\caption[Differenza architetturale tra CPU e GPU]{A sinistra l'architettura di una classica CPU, a destra l'architettura di una GPGPU. Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
+		\caption[Differenza architetturale tra CPU e GPU]{A sinistra l'architettura di una CPU multi-core, a destra l'architettura di una GPGPU. Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
 		\label{fig:cpu-gpu-computing-architecture}
 	\end{figure}
 	
@@ -150,7 +150,7 @@ italiano
 	\begin{wrapfigure}{r}{0.5\textwidth}
 		\centering
 		\includegraphics[width=0.45\textwidth]{automatic-scalability}
-		\caption[Schedulazione automatica dei thread in una GPU CUDA]{Schedulazione automatica dei thread in una GPU CUDA.\\Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
+		\caption[Schedulazione automatica dei thread in una GPU CUDA]{Schedulazione automatica dei\\thread in una GPU CUDA.\\Fonte: \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html}}
 		\label{fig:automatic-scalability}
 	\end{wrapfigure}
 	
@@ -212,7 +212,7 @@ italiano
 	\chapter{L'algoritmo di Bellman-Ford}
 	\label{chap:analisi}
 	\section{Descrizione dell'algoritmo}
-	Proposto per primo dal matematico Alfonso Shimbel nel 1955 \cite{Shimbel1955}, questo algoritmo è chiamato Bellman-Ford perché Richard Bellman, nel 1958 \cite{Bellman1958}, e Lester Ford Jr., nel 1956 \cite{Ford1956}, pubblicarono due articoli in cui presentavano lo stesso algoritmo. Ford lo propose come soluzione al problema logistico di trasportare un certo numero di beni da un punto A ad un punto B. Invece, Bellman lo propose come soluzione al problema più realistico di trovare il percorso più veloce attraverso una rete di città collegate tra loro. Edward F. Moore pubblicò poi una variante \cite{Moore1959} che riduce drasticamente il numero di rilassamenti da effettuare ad ogni iterazione. A causa di questa pubblicazione del 1959, questo algoritmo viene chiamato di Bellman-Ford-Moore. Nel 1970 Yen \cite{Yen1970} ha pubblicato una complicata ottimizzazione che riduce il numero totale di iterazioni da $|V|$--$1$ a $|V|/2$. Nel 2012 Bannister e Eppstein \cite{Bannister2012} hanno migliorato la variante di Yen riducendo il numero di iterazioni a $|V|/3$.
+	Proposto per primo dal matematico Alfonso Shimbel nel 1955 \cite{Shimbel1955}, questo algoritmo è chiamato Bellman-Ford perché Richard Bellman, nel 1958 \cite{Bellman1958}, e Lester Ford Jr., nel 1956 \cite{Ford1956}, pubblicarono due articoli in cui presentavano lo stesso algoritmo. Ford lo propose come soluzione al problema logistico di trasportare un certo numero di beni da un punto A ad un punto B. Invece, Bellman lo propose come soluzione al problema più realistico di trovare il percorso più veloce attraverso una rete di città collegate tra loro. Edward F. Moore pubblicò poi una variante \cite{Moore1959} che riduce drasticamente il numero di rilassamenti da effettuare ad ogni iterazione. A causa di questa pubblicazione del 1959, questo algoritmo viene anche chiamato di Bellman-Ford-Moore. Nel 1970 Yen \cite{Yen1970} ha pubblicato una complicata ottimizzazione che riduce il numero totale di iterazioni da $|V|$--$1$ a $|V|/2$. Nel 2012 Bannister e Eppstein \cite{Bannister2012} hanno migliorato la variante di Yen riducendo il numero di iterazioni a $|V|/3$.
 	
 	La versione che riportiamo di seguito e che verrà implementata è quella originale proposta prima da Lester Ford Jr. e poi da Richard Bellman.
 	
@@ -242,7 +242,7 @@ italiano
 		\SetAlgorithmName{Initialize-Single-Source}{}{}
 		\KwIn{G, s}
 		\ForEach{vertex v $\in$ G.V}{
-			v.d = $\infty$\;
+			v.d = $+\infty$\;
 			v.$\pi$ = NIL\;
 		}
 		s.d = 0\;
@@ -252,7 +252,7 @@ italiano
 	\begin{wrapfigure}{r}{0.4\textwidth}
 		\centering
 		\includegraphics[width=0.4\textwidth]{grafo-lineare}
-		\caption{Esempio di un grafo lineare.}
+		\caption{Un esempio di grafo lineare.}
 		\label{fig:grafo-lineare}
 	\end{wrapfigure}
 	
@@ -276,7 +276,11 @@ italiano
 	L'algoritmo di Bellman-Ford riesce a rilevare i cicli di costo negativo verificando se sia possibile rilassare un arco alla fine delle iterazioni di rilassamento. Se in un grafo è presente un ciclo di costo negativo, almeno un arco di quel ciclo verrà rilassato ad ogni iterazione a causa della presenza di almeno un arco di peso negativo. Come già spiegato nella sezione \ref{section:sssp}, quando è presente un ciclo di costo negativo è sempre possibile ridurre il costo di un cammino che passa per esso. Per questo motivo, se alla fine delle iterazioni di rilassamento, almeno un arco è ancora rilassabile, allora vuol dire che il grafo contiene un ciclo di costo negativo e l'arco rilassabile ne fa parte.
 
 	\section{Complessità computazionale}
-	La procedura \texttt{Initialize-Single-Source} esegue due operazioni di costo $O(1)$ in ciascuna delle $|V|$ iterazioni e infine una singola istruzione di costo $O(1)$. Dunque, la complessità temporale complessiva di questa procedura è $O(|V|)$. La procedura Relax esegue un confronto e, se verificato, esegue due istruzioni di costo $O(1)$. Complessivamente, dunque, la procedura Relax ha complessità temporale $O(1)$. Le istruzioni tra le righe 2-6 dell'algoritmo sono un doppio ciclo annidato in cui, per ognuna delle $|V|$--$1$ iterazioni, viene invocata la procedura Relax su ogni arco, dunque per $|E|$ volte. Quindi, questa porzione dell'algoritmo ha complessità temporale $O(|V|\cdot |E|)$. Il ciclo alle righe 7-11 ha complessità temporale $O(|E|)$ poiché esegue un confronto di costo costante per $|E|$ volte. Complessivamente, l'algoritmo ha costo computazionale $O(|V|\cdot |E|)$.
+	La procedura \texttt{Initialize-Single-Source} esegue due operazioni di costo $O(1)$ in ciascuna delle $|V|$ iterazioni e infine una singola istruzione di costo $O(1)$. Dunque, la complessità temporale complessiva di questa procedura è $O(|V|)$.
+	
+	La procedura Relax esegue un confronto e, se verificato, esegue due istruzioni di costo $O(1)$. Complessivamente, dunque, la procedura Relax ha complessità temporale $O(1)$. 
+	
+	Le istruzioni tra le righe 2-6 dell'algoritmo sono un doppio ciclo annidato in cui, per ognuna delle $|V|$--$1$ iterazioni, viene invocata la procedura Relax su ogni arco, dunque per $|E|$ volte. Quindi, questa porzione dell'algoritmo ha complessità temporale $O(|V|\cdot |E|)$. Il ciclo alle righe 7-11 ha complessità temporale $O(|E|)$ poiché esegue un confronto di costo costante per $|E|$ volte. Complessivamente, l'algoritmo ha costo computazionale $O(|V|\cdot |E|)$.
 	
 	Riguardo alla memoria, l'algoritmo di Bellman-Ford richiede complessivamente $O(|V|)$ spazio poiché necessita di memorizzare un valore di distanza e un riferimento al predecessore per ogni nodo.
 	
@@ -318,7 +322,7 @@ italiano
 	
 	\section{Rimuovere i mutex: \texttt{bf1}}
 	\label{section:intro-bf1}
-	Il problema degli aggiornamenti concorrenti può essere risolto senza impiego di mutex ma utilizzando un numero molto inferiore di thread. Se il grafo di input fosse memorizzato mediante una lista di adiacenza in cui ogni nodo ha un riferimento solo ai nodi raggiungibili tramite archi uscenti, allora sarebbe possibile parallelizzare i rilassamenti da effettuare su ogni nodo. Nel dettaglio, fissato un nodo $u$, utilizziamo un thread per effettuare un rilassamento su ogni arco uscente da $u$. Com'è evidente, questa versione non presenta il problema di aggiornamenti concorrenti, ma utilizza molti meno thread. Probabilmente, le prestazioni di questa versione potrebbero essere comparabili alle prestazioni dell'algoritmo \texttt{bf0} solamente su grafi piccoli e completi, in cui ogni nodo ha un elevato numero di archi uscenti. Nella tabella \ref{tab:riassunto_bf1} sono riassunte le caratteristiche delle varie versioni implementate dell'algoritmo \texttt{bf1}.
+	Il problema degli aggiornamenti concorrenti può essere risolto senza impiego di mutex ma utilizzando un numero molto inferiore di thread. Se il grafo di input fosse memorizzato mediante una lista di adiacenza in cui ogni nodo ha un riferimento solo ai nodi raggiungibili tramite archi uscenti, allora sarebbe possibile parallelizzare i rilassamenti da effettuare su ogni nodo. Nel dettaglio, fissato un nodo $u$, utilizziamo un thread per effettuare un rilassamento su ogni arco uscente da $u$. Com'è evidente, questa versione non presenta il problema di aggiornamenti concorrenti, ma utilizza molti meno thread. Probabilmente, le prestazioni di questa versione potrebbero essere comparabili alle prestazioni dell'algoritmo \texttt{bf0} solamente su grafi piccoli e densi, in cui ogni nodo ha un elevato numero di archi uscenti. Nella tabella \ref{tab:riassunto_bf1} sono riassunte le caratteristiche delle varie versioni implementate dell'algoritmo \texttt{bf1}.
 	
 	\begin{table}[!ht]
 		\centering
@@ -372,7 +376,7 @@ italiano
 
 	Tutti gli algoritmi che utilizzano la memoria condivisa ottimizzano gli accessi in lettura all'array dei dati di input (nel caso si usi AoS, altrimenti sui vari array di input per SoA). Nonostante l'array \texttt{distances} sia acceduto più volte, esso richiede anche un accesso in scrittura e tutti i suoi accessi in lettura non sono allineati. Come già spiegato nella sezione \ref{section:cuda}, questi fattori contribuiscono ad un peggioramento significativo delle prestazioni. Tale peggioramento è stato rilevato mediante misurazioni empiriche i cui risultati non sono riportati in questa tesi.
 	
-	Gli algoritmi \texttt{bf0} utilizzano un thread per ogni arco del grafo. Nella maggior parte delle schede CUDA il numero massimo di thread per blocco è pari a 1024 e il numero massimo di blocchi utilizzabili è pari a $2^{31}$--$1$\cite{cudaSpecifications}. Per questo motivo, utilizzare come input un grafo con un numero di archi maggiore di $(2^{31}$--$1)\cdot 1024$ genererebbe un comportamento imprevisto.
+	Gli algoritmi \texttt{bf0} utilizzano un thread per ogni arco del grafo. Nella maggior parte delle schede CUDA il numero massimo di thread per blocco è pari a 1024 e il numero massimo di blocchi utilizzabili è pari a $2^{31}$--$1$ \cite{cudaSpecifications}. Per questo motivo, utilizzare come input un grafo con un numero di archi maggiore di $(2^{31}$--$1)\cdot 1024$ genererebbe un comportamento imprevisto.
 	
 	Gli algoritmi \texttt{bf1} utilizzano un singolo blocco di $1024$ thread che opera su ogni nodo del grafo, ma non presentano limitazioni in questo senso.
 	
@@ -402,7 +406,7 @@ italiano
 	\chapter{Valutazione delle prestazioni}
 	\label{chap:perf}
 	\section{Descrizione dei test}
-	I primi cinque test sono rappresentazioni, in forma di grafo, delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi file sono reperibili ai link \cite{testUSA} e \cite{testRoma}. Gli altri quattro test sono, invece, grafi sintetici casuali a desnità crescente, realizzati tramite il programma \texttt{graphgen} (disponibile nel repository \footnote{\url{https://github.com/Ledmington/bellman-ford-cuda}}). L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi cinque test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
+	I primi cinque test sono rappresentazioni, in forma di grafo, delle mappe stradali della città di Roma e di quattro paesi degli USA. Questi file sono reperibili ai link \cite{testUSA} e \cite{testRoma}. Gli altri quattro test sono, invece, grafi sintetici casuali a densità crescente, realizzati tramite il programma \texttt{graphgen} (disponibile nel repository \footnote{\url{https://github.com/Ledmington/bellman-ford-cuda}}). L'impiego di questi ultimi si è rivelato necessario, al fine di una ricerca più completa possibile, dal momento che i primi cinque test non sono altro che grafi planari e, in quanto tali, hanno forti limitazioni sul numero di archi.
 	
 	Entrando più nello specifico, tutti i grafi elencati sono orientati, pesati e semplici. Nessuno di questi grafi presenta archi di costo negativo. Solamente i primi 5 grafi sono planari. L'ultimo grafo, \texttt{100}, è l'unico completo. In nessuno di questi grafi sono presenti nodi isolati. La tabella \ref{tab:riassunto_test} contiene un breve riassunto delle caratteristiche di ogni test.
 	\begin{table}[!ht]
@@ -420,7 +424,7 @@ italiano
 			075 & 1000 & 749262 & Grafo casuale con densità 0.75 \\ \hline
 			100 & 1000 & 999000 & Grafo casuale completo \\ \hline
 		\end{tabular}
-		\caption{Tabella riassuntiva delle caratteristiche dei test utilizzati}
+		\caption{Tabella riassuntiva delle caratteristiche dei test utilizzati.}
 		\label{tab:riassunto_test}
 	\end{table}
 	
@@ -460,7 +464,7 @@ italiano
 				\textbf{Frequenza core} & 1189 MHz & 1797 MHz & 1860 MHz \\ \hline
 			\end{tabular}
 		}
-		\caption{Specifiche hardware e software delle macchine utilizzate per le misurazioni}
+		\caption{Specifiche hardware e software delle macchine utilizzate per le misurazioni.}
 		\label{tab:specs}
 	\end{table}
 	\renewcommand{\arraystretch}{1.1}
@@ -483,7 +487,7 @@ italiano
 			       075         &           6,8            &        109,8        \\ \hline
 			       100         &           8,12           &        122,4        \\ \hline
 		\end{tabular}
-		\caption{Prestazioni dell'algoritmo seriale su CPU}
+		\caption{Prestazioni dell'algoritmo seriale su CPU.}
 		\label{tab:performance_serial}
 	\end{table}
 
@@ -688,6 +692,6 @@ italiano
 	\printbibliography
 	
 	\chapter*{Ringraziamenti}
-	Voglio ringraziare la mia famiglia per il sostegno e il supporto che mi hanno dato. Un sentito ringraziamento va alla mia fidanzata Doralice e a tutti gli amici, dentro e fuori l'università, per avermi sempre dato la forza di migliorare e andare avanti. Un ringraziamento speciale va all'amico Lorenzo Di Ghionno per avermi concesso di utilizzare la sua RTX 2080 per la realizzazione di questa tesi. Ringrazio tutti i professori del corso di laurea che hanno contribuito alla mia formazione ed aiutato ad arrivare fin qui. Ultimo ma non per ultimo, desidero ringraziare il professore Moreno Marzolla per avermi sempre aiutato con simpatia e professionalità.
+	Voglio ringraziare la mia famiglia per il sostegno e il supporto che mi hanno dato. Un affettuoso ringraziamento va alla mia fidanzata Doralice che mi ha sempre aiutato a superare le situazioni più difficili. Inoltre voglio ringraziare i miei amici di sempre per avermi dato la forza di migliorare e andare avanti. Un grazie va anche agli amici e colleghi dell'università e a tutti coloro che hanno contribuito alla stesura di questa tesi con consigli, osservazioni e critiche. Un ringraziamento speciale va all'amico Lorenzo Di Ghionno per avermi concesso di utilizzare la sua scheda RTX 2080 per la realizzazione di questa tesi. Ringrazio tutti i professori del corso di laurea che hanno contribuito alla mia formazione ed aiutato ad arrivare fin qui. Infine, desidero ringraziare il professore Moreno Marzolla per avermi sempre aiutato con simpatia e professionalità.
 	
 \end{document}
