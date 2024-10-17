@@ -17,3 +17,5 @@ doc/*
 
 bin/
 build/
+.idea/
+.vscode/
