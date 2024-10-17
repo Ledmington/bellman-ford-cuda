@@ -1,228 +1,193 @@
 /*
-    CUDA implementation of the Bellman-Ford's algorithm
-    Copyright (C) 2021  Filippo Barbari
+	CUDA implementation of the Bellman-Ford's algorithm.
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	Version BF0-mutex-SoA-NoSh:
+	- the input graph is stored as an array of weighted arcs (Structure of Arrays),
+	- the parallelization is done on the "inner cycle",
+	- an atomic operation is used for the update of distances
+	- no shared memory
 */
-/*
-    CUDA implementation of the Bellman-Ford's algorithm.
-
-    Version BF0-mutex-SoA-NoSh:
-    - the input graph is stored as an array of weighted arcs (Structure of Arrays),
-    - the parallelization is done on the "inner cycle",
-    - an atomic operation is used for the update of distances
-    - no shared memory
-
-    To compile:
-    nvcc -arch=<cuda_capability> bf0-mutex-soa-nosh.cu -o bf0-mutex-soa.nosh
-
-    To run:
-    ./bf0-mutex-soa-nosh < test/graph.txt > solution.txt
-*/
-
-#include "hpc.h"
-#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
+#include "utils.h"
+
 // CUDA block's size for monodimensional grid
 #define BLKDIM 1024
 
-typedef struct {
-    // The index of the source node of the edge
-    unsigned int *start_nodes;
-
-    // The index of the destination node of the edge
-    unsigned int *end_nodes;
-
-    // The weight assigned to the edge
-    float *weights;
-} Graph;
-
 /*
-    Reads a graph from stdin formatted as follows:
-    first line: |number of nodes| |number of arcs| n
-    each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
+	Reads a graph from stdin formatted as follows:
+	first line: |number of nodes| |number of arcs| n
+	each one of the other |number of arcs| lines: |source node| |destination
+   node| |arc weight|
 
-    The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
+	The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
 
-    This function returns a pointer to a Graph structure.
+	This function returns a pointer to a Graph structure.
 */
-Graph* read_graph ( unsigned int *n_nodes, unsigned int *n_edges ) {
-    /*
-        |tmp| is necessary to read the third value of the first line, which is useless
-    */
-    unsigned int tmp;
-    scanf("%u %u %u", n_nodes, n_edges, &tmp);
+Graph *read_graph(uint32_t *n_nodes, uint32_t *n_edges) {
+	/*
+		|tmp| is necessary to read the third value of the first line, which is
+	   useless
+	*/
+	uint32_t tmp;
+	scanf("%u %u %u", n_nodes, n_edges, &tmp);
 
-    Graph *graph = (Graph*) malloc(sizeof(Graph));
-    assert(graph);
+	Graph *graph = (Graph *)malloc(sizeof(Graph));
+	assert(graph);
 
-    graph->start_nodes = (unsigned int*) malloc((*n_edges) * sizeof(unsigned int));
-    assert(graph->start_nodes);
-    graph->end_nodes = (unsigned int*) malloc((*n_edges) * sizeof(unsigned int));
-    assert(graph->end_nodes);
-    graph->weights = (float*) malloc((*n_edges) * sizeof(float));
-    assert(graph->weights);
+	graph->start_nodes = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
+	assert(graph->start_nodes);
+	graph->end_nodes = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
+	assert(graph->end_nodes);
+	graph->weights = (float *)malloc((*n_edges) * sizeof(float));
+	assert(graph->weights);
 
-    for(unsigned int i=0; i<*n_edges; i++) {
-        scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &graph->weights[i]);
+	for (uint32_t i = 0; i < *n_edges; i++) {
+		scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &graph->weights[i]);
 
-        if(graph->start_nodes[i] >= *n_nodes || graph->end_nodes[i] >= *n_nodes) {
-            fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i+1);
-            exit(EXIT_FAILURE);
-        }
-    }
+		if (graph->start_nodes[i] >= *n_nodes || graph->end_nodes[i] >= *n_nodes) {
+			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
+			exit(EXIT_FAILURE);
+		}
+	}
 
-    return graph;
+	return graph;
 }
 
 /*
-    CUDA kernel of Bellman-Ford's algorithm.
-    Each thread executes a relax on a single edge in each kernel call.
+	CUDA kernel of Bellman-Ford's algorithm.
+	Each thread executes a relax on a single edge in each kernel call.
 */
-__global__ void cuda_bellman_ford (unsigned int n_edges,
-                                   unsigned int* start_nodes,
-                                   unsigned int* end_nodes,
-                                   float* weights,
-                                   float *distances) {
-    union {
-        float vf;
-        int vi;
-    } oldval, newval;
+__global__ void cuda_bellman_ford(uint32_t n_edges, uint32_t *start_nodes, uint32_t *end_nodes, float *weights,
+								  float *distances) {
+	union {
+		float vf;
+		int vi;
+	} oldval, newval;
 
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if(idx < n_edges) {
-        // relax the edge (u,v)
-        const unsigned int u = start_nodes[idx];
-        const unsigned int v = end_nodes[idx];
+	if (idx < n_edges) {
+		// relax the edge (u,v)
+		const uint32_t u = start_nodes[idx];
+		const uint32_t v = end_nodes[idx];
 
-        if(distances[u] + weights[idx] < distances[v]) {
-            do {
-                oldval.vf = distances[v];
-                newval.vf = distances[u] + weights[idx];
-                newval.vf = fminf(oldval.vf, newval.vf);
-            } while( atomicCAS((int*)&distances[v], oldval.vi, newval.vi) != newval.vi );
-        }
-    }
+		if (distances[u] + weights[idx] < distances[v]) {
+			do {
+				oldval.vf = distances[v];
+				newval.vf = distances[u] + weights[idx];
+				newval.vf = fminf(oldval.vf, newval.vf);
+			} while (atomicCAS((int *)&distances[v], oldval.vi, newval.vi) != newval.vi);
+		}
+	}
 }
 
 /*
-    Executes the Bellman-Ford's algorithm on the graph |h_graph|.
-    Returns a pointer to an array with |n_nodes| elements:
-    each element of index |i| contains the shortest path distance from node
-    |source| to node |i|.
+	Executes the Bellman-Ford's algorithm on the graph |h_graph|.
+	Returns a pointer to an array with |n_nodes| elements:
+	each element of index |i| contains the shortest path distance from node
+	|source| to node |i|.
 */
-float* bellman_ford ( Graph* h_graph, unsigned int n_nodes, unsigned int n_edges, unsigned int source ) {
-    if(h_graph == NULL) return NULL;
-    if(source >= n_nodes) {
-        fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
-        exit(EXIT_FAILURE);
-    }
+float *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
+	if (h_graph == NULL)
+		return NULL;
+	if (source >= n_nodes) {
+		fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
+		exit(EXIT_FAILURE);
+	}
 
-    size_t sz_distances = n_nodes * sizeof(float);
-    size_t sz = n_edges * sizeof(unsigned int);
+	size_t sz_distances = n_nodes * sizeof(float);
+	size_t sz = n_edges * sizeof(uint32_t);
 
-    unsigned int* d_start_nodes;
-    unsigned int* d_end_nodes;
-    float* d_weights;
+	uint32_t *d_start_nodes;
+	uint32_t *d_end_nodes;
+	float *d_weights;
 
-    float *d_distances;
-    float *h_distances = (float*) malloc(sz_distances);
-    assert(h_distances);
+	float *d_distances;
+	float *h_distances = (float *)malloc(sz_distances);
+	assert(h_distances);
 
-    for(unsigned int i=0; i<n_nodes; i++) {
-        h_distances[i] = HUGE_VAL;
-    }
-    h_distances[source] = 0.0f;
+	for (uint32_t i = 0; i < n_nodes; i++) {
+		h_distances[i] = HUGE_VAL;
+	}
+	h_distances[source] = 0.0f;
 
-    // malloc and copy of the distances array
-    cudaSafeCall( cudaMalloc((void**)&d_distances, sz_distances) );
-    cudaSafeCall( cudaMemcpy(d_distances, h_distances, sz_distances, cudaMemcpyHostToDevice) );
+	// malloc and copy of the distances array
+	cudaSafeCall(cudaMalloc((void **)&d_distances, sz_distances));
+	cudaSafeCall(cudaMemcpy(d_distances, h_distances, sz_distances, cudaMemcpyHostToDevice));
 
-    // malloc and copy of the graph
-    cudaSafeCall( cudaMalloc((void**)&d_start_nodes, sz) );
-    cudaSafeCall( cudaMemcpy(d_start_nodes, h_graph->start_nodes, sz, cudaMemcpyHostToDevice) );
-    cudaSafeCall( cudaMalloc((void**)&d_end_nodes, sz) );
-    cudaSafeCall( cudaMemcpy(d_end_nodes, h_graph->end_nodes, sz, cudaMemcpyHostToDevice) );
-    cudaSafeCall( cudaMalloc((void**)&d_weights, sz) );
-    cudaSafeCall( cudaMemcpy(d_weights, h_graph->weights, sz, cudaMemcpyHostToDevice) );
+	// malloc and copy of the graph
+	cudaSafeCall(cudaMalloc((void **)&d_start_nodes, sz));
+	cudaSafeCall(cudaMemcpy(d_start_nodes, h_graph->start_nodes, sz, cudaMemcpyHostToDevice));
+	cudaSafeCall(cudaMalloc((void **)&d_end_nodes, sz));
+	cudaSafeCall(cudaMemcpy(d_end_nodes, h_graph->end_nodes, sz, cudaMemcpyHostToDevice));
+	cudaSafeCall(cudaMalloc((void **)&d_weights, sz));
+	cudaSafeCall(cudaMemcpy(d_weights, h_graph->weights, sz, cudaMemcpyHostToDevice));
 
-    for(unsigned int i=0; i<n_nodes-1; i++) {
-        cuda_bellman_ford <<< (n_edges+BLKDIM-1) / BLKDIM, BLKDIM >>> (n_edges, d_start_nodes, d_end_nodes, d_weights, d_distances);
-        cudaCheckError();
-    }
+	for (uint32_t i = 0; i < n_nodes - 1; i++) {
+		cuda_bellman_ford<<<(n_edges + BLKDIM - 1) / BLKDIM, BLKDIM>>>(n_edges, d_start_nodes, d_end_nodes, d_weights,
+																	   d_distances);
+		cudaCheckError();
+	}
 
-    // copy-back of the result
-    cudaSafeCall( cudaMemcpy(h_distances, d_distances, sz_distances, cudaMemcpyDeviceToHost) );
+	// copy-back of the result
+	cudaSafeCall(cudaMemcpy(h_distances, d_distances, sz_distances, cudaMemcpyDeviceToHost));
 
-    // deallocation
-    cudaFree(d_start_nodes);
-    cudaFree(d_end_nodes);
-    cudaFree(d_weights);
-    cudaFree(d_distances);
+	// deallocation
+	cudaFree(d_start_nodes);
+	cudaFree(d_end_nodes);
+	cudaFree(d_weights);
+	cudaFree(d_distances);
 
-    return h_distances;
+	return h_distances;
 }
 
-int main ( void ) {
+int main(void) {
+	Graph *graph;
+	uint32_t nodes, edges;
+	float *result;
 
-    Graph *graph;
-    unsigned int nodes, edges;
-    float *result;
+	clock_t program_start, program_end, compute_start, compute_end;
 
-    clock_t program_start, program_end, compute_start, compute_end;
+	program_start = clock();
 
-    program_start = clock();
+	fprintf(stderr, "Reading input graph...");
+	graph = read_graph(&nodes, &edges);
+	fprintf(stderr, "done\n");
 
-    fprintf(stderr, "Reading input graph...");
-    graph = read_graph(&nodes, &edges);
-    fprintf(stderr, "done\n");
+	fprintf(stderr, "\nGraph data:\n");
+	fprintf(stderr, " %7u nodes\n", nodes);
+	fprintf(stderr, " %7u arcs\n", edges);
 
-    fprintf(stderr, "\nGraph data:\n");
-    fprintf(stderr, " %7u nodes\n", nodes);
-    fprintf(stderr, " %7u arcs\n", edges);
+	print_ram_usage(3 * edges * sizeof(uint32_t));
 
-    print_ram_usage(3 * edges * sizeof(unsigned int));
+	fprintf(stderr, "Computing Bellman-Ford...");
+	compute_start = clock();
+	result = bellman_ford(graph, nodes, edges, 0);
+	compute_end = clock();
+	fprintf(stderr, "done\n\n");
 
-    fprintf(stderr, "Computing Bellman-Ford...");
-    compute_start = clock();
-    result = bellman_ford(graph, nodes, edges, 0);
-    compute_end = clock();
-    fprintf(stderr, "done\n\n");
+	fprintf(stderr, "Dumping solution...");
+	dump_solution_float(nodes, 0, result);
+	fprintf(stderr, "done\n");
 
-    fprintf(stderr, "Dumping solution...");
-    dump_solution_float(nodes, 0, result);
-    fprintf(stderr, "done\n");
+	free(graph);
+	free(result);
 
-    free(graph);
-    free(result);
+	program_end = clock();
 
-    program_end = clock();
+	float total_seconds = (float)(program_end - program_start) / (float)CLOCKS_PER_SEC;
+	float compute_seconds = (float)(compute_end - compute_start) / (float)CLOCKS_PER_SEC;
 
-    float total_seconds = (float)(program_end-program_start) / (float)CLOCKS_PER_SEC;
-    float compute_seconds = (float)(compute_end-compute_start) / (float)CLOCKS_PER_SEC;
+	fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
+	fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);
 
-    fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
-    fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);
+	unsigned long long total_work = (unsigned long long)nodes * (unsigned long long)edges;
+	double throughput = (double)total_work / (double)compute_seconds;
+	fprintf(stderr, "\nThroughput: %.3e relax/second\n", throughput);
 
-    unsigned long long total_work = (unsigned long long) nodes * (unsigned long long) edges;
-    double throughput = (double)total_work / (double)compute_seconds;
-    fprintf(stderr, "\nThroughput: %.3e relax/second\n", throughput);
-
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
