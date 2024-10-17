@@ -16,3 +16,4 @@ doc/*
 !doc/*.jpeg
 
 bin/
+build/
