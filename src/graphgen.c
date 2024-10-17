@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	uint32_t N = atoi(argv[1]);
+	uint32_t N = strtoul(argv[1], NULL, 10);
 	double p = strtod(argv[2], NULL);
 	double min_weight = 1.0;
 	double max_weight = 1.0;
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Weights in [%f; %f)\n", min_weight, max_weight);
 	}
 
-	uint32_t n_archi = 0;
+	uint32_t n_edges = 0;
 	double** g;
 
 	g = (double**)malloc(N * sizeof(double*));
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
 			else {
 				if (randab(0.0, 1.0) <= p) {
 					g[i][j] = randab(min_weight, max_weight);
-					n_archi++;
+					n_edges++;
 				} else {
 					g[i][j] = HUGE_VAL;
 				}
@@ -96,10 +96,10 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	fprintf(stderr, "n. arcs (created / total): %u / %u\n", n_archi, N * (N - 1));
-	fprintf(stderr, "density: %.6f\n", (float)n_archi / (float)(N * (N - 1)));
+	fprintf(stderr, "n. arcs (created / total): %u / %u\n", n_edges, N * (N - 1));
+	fprintf(stderr, "density: %.6f\n", (float)n_edges / (float)(N * (N - 1)));
 
-	printf("%u %u 1\n", N, n_archi);
+	printf("%u %u 1\n", N, n_edges);
 	for (uint32_t i = 0; i < N; i++) {
 		for (uint32_t j = 0; j < N; j++) {
 			if (!isinf(g[i][j])) {

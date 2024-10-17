@@ -16,14 +16,14 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 enable_language(CUDA)
 
 # Default C flags
-set(BMCU_FLAGS -Wall -Wextra -Wpedantic -Werror)
+set(BMCU_FLAGS -Wall -Wextra -Wpedantic -Wsign-conversion -Wfloat-conversion)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     list(APPEND BMCU_FLAGS -O3 -DNDEBUG -march=native -mtune=native)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    list(APPEND BMCU_FLAGS -O0 -g -fsanitize=address,undefined,leak)
+    list(APPEND BMCU_FLAGS -O0 -g)
 endif()
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -32,13 +32,16 @@ set(TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/test")
 enable_testing()
 
 add_executable(bf-serial "${SRC_DIR}/bf-serial.c")
+target_compile_options(bf-serial PRIVATE ${BMCU_FLAGS} -Werror)
 add_executable(graphgen "${SRC_DIR}/graphgen.c")
+target_compile_options(graphgen PRIVATE ${BMCU_FLAGS} -Werror)
 
 foreach(version 0-mutex 0-none 1 2)
     foreach(structure aos soa)
         foreach(shmem sh nosh)
             set(executable_name "bf${version}-${structure}-${shmem}")
             add_executable(${executable_name} "${SRC_DIR}/${executable_name}.cu")
+            target_compile_options(${executable_name} PRIVATE ${BMCU_FLAGS} -Werror all-warnings)
 
             foreach(test 025 050 075 100 DE ME NV VT rome)
                 set(input_file "${TEST_DIR}/graph-${test}.in")

@@ -1,7 +1,7 @@
 # CUDA implementation of the Bellman-Ford algorithm
 This project is the thesis work of Filippo Barbari for academic year 2020/2021.
 
-This is modern version of the project, for the original code, take a look at the [`old` branch](https://github.com/Ledmington/bellman-ford-cuda/tree/old).
+This is the modern version of the project (work in progress), for the original code, take a look at the [`old` branch](https://github.com/Ledmington/bellman-ford-cuda/tree/old).
 
 ## Compilation
 In order to compile this project, you need:

@@ -17,59 +17,6 @@
 #define BLKDIM 1024
 
 /*
-	Reads a graph from stdin formatted as follows:
-	first line: |number of nodes| |number of arcs| n
-	each one of the other |number of arcs| lines: |source node| |destination
-   node| |arc weight|
-
-	The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
-
-	This function returns a pointer to an array of |n_nodes| structures of type
-   Node.
-*/
-Node *read_graph(uint32_t *n_nodes, uint32_t *n_edges) {
-	/*
-		|tmp| is necessary to read the third value of the first line, which is
-	   useless
-	*/
-	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
-
-	Node *graph = (Node *)malloc((*n_nodes) * sizeof(Node));
-	assert(graph);
-
-	for (uint32_t i = 0; i < *n_nodes; i++) {
-		graph[i].n_neighbors = 0;
-		graph[i].neighbors = NULL;
-		graph[i].weights = NULL;
-	}
-
-	for (uint32_t i = 0; i < *n_edges; i++) {
-		uint32_t start_node, end_node, weight;
-		float tmp;
-		scanf("%u %u %f", &start_node, &end_node, &tmp);
-		weight = (uint32_t)tmp;
-
-		if (start_node >= *n_nodes || end_node >= *n_nodes) {
-			fprintf(stderr, "ERROR at line %u: invalid node index\n\n", i + 1);
-			exit(EXIT_FAILURE);
-		}
-
-		graph[start_node].neighbors =
-			(uint32_t *)realloc(graph[start_node].neighbors, (graph[start_node].n_neighbors + 1) * sizeof(uint32_t *));
-		assert(graph[start_node].neighbors);
-		graph[start_node].weights =
-			(uint32_t *)realloc(graph[start_node].weights, (graph[start_node].n_neighbors + 1) * sizeof(uint32_t *));
-		assert(graph[start_node].weights);
-		graph[start_node].neighbors[graph[start_node].n_neighbors] = end_node;
-		graph[start_node].weights[graph[start_node].n_neighbors] = weight;
-		graph[start_node].n_neighbors++;
-	}
-
-	return graph;
-}
-
-/*
 	CUDA kernel of Bellman-Ford's algorithm.
 	A single block of |BLKDIM| threads executes a relax on each outgoing edge
 	of each node.
@@ -197,7 +144,7 @@ int main(void) {
 	program_start = clock();
 
 	fprintf(stderr, "Reading input graph...");
-	graph = read_graph(&nodes, &edges);
+	graph = read_graph_adj_list(&nodes, &edges);
 	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "\nGraph data:\n");

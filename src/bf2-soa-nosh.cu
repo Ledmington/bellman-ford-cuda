@@ -17,59 +17,6 @@
 #define BLKDIM 1024
 
 /*
-	Reads a graph from stdin formatted as follows:
-	first line: |number of nodes| |number of arcs| n
-	each one of the other |number of arcs| lines: |source node| |destination
-   node| |arc weight|
-
-	The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
-
-	This function returns a pointer to an array of |n_nodes| structures of type
-   Node.
-*/
-Node *read_graph(uint32_t *n_nodes, uint32_t *n_edges) {
-	/*
-		|tmp| is necessary to read the third value of the first line, which is
-	   useless
-	*/
-	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
-
-	Node *graph = (Node *)malloc((*n_nodes) * sizeof(Node));
-	assert(graph);
-
-	for (uint32_t i = 0; i < *n_nodes; i++) {
-		graph[i].n_neighbors = 0;
-		graph[i].neighbors = NULL;
-		graph[i].weights = NULL;
-	}
-
-	for (uint32_t i = 0; i < *n_edges; i++) {
-		uint32_t start_node, end_node, weight;
-		float tmp;
-		scanf("%u %u %f", &start_node, &end_node, &tmp);
-		weight = (uint32_t)tmp;
-
-		if (start_node >= *n_nodes || end_node >= *n_nodes) {
-			fprintf(stderr, "ERROR at line %u: invalid node index\n\n", i + 1);
-			exit(EXIT_FAILURE);
-		}
-
-		graph[end_node].neighbors =
-			(uint32_t *)realloc(graph[end_node].neighbors, (graph[end_node].n_neighbors + 1) * sizeof(uint32_t *));
-		assert(graph[end_node].neighbors);
-		graph[end_node].weights =
-			(uint32_t *)realloc(graph[end_node].weights, (graph[end_node].n_neighbors + 1) * sizeof(uint32_t *));
-		assert(graph[end_node].weights);
-		graph[end_node].neighbors[graph[end_node].n_neighbors] = start_node;
-		graph[end_node].weights[graph[end_node].n_neighbors] = weight;
-		graph[end_node].n_neighbors++;
-	}
-
-	return graph;
-}
-
-/*
 	Converts the given array of |Node|s into a |Graph| structure (SoA).
 */
 Graph *convert_to_soa(Node *list_of_nodes, uint32_t n_nodes, uint32_t n_edges) {
@@ -212,7 +159,7 @@ int main(void) {
 	program_start = clock();
 
 	fprintf(stderr, "Reading input graph...");
-	list_of_nodes = read_graph(&nodes, &edges);
+	list_of_nodes = read_graph_adj_list(&nodes, &edges);
 	fprintf(stderr, "done\n");
 
 	graph = convert_to_soa(list_of_nodes, nodes, edges);

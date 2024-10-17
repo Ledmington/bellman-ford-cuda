@@ -18,46 +18,6 @@
 #define BLKDIM 1024
 
 /*
-	Reads a graph from stdin formatted as follows:
-	first line: |number of nodes| |number of arcs| n
-	each one of the other |number of arcs| lines: |source node| |destination
-   node| |arc weight|
-
-	The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
-
-	This function returns a pointer to a Graph structure.
-*/
-Graph *read_graph(uint32_t *n_nodes, uint32_t *n_edges) {
-	/*
-		|tmp| is necessary to read the third value of the first line, which is
-	   useless
-	*/
-	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
-
-	Graph *graph = (Graph *)malloc(sizeof(Graph));
-	assert(graph);
-
-	graph->start_nodes = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
-	assert(graph->start_nodes);
-	graph->end_nodes = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
-	assert(graph->end_nodes);
-	graph->weights = (float *)malloc((*n_edges) * sizeof(float));
-	assert(graph->weights);
-
-	for (uint32_t i = 0; i < *n_edges; i++) {
-		scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &graph->weights[i]);
-
-		if (graph->start_nodes[i] >= *n_nodes || graph->end_nodes[i] >= *n_nodes) {
-			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	return graph;
-}
-
-/*
 	CUDA kernel of Bellman-Ford's algorithm.
 	Each thread executes a relax on a single edge in each kernel call.
 */
@@ -181,7 +141,7 @@ int main(void) {
 	fprintf(stderr, "done\n\n");
 
 	fprintf(stderr, "Dumping solution...");
-	dump_solution_float(nodes, 0, result);
+	dump_solution(nodes, 0, result);
 	fprintf(stderr, "done\n");
 
 	free(graph);

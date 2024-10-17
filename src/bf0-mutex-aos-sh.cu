@@ -18,40 +18,6 @@
 #define BLKDIM 1024
 
 /*
-	Reads a graph from stdin formatted as follows:
-	first line: |number of nodes| |number of arcs| n
-	each one of the other |number of arcs| lines: |source node| |destination
-   node| |arc weight|
-
-	The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
-
-	This function returns a pointer to an array of |n_edges| structures of type
-   Edge.
-*/
-Edge *read_graph(uint32_t *n_nodes, uint32_t *n_edges) {
-	/*
-		|tmp| is necessary to read the third value of the first line, which is
-	   useless
-	*/
-	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
-
-	Edge *graph = (Edge *)malloc(*n_edges * sizeof(Edge));
-	assert(graph);
-
-	for (uint32_t i = 0; i < *n_edges; i++) {
-		scanf("%u %u %f", &graph[i].start_node, &graph[i].end_node, &graph[i].weight);
-
-		if (graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
-			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	return graph;
-}
-
-/*
 	CUDA kernel of Bellman-Ford's algorithm.
 	Each thread executes a relax on a single edge in each kernel call.
 */
@@ -100,8 +66,8 @@ float *bellman_ford(Edge *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t 
 		exit(EXIT_FAILURE);
 	}
 
-	size_t sz_distances = n_nodes * sizeof(float);
-	size_t sz_graph = n_edges * sizeof(Edge);
+	const size_t sz_distances = n_nodes * sizeof(float);
+	const size_t sz_graph = n_edges * sizeof(Edge);
 
 	Edge *d_graph;
 
@@ -163,7 +129,7 @@ int main(void) {
 	fprintf(stderr, "done\n\n");
 
 	fprintf(stderr, "Dumping solution...");
-	dump_solution_float(nodes, 0, result);
+	dump_solution(nodes, 0, result);
 	fprintf(stderr, "done\n");
 
 	free(graph);
