@@ -147,7 +147,7 @@ int main(void) {
 	fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
 	fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);
 
-	unsigned long long total_work = (unsigned long long)nodes * (unsigned long long)edges;
+	uint64_t total_work = (uint64_t)nodes * (uint64_t)edges;
 	double throughput = (double)total_work / (double)compute_seconds;
 	fprintf(stderr, "\nThroughput: %.3e relax/second\n", throughput);
 

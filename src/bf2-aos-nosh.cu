@@ -121,14 +121,6 @@ uint32_t *bellman_ford(Node *h_graph, uint32_t n_nodes, uint32_t source) {
 	return h_distances;
 }
 
-void destroy_graph(uint32_t nodes, Node *graph) {
-	for (uint32_t i = 0; i < nodes; i++) {
-		free(graph[i].neighbors);
-		free(graph[i].weights);
-	}
-	free(graph);
-}
-
 int main(void) {
 	Node *graph;
 	uint32_t nodes, edges;
@@ -169,7 +161,7 @@ int main(void) {
 	fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
 	fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);
 
-	unsigned long long total_work = (unsigned long long)nodes * (unsigned long long)edges;
+	uint64_t total_work = (uint64_t)nodes * (uint64_t)edges;
 	double throughput = (double)total_work / (double)compute_seconds;
 	fprintf(stderr, "\nThroughput: %.3e relax/second\n", throughput);
 

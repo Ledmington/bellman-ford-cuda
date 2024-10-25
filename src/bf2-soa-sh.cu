@@ -19,8 +19,8 @@
 /*
 	Converts the given array of |Node|s into a |Graph| structure (SoA).
 */
-Graph *convert_to_soa(Node *list_of_nodes, uint32_t n_nodes, uint32_t n_edges) {
-	Graph *graph = (Graph *)malloc(sizeof(Graph));
+Graph_soa *convert_to_soa(Node *list_of_nodes, uint32_t n_nodes, uint32_t n_edges) {
+	Graph_soa *graph = (Graph_soa *)malloc(sizeof(Graph_soa));
 	assert(graph);
 
 	graph->start_indices = (uint32_t *)malloc(n_nodes * sizeof(uint32_t));
@@ -82,7 +82,7 @@ __global__ void cuda_bellman_ford(uint32_t n_nodes, uint32_t *start_indices, uin
 	each element of index |i| contains the shortest path distance from node
 	|source| to node |i|.
 */
-uint32_t *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
+uint32_t *bellman_ford(Graph_soa *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
 	if (h_graph == NULL) {
 		return NULL;
 	}
@@ -147,17 +147,9 @@ uint32_t *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint3
 	return h_distances;
 }
 
-void destroy_graph(uint32_t nodes, Node *graph) {
-	for (uint32_t i = 0; i < nodes; i++) {
-		free(graph[i].neighbors);
-		free(graph[i].weights);
-	}
-	free(graph);
-}
-
 int main(void) {
 	Node *list_of_nodes;
-	Graph *graph;
+	Graph_soa *graph;
 	uint32_t nodes, edges;
 	uint32_t *result;
 
@@ -203,7 +195,7 @@ int main(void) {
 	fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
 	fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);
 
-	unsigned long long total_work = (unsigned long long)nodes * (unsigned long long)edges;
+	uint64_t total_work = (uint64_t)nodes * (uint64_t)edges;
 	double throughput = (double)total_work / (double)compute_seconds;
 	fprintf(stderr, "\nThroughput: %.3e relax/second\n", throughput);
 

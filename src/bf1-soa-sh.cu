@@ -19,12 +19,12 @@
 /*
 	Converts the given array of |Node|s into a |Graph| structure (SoA).
 */
-Graph *convert_to_soa(Node *list_of_nodes, uint32_t n_nodes, uint32_t n_edges) {
-	Graph *graph = (Graph *)malloc(sizeof(Graph));
+Graph_soa *convert_to_soa(Node *list_of_nodes, uint32_t n_nodes, uint32_t n_edges) {
+	Graph_soa *graph = (Graph_soa *)malloc(sizeof(Graph_soa));
 	assert(graph);
 
-	graph->start_nodes = (uint32_t *)malloc(n_nodes * sizeof(uint32_t));
-	assert(graph->start_nodes);
+	graph->start_indices = (uint32_t *)malloc(n_nodes * sizeof(uint32_t));
+	assert(graph->start_indices);
 	graph->n_neighbors = (uint32_t *)malloc(n_nodes * sizeof(uint32_t));
 	assert(graph->n_neighbors);
 	graph->neighbors = (uint32_t *)malloc(n_edges * sizeof(uint32_t));
@@ -34,7 +34,7 @@ Graph *convert_to_soa(Node *list_of_nodes, uint32_t n_nodes, uint32_t n_edges) {
 
 	uint32_t start_idx = 0;
 	for (uint32_t i = 0; i < n_nodes; i++) {
-		graph->start_nodes[i] = start_idx;
+		graph->start_indices[i] = start_idx;
 		graph->n_neighbors[i] = list_of_nodes[i].n_neighbors;
 
 		const uint32_t sz = graph->n_neighbors[i] * sizeof(uint32_t);
@@ -56,7 +56,7 @@ Graph *convert_to_soa(Node *list_of_nodes, uint32_t n_nodes, uint32_t n_edges) {
 	A single block of |BLKDIM| threads executes a relax on each outgoing edge
 	of each node.
 */
-__global__ void cuda_bellman_ford(uint32_t n_nodes, uint32_t *start_nodes, uint32_t *n_neighbors, uint32_t *neighbors,
+__global__ void cuda_bellman_ford(uint32_t n_nodes, uint32_t *start_indices, uint32_t *n_neighbors, uint32_t *neighbors,
 								  uint32_t *weights, uint32_t *distances) {
 	if (blockIdx.x != 0) {
 		return;
@@ -66,8 +66,8 @@ __global__ void cuda_bellman_ford(uint32_t n_nodes, uint32_t *start_nodes, uint3
 
 	for (uint32_t node = 0; node < n_nodes; node++) {
 		for (uint32_t idx = threadIdx.x; idx < n_neighbors[node]; idx += BLKDIM) {
-			sh_buffer[2 * threadIdx.x] = neighbors[start_nodes[node] + idx];
-			sh_buffer[2 * threadIdx.x + 1] = weights[start_nodes[node] + idx];
+			sh_buffer[2 * threadIdx.x] = neighbors[start_indices[node] + idx];
+			sh_buffer[2 * threadIdx.x + 1] = weights[start_indices[node] + idx];
 
 			// relax the edge (u,v)
 			const uint32_t u = node;
@@ -87,7 +87,7 @@ __global__ void cuda_bellman_ford(uint32_t n_nodes, uint32_t *start_nodes, uint3
 	each element of index |i| contains the shortest path distance from node
 	|source| to node |i|.
 */
-uint32_t *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
+uint32_t *bellman_ford(Graph_soa *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
 	if (h_graph == NULL) {
 		return NULL;
 	}
@@ -100,7 +100,7 @@ uint32_t *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint3
 	size_t sz_distances = n_nodes * sizeof(uint32_t);
 	size_t sz_neighbors = n_edges * sizeof(uint32_t);
 
-	uint32_t *d_start_nodes;
+	uint32_t *d_start_indices;
 	uint32_t *d_n_neighbors;
 	uint32_t *d_neighbors;
 	uint32_t *d_weights;
@@ -119,8 +119,8 @@ uint32_t *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint3
 	cudaSafeCall(cudaMemcpy(d_distances, h_distances, sz_distances, cudaMemcpyHostToDevice));
 
 	// malloc and copy of the graph
-	cudaSafeCall(cudaMalloc((void **)&d_start_nodes, sz_distances));
-	cudaSafeCall(cudaMemcpy(d_start_nodes, h_graph->start_nodes, sz_distances, cudaMemcpyHostToDevice));
+	cudaSafeCall(cudaMalloc((void **)&d_start_indices, sz_distances));
+	cudaSafeCall(cudaMemcpy(d_start_indices, h_graph->start_indices, sz_distances, cudaMemcpyHostToDevice));
 	cudaSafeCall(cudaMalloc((void **)&d_n_neighbors, sz_distances));
 	cudaSafeCall(cudaMemcpy(d_n_neighbors, h_graph->n_neighbors, sz_distances, cudaMemcpyHostToDevice));
 	cudaSafeCall(cudaMalloc((void **)&d_neighbors, sz_neighbors));
@@ -134,7 +134,7 @@ uint32_t *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint3
 	for (uint32_t i = 0; i < n_nodes - 1; i++) {
 		if (i % 1000 == 0)
 			fprintf(stderr, "%u / %u iterations completed\n", i, n_nodes - 1);
-		cuda_bellman_ford<<<1, BLKDIM>>>(n_nodes, d_start_nodes, d_n_neighbors, d_neighbors, d_weights, d_distances);
+		cuda_bellman_ford<<<1, BLKDIM>>>(n_nodes, d_start_indices, d_n_neighbors, d_neighbors, d_weights, d_distances);
 		cudaCheckError();
 	}
 
@@ -142,7 +142,7 @@ uint32_t *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint3
 	cudaSafeCall(cudaMemcpy(h_distances, d_distances, sz_distances, cudaMemcpyDeviceToHost));
 
 	// deallocation
-	cudaFree(d_start_nodes);
+	cudaFree(d_start_indices);
 	cudaFree(d_n_neighbors);
 	cudaFree(d_neighbors);
 	cudaFree(d_weights);
@@ -153,7 +153,7 @@ uint32_t *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint3
 
 int main(void) {
 	Node *list_of_nodes;
-	Graph *graph;
+	Graph_soa *graph;
 	uint32_t nodes, edges;
 	uint32_t *result;
 
@@ -184,7 +184,7 @@ int main(void) {
 	dump_solution(nodes, 0, result);
 	fprintf(stderr, "done\n");
 
-	free(graph->start_nodes);
+	free(graph->start_indices);
 	free(graph->n_neighbors);
 	free(graph->neighbors);
 	free(graph->weights);
@@ -199,7 +199,7 @@ int main(void) {
 	fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
 	fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);
 
-	unsigned long long total_work = (unsigned long long)nodes * (unsigned long long)edges;
+	uint64_t total_work = (uint64_t)nodes * (uint64_t)edges;
 	double throughput = (double)total_work / (double)compute_seconds;
 	fprintf(stderr, "\nThroughput: %.3e relax/second\n", throughput);
 

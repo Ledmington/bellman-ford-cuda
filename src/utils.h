@@ -85,6 +85,20 @@ typedef struct {
 	float *weights;
 } Graph_f;
 
+typedef struct {
+	// start_indices[i] is the index of the first neighbor of node |i|.
+	uint32_t *start_indices;
+
+	// Number of neighbors of each node
+	uint32_t *n_neighbors;
+
+	// Indices of neighbor nodes
+	uint32_t *neighbors;
+
+	// Weights of outgoing arcs to neighbors
+	uint32_t *weights;
+} Graph_soa;
+
 /*
 	Reads a graph from stdin formatted as follows:
 	first line: |number of nodes| |number of arcs| n
