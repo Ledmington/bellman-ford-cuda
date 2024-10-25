@@ -21,8 +21,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <math.h>
+#include <string.h>
 #include <limits.h>
+#include <math.h>
 
 /*
 	All algorithms use edges with integer weights.
@@ -289,6 +290,41 @@ Graph_f *read_graph_soa_f(uint32_t *n_nodes, uint32_t *n_edges) {
 			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	return graph;
+}
+
+/*
+	Converts the given array of |Node|s into a |Graph| structure (SoA).
+*/
+Graph_soa *convert_to_soa(Node *list_of_nodes, uint32_t n_nodes, uint32_t n_edges) {
+	Graph_soa *graph = (Graph_soa *)malloc(sizeof(Graph_soa));
+	assert(graph);
+
+	graph->start_indices = (uint32_t *)malloc(n_nodes * sizeof(uint32_t));
+	assert(graph->start_indices);
+	graph->n_neighbors = (uint32_t *)malloc(n_nodes * sizeof(uint32_t));
+	assert(graph->n_neighbors);
+	graph->neighbors = (uint32_t *)malloc(n_edges * sizeof(uint32_t));
+	assert(graph->neighbors);
+	graph->weights = (uint32_t *)malloc(n_edges * sizeof(uint32_t));
+	assert(graph->weights);
+
+	uint32_t start_idx = 0;
+	for (uint32_t i = 0; i < n_nodes; i++) {
+		graph->start_indices[i] = start_idx;
+		graph->n_neighbors[i] = list_of_nodes[i].n_neighbors;
+
+		const uint32_t sz = graph->n_neighbors[i] * sizeof(uint32_t);
+
+		// Copying neighbors
+		memcpy(&graph->neighbors[start_idx], list_of_nodes[i].neighbors, sz);
+
+		// Copying weights
+		memcpy(&graph->weights[start_idx], list_of_nodes[i].weights, sz);
+
+		start_idx += graph->n_neighbors[i];
 	}
 
 	return graph;
