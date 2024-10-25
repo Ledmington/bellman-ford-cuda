@@ -7,8 +7,8 @@ This is the modern version of the project (work in progress), for the original c
 In order to compile this project, you need:
  - a CUDA-capable GPU
  - CMake
- - a working C99 compiler
- - a working CUDA compiler
+ - a C99 compiler
+ - a CUDA compiler
 
 ```bash
 cmake -S . -B build
@@ -22,6 +22,10 @@ After compilation, you can run the test suite to check that everything is set up
 cd build
 ctest
 ```
+
+Each executable represents a different implementation of the algorithm and can be used in one of two ways:
+ - `./bf1-aos-sh <input_file>` and the result will be printed on `stdout`.
+ - `./bf1-aos-sh <input_file> <solution_file>` and the result will be checked against the given solution file. The result will not be printed.
 
 ## Document
 The main document of this project is a `tex` file inside the `doc` folder.

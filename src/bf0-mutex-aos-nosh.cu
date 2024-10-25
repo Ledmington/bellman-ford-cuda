@@ -108,9 +108,8 @@ int main(int argc, char *argv[]) {
 	uint32_t edges;
 	float *result;
 
-	clock_t program_start, program_end, compute_start, compute_end;
-
-	program_start = clock();
+	clock_t compute_start;
+	clock_t compute_end;
 
 	fprintf(stderr, "Reading input graph...");
 	graph = read_graph_f(argv[1], &nodes, &edges);
@@ -128,24 +127,31 @@ int main(int argc, char *argv[]) {
 	compute_end = clock();
 	fprintf(stderr, "done\n\n");
 
-	fprintf(stderr, "Dumping solution...");
-	dump_solution_f(nodes, 0, result);
-	fprintf(stderr, "done\n");
-
-	free(graph);
-	free(result);
-
-	program_end = clock();
-
-	const float total_seconds = (float)(program_end - program_start) / (float)CLOCKS_PER_SEC;
 	const float compute_seconds = (float)(compute_end - compute_start) / (float)CLOCKS_PER_SEC;
-
-	fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
-	fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);
+	fprintf(stderr, "\nActual execution time: %.3f seconds\n", compute_seconds);
 
 	uint64_t total_work = (uint64_t)nodes * (uint64_t)edges;
 	double throughput = (double)total_work / (double)compute_seconds;
-	fprintf(stderr, "\nThroughput: %.3e relax/second\n", throughput);
+	fprintf(stderr, "\nThroughput: %.3e relax/second\n\n", throughput);
+
+	if (argc == 3) {
+		float *distances = (float *)malloc(nodes * sizeof(float));
+
+		fprintf(stderr, "Reading solution...");
+		read_solution_f(argv[2], distances);
+		fprintf(stderr, "done\n");
+
+		check_solution_f(nodes, distances, result);
+
+		free(distances);
+	} else {
+		fprintf(stderr, "Dumping solution...");
+		dump_solution_f(nodes, 0, result);
+		fprintf(stderr, "done\n");
+	}
+
+	free(graph);
+	free(result);
 
 	return EXIT_SUCCESS;
 }

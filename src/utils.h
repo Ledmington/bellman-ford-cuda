@@ -25,6 +25,8 @@
 #include <limits.h>
 #include <math.h>
 
+#define abs(x) ((x) < 0 ? (-(x)) : (x))
+
 /*
 	All algorithms use edges with integer weights.
  */
@@ -386,6 +388,68 @@ void destroy_graph(uint32_t nodes, Node *graph) {
 		free(graph[i].weights);
 	}
 	free(graph);
+}
+
+void read_solution(const char *filename, uint32_t *dist) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open the file '%s'.\n", filename);
+		exit(EXIT_FAILURE);
+	}
+
+	uint32_t n_nodes;
+	fscanf(fp, "%u", &n_nodes);
+	uint32_t source;
+	fscanf(fp, "%u", &source);
+
+	for (uint32_t i = 0; i < n_nodes; i++) {
+		uint32_t tmp;
+		fscanf(fp, "%u %u", &tmp, &dist[i]);
+	}
+}
+
+void read_solution_f(const char *filename, float *dist) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open the file '%s'.\n", filename);
+		exit(EXIT_FAILURE);
+	}
+
+	uint32_t n_nodes;
+	fscanf(fp, "%u", &n_nodes);
+	uint32_t source;
+	fscanf(fp, "%u", &source);
+
+	for (uint32_t i = 0; i < n_nodes; i++) {
+		uint32_t tmp;
+		fscanf(fp, "%u %f", &tmp, &dist[i]);
+	}
+}
+
+void check_solution(const uint32_t nodes, const uint32_t *const ref_dist, const uint32_t *const dist) {
+	fprintf(stderr, "Checking solution...");
+	for (uint32_t i = 0; i < nodes; i++) {
+		if (dist[i] != ref_dist[i]) {
+			fprintf(stderr, "ERROR: expected node n.%u to have a distance of %u but was %u.\n", i, ref_dist[i],
+					dist[i]);
+			exit(EXIT_FAILURE);
+		}
+	}
+	fprintf(stderr, "OK\n");
+}
+
+void check_solution_f(const uint32_t nodes, const float *const ref_dist, const float *const dist) {
+	fprintf(stderr, "Checking solution...");
+	for (uint32_t i = 0; i < nodes; i++) {
+		if (abs(dist[i] - ref_dist[i]) > 1e-6f) {
+			fprintf(stderr, "ERROR: expected node n.%u to have a distance of %f but was %f.\n", i, ref_dist[i],
+					dist[i]);
+			exit(EXIT_FAILURE);
+		}
+	}
+	fprintf(stderr, "OK\n");
 }
 
 /*
