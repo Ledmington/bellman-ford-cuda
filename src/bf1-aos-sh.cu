@@ -131,9 +131,15 @@ uint32_t *bellman_ford(Node *h_graph, uint32_t n_nodes, uint32_t source) {
 	return h_distances;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
+	if (argc < 2 || argc > 3) {
+		fprintf(stderr, "Usage: %s <input_file> [<solution_file>]\n\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+
 	Node *graph;
-	uint32_t nodes, edges;
+	uint32_t nodes;
+	uint32_t edges;
 	uint32_t *result;
 
 	clock_t program_start, program_end, compute_start, compute_end;
@@ -141,7 +147,7 @@ int main(void) {
 	program_start = clock();
 
 	fprintf(stderr, "Reading input graph...");
-	graph = read_graph_adj_list(&nodes, &edges);
+	graph = read_graph_adj_list(argv[1], &nodes, &edges);
 	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "\nGraph data:\n");
@@ -165,8 +171,8 @@ int main(void) {
 
 	program_end = clock();
 
-	float total_seconds = (float)(program_end - program_start) / (float)CLOCKS_PER_SEC;
-	float compute_seconds = (float)(compute_end - compute_start) / (float)CLOCKS_PER_SEC;
+	const float total_seconds = (float)(program_end - program_start) / (float)CLOCKS_PER_SEC;
+	const float compute_seconds = (float)(compute_end - compute_start) / (float)CLOCKS_PER_SEC;
 
 	fprintf(stderr, "\nTotal execution time: %.3f seconds\n", total_seconds);
 	fprintf(stderr, "Actual execution time: %.3f seconds\n", compute_seconds);

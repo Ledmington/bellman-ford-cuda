@@ -101,7 +101,7 @@ typedef struct {
 } Graph_soa;
 
 /*
-	Reads a graph from stdin formatted as follows:
+	Reads a graph from file formatted as follows:
 	first line: |number of nodes| |number of arcs| n
 	each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
 
@@ -109,32 +109,42 @@ typedef struct {
 
 	This function returns a pointer to an array of |n_edges| structures of type Edge.
 */
-Edge *read_graph(uint32_t *n_nodes, uint32_t *n_edges) {
+Edge *read_graph(const char *filename, uint32_t *n_nodes, uint32_t *n_edges) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open the file '%s'.\n", filename);
+		exit(EXIT_FAILURE);
+	}
+
 	/*
 		|tmp| is necessary to read the third value of the first line, which is useless
 	*/
 	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
+	fscanf(fp, "%u %u %u", n_nodes, n_edges, &tmp);
 
 	Edge *graph = (Edge *)malloc(*n_edges * sizeof(Edge));
 	assert(graph);
 
 	for (uint32_t i = 0; i < *n_edges; i++) {
 		float tmp;
-		scanf("%u %u %f", &graph[i].start_node, &graph[i].end_node, &tmp);
+		fscanf(fp, "%u %u %f", &graph[i].start_node, &graph[i].end_node, &tmp);
 		graph[i].weight = (uint32_t)tmp;
 
 		if (graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
 			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
+			fclose(fp);
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	fclose(fp);
 
 	return graph;
 }
 
 /*
-	Reads a graph from stdin formatted as follows:
+	Reads a graph from file formatted as follows:
 	first line: |number of nodes| |number of arcs| n
 	each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
 
@@ -142,32 +152,42 @@ Edge *read_graph(uint32_t *n_nodes, uint32_t *n_edges) {
 
 	This function returns a pointer to an array of |n_edges| structures of type Edge_f.
 */
-Edge_f *read_graph_f(uint32_t *n_nodes, uint32_t *n_edges) {
+Edge_f *read_graph_f(const char *filename, uint32_t *n_nodes, uint32_t *n_edges) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open the file '%s'.\n", filename);
+		exit(EXIT_FAILURE);
+	}
+
 	/*
 		|tmp| is necessary to read the third value of the first line, which is useless
 	*/
 	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
+	fscanf(fp, "%u %u %u", n_nodes, n_edges, &tmp);
 
 	Edge_f *graph = (Edge_f *)malloc(*n_edges * sizeof(Edge_f));
 	assert(graph);
 
 	for (uint32_t i = 0; i < *n_edges; i++) {
 		float tmp;
-		scanf("%u %u %f", &graph[i].start_node, &graph[i].end_node, &tmp);
+		fscanf(fp, "%u %u %f", &graph[i].start_node, &graph[i].end_node, &tmp);
 		graph[i].weight = tmp;
 
 		if (graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
 			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
+			fclose(fp);
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	fclose(fp);
 
 	return graph;
 }
 
 /*
-	Reads a graph from stdin formatted as follows:
+	Reads a graph from file formatted as follows:
 	first line: |number of nodes| |number of arcs| n
 	each one of the other |number of arcs| lines: |source node| |destination
    node| |arc weight|
@@ -176,13 +196,20 @@ Edge_f *read_graph_f(uint32_t *n_nodes, uint32_t *n_edges) {
 
 	This function returns a pointer to an array of |n_nodes| structures of type Node.
 */
-Node *read_graph_adj_list(uint32_t *n_nodes, uint32_t *n_edges) {
+Node *read_graph_adj_list(const char *filename, uint32_t *n_nodes, uint32_t *n_edges) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open the file '%s'.\n", filename);
+		exit(EXIT_FAILURE);
+	}
+
 	/*
 		|tmp| is necessary to read the third value of the first line, which is
 	   useless
 	*/
 	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
+	fscanf(fp, "%u %u %u", n_nodes, n_edges, &tmp);
 
 	Node *graph = (Node *)malloc((*n_nodes) * sizeof(Node));
 	assert(graph);
@@ -196,10 +223,11 @@ Node *read_graph_adj_list(uint32_t *n_nodes, uint32_t *n_edges) {
 	for (uint32_t i = 0; i < *n_edges; i++) {
 		uint32_t start_node, end_node;
 		float weight;
-		scanf("%u %u %f", &start_node, &end_node, &weight);
+		fscanf(fp, "%u %u %f", &start_node, &end_node, &weight);
 
 		if (start_node >= *n_nodes || end_node >= *n_nodes) {
 			fprintf(stderr, "ERROR at line %u: invalid node index\n\n", i + 1);
+			fclose(fp);
 			exit(EXIT_FAILURE);
 		}
 
@@ -214,11 +242,13 @@ Node *read_graph_adj_list(uint32_t *n_nodes, uint32_t *n_edges) {
 		graph[start_node].n_neighbors++;
 	}
 
+	fclose(fp);
+
 	return graph;
 }
 
 /*
-	Reads a graph from stdin formatted as follows:
+	Reads a graph from file formatted as follows:
 	first line: |number of nodes| |number of arcs| n
 	each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
 
@@ -226,12 +256,19 @@ Node *read_graph_adj_list(uint32_t *n_nodes, uint32_t *n_edges) {
 
 	This function returns a pointer to a Graph structure.
 */
-Graph *read_graph_soa(uint32_t *n_nodes, uint32_t *n_edges) {
+Graph *read_graph_soa(const char *filename, uint32_t *n_nodes, uint32_t *n_edges) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open the file '%s'.\n", filename);
+		exit(EXIT_FAILURE);
+	}
+
 	/*
 		|tmp| is necessary to read the third value of the first line, which is useless
 	*/
 	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
+	fscanf(fp, "%u %u %u", n_nodes, n_edges, &tmp);
 
 	Graph *graph = (Graph *)malloc(sizeof(Graph));
 	assert(graph);
@@ -245,20 +282,23 @@ Graph *read_graph_soa(uint32_t *n_nodes, uint32_t *n_edges) {
 
 	for (uint32_t i = 0; i < *n_edges; i++) {
 		float tmp;
-		scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &tmp);
+		fscanf(fp, "%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &tmp);
 		graph->weights[i] = (uint32_t)tmp;
 
 		if (graph->start_nodes[i] >= *n_nodes || graph->end_nodes[i] >= *n_nodes) {
 			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
+			fclose(fp);
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	fclose(fp);
 
 	return graph;
 }
 
 /*
-	Reads a graph from stdin formatted as follows:
+	Reads a graph from file formatted as follows:
 	first line: |number of nodes| |number of arcs| n
 	each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
 
@@ -266,12 +306,19 @@ Graph *read_graph_soa(uint32_t *n_nodes, uint32_t *n_edges) {
 
 	This function returns a pointer to a Graph_f structure.
 */
-Graph_f *read_graph_soa_f(uint32_t *n_nodes, uint32_t *n_edges) {
+Graph_f *read_graph_soa_f(const char *filename, uint32_t *n_nodes, uint32_t *n_edges) {
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open the file '%s'.\n", filename);
+		exit(EXIT_FAILURE);
+	}
+
 	/*
 		|tmp| is necessary to read the third value of the first line, which is useless
 	*/
 	uint32_t tmp;
-	scanf("%u %u %u", n_nodes, n_edges, &tmp);
+	fscanf(fp, "%u %u %u", n_nodes, n_edges, &tmp);
 
 	Graph_f *graph = (Graph_f *)malloc(sizeof(Graph_f));
 	assert(graph);
@@ -284,13 +331,16 @@ Graph_f *read_graph_soa_f(uint32_t *n_nodes, uint32_t *n_edges) {
 	assert(graph->weights);
 
 	for (uint32_t i = 0; i < *n_edges; i++) {
-		scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &graph->weights[i]);
+		fscanf(fp, "%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &graph->weights[i]);
 
 		if (graph->start_nodes[i] >= *n_nodes || graph->end_nodes[i] >= *n_nodes) {
 			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
+			fclose(fp);
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	fclose(fp);
 
 	return graph;
 }

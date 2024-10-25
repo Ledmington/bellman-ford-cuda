@@ -33,7 +33,7 @@
 
 double randab(double a, double b) { return (double)rand() / (double)RAND_MAX * (b - a) + a; }
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
 	srand(time(NULL));
 
 	if (argc != 3 && argc != 5) {
