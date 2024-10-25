@@ -50,8 +50,10 @@ __global__ void cuda_bellman_ford(uint32_t n_edges, Edge *graph, uint32_t *dista
 	|source| to node |i|.
 */
 uint32_t *bellman_ford(Edge *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
-	if (h_graph == NULL)
+	if (h_graph == NULL) {
 		return NULL;
+	}
+
 	if (source >= n_nodes) {
 		fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
 		exit(EXIT_FAILURE);

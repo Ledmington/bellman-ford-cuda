@@ -19,8 +19,10 @@
 	|source| to node |i|.
 */
 float *bellman_ford(Edge *graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
-	if (graph == NULL)
+	if (graph == NULL) {
 		return NULL;
+	}
+
 	if (source >= n_nodes) {
 		fprintf(stderr, "ERROR: source node %u does not exist.\n\n", source);
 		exit(EXIT_FAILURE);
@@ -78,7 +80,7 @@ int main(void) {
 	fprintf(stderr, "done\n\n");
 
 	fprintf(stderr, "Dumping solution...");
-	dump_solution(nodes, 0, result);
+	dump_solution_f(nodes, 0, result);
 	fprintf(stderr, "done\n");
 
 	free(graph);

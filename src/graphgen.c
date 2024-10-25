@@ -83,9 +83,9 @@ int main(int argc, char** argv) {
 
 	for (uint32_t i = 0; i < N; i++) {
 		for (uint32_t j = 0; j < N; j++) {
-			if (i == j)
+			if (i == j) {
 				g[i][j] = HUGE_VAL;
-			else {
+			} else {
 				if (randab(0.0, 1.0) <= p) {
 					g[i][j] = randab(min_weight, max_weight);
 					n_edges++;

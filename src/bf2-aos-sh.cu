@@ -48,8 +48,10 @@ __global__ void cuda_bellman_ford(uint32_t n_nodes, Node *graph, uint32_t *dista
 */
 __global__ void connect_pointers(Node *node, uint32_t *new_neighbors, uint32_t *new_weights) {
 	const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	if (idx != 0)
+	if (idx != 0) {
 		return;
+	}
+
 	node->neighbors = new_neighbors;
 	node->weights = new_weights;
 }

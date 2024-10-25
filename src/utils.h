@@ -24,6 +24,23 @@
 #include <math.h>
 #include <limits.h>
 
+/*
+	All algorithms use edges with integer weights.
+ */
+typedef struct {
+	// The index of the source node of the edge
+	uint32_t start_node;
+
+	// The index of the destination node of the edge
+	uint32_t end_node;
+
+	// The weight assigned to the edge
+	uint32_t weight;
+} Edge;
+
+/*
+	Only the algorithms of the group 'bf0-mutex' use edges with float weights.
+ */
 typedef struct {
 	// The index of the source node of the edge
 	uint32_t start_node;
@@ -33,7 +50,7 @@ typedef struct {
 
 	// The weight assigned to the edge
 	float weight;
-} Edge;
+} Edge_f;
 
 typedef struct {
 	// Number of neighbors
@@ -43,7 +60,7 @@ typedef struct {
 	uint32_t *neighbors;
 
 	// Weights of outgoing arcs to neighbors
-	float *weights;
+	uint32_t *weights;
 } Node;
 
 typedef struct {
@@ -54,8 +71,19 @@ typedef struct {
 	uint32_t *end_nodes;
 
 	// The weight assigned to the edge
-	float *weights;
+	uint32_t *weights;
 } Graph;
+
+typedef struct {
+	// The index of the source node of the edge
+	uint32_t *start_nodes;
+
+	// The index of the destination node of the edge
+	uint32_t *end_nodes;
+
+	// The weight assigned to the edge
+	float *weights;
+} Graph_f;
 
 /*
 	Reads a graph from stdin formatted as follows:
@@ -66,20 +94,53 @@ typedef struct {
 
 	This function returns a pointer to an array of |n_edges| structures of type Edge.
 */
-Edge *read_graph(unsigned int *n_nodes, unsigned int *n_edges) {
+Edge *read_graph(uint32_t *n_nodes, uint32_t *n_edges) {
 	/*
 		|tmp| is necessary to read the third value of the first line, which is useless
 	*/
-	unsigned int tmp;
+	uint32_t tmp;
 	scanf("%u %u %u", n_nodes, n_edges, &tmp);
 
 	Edge *graph = (Edge *)malloc(*n_edges * sizeof(Edge));
 	assert(graph);
 
-	for (unsigned int i = 0; i < *n_edges; i++) {
+	for (uint32_t i = 0; i < *n_edges; i++) {
 		float tmp;
 		scanf("%u %u %f", &graph[i].start_node, &graph[i].end_node, &tmp);
-		graph[i].weight = (unsigned int)tmp;
+		graph[i].weight = (uint32_t)tmp;
+
+		if (graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
+			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	return graph;
+}
+
+/*
+	Reads a graph from stdin formatted as follows:
+	first line: |number of nodes| |number of arcs| n
+	each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
+
+	The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
+
+	This function returns a pointer to an array of |n_edges| structures of type Edge_f.
+*/
+Edge_f *read_graph_f(uint32_t *n_nodes, uint32_t *n_edges) {
+	/*
+		|tmp| is necessary to read the third value of the first line, which is useless
+	*/
+	uint32_t tmp;
+	scanf("%u %u %u", n_nodes, n_edges, &tmp);
+
+	Edge_f *graph = (Edge_f *)malloc(*n_edges * sizeof(Edge_f));
+	assert(graph);
+
+	for (uint32_t i = 0; i < *n_edges; i++) {
+		float tmp;
+		scanf("%u %u %f", &graph[i].start_node, &graph[i].end_node, &tmp);
+		graph[i].weight = tmp;
 
 		if (graph[i].start_node >= *n_nodes || graph[i].end_node >= *n_nodes) {
 			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
@@ -131,14 +192,100 @@ Node *read_graph_adj_list(uint32_t *n_nodes, uint32_t *n_edges) {
 			(uint32_t *)realloc(graph[start_node].neighbors, (graph[start_node].n_neighbors + 1) * sizeof(uint32_t *));
 		assert(graph[start_node].neighbors);
 		graph[start_node].weights =
-			(float *)realloc(graph[start_node].weights, (graph[start_node].n_neighbors + 1) * sizeof(float *));
+			(uint32_t *)realloc(graph[start_node].weights, (graph[start_node].n_neighbors + 1) * sizeof(uint32_t *));
 		assert(graph[start_node].weights);
 		graph[start_node].neighbors[graph[start_node].n_neighbors] = end_node;
-		graph[start_node].weights[graph[start_node].n_neighbors] = weight;
+		graph[start_node].weights[graph[start_node].n_neighbors] = (uint32_t)weight;
 		graph[start_node].n_neighbors++;
 	}
 
 	return graph;
+}
+
+/*
+	Reads a graph from stdin formatted as follows:
+	first line: |number of nodes| |number of arcs| n
+	each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
+
+	The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
+
+	This function returns a pointer to a Graph structure.
+*/
+Graph *read_graph_soa(uint32_t *n_nodes, uint32_t *n_edges) {
+	/*
+		|tmp| is necessary to read the third value of the first line, which is useless
+	*/
+	uint32_t tmp;
+	scanf("%u %u %u", n_nodes, n_edges, &tmp);
+
+	Graph *graph = (Graph *)malloc(sizeof(Graph));
+	assert(graph);
+
+	graph->start_nodes = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
+	assert(graph->start_nodes);
+	graph->end_nodes = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
+	assert(graph->end_nodes);
+	graph->weights = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
+	assert(graph->weights);
+
+	for (uint32_t i = 0; i < *n_edges; i++) {
+		float tmp;
+		scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &tmp);
+		graph->weights[i] = (uint32_t)tmp;
+
+		if (graph->start_nodes[i] >= *n_nodes || graph->end_nodes[i] >= *n_nodes) {
+			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	return graph;
+}
+
+/*
+	Reads a graph from stdin formatted as follows:
+	first line: |number of nodes| |number of arcs| n
+	each one of the other |number of arcs| lines: |source node| |destination node| |arc weight|
+
+	The variables pointed by |n_nodes| and |n_edges| are modified accordingly.
+
+	This function returns a pointer to a Graph_f structure.
+*/
+Graph_f *read_graph_soa_f(uint32_t *n_nodes, uint32_t *n_edges) {
+	/*
+		|tmp| is necessary to read the third value of the first line, which is useless
+	*/
+	uint32_t tmp;
+	scanf("%u %u %u", n_nodes, n_edges, &tmp);
+
+	Graph_f *graph = (Graph_f *)malloc(sizeof(Graph_f));
+	assert(graph);
+
+	graph->start_nodes = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
+	assert(graph->start_nodes);
+	graph->end_nodes = (uint32_t *)malloc((*n_edges) * sizeof(uint32_t));
+	assert(graph->end_nodes);
+	graph->weights = (float *)malloc((*n_edges) * sizeof(float));
+	assert(graph->weights);
+
+	for (uint32_t i = 0; i < *n_edges; i++) {
+		scanf("%u %u %f", &graph->start_nodes[i], &graph->end_nodes[i], &graph->weights[i]);
+
+		if (graph->start_nodes[i] >= *n_nodes || graph->end_nodes[i] >= *n_nodes) {
+			fprintf(stderr, "ERROR at line %u: invalid node index.\n\n", i + 1);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	return graph;
+}
+
+void destroy_graph(uint32_t nodes, Node *graph) {
+	for (uint32_t i = 0; i < nodes; i++) {
+		free(graph[i].neighbors);
+		free(graph[i].weights);
+	}
+	free(graph);
 }
 
 /*
@@ -153,7 +300,27 @@ Node *read_graph_adj_list(uint32_t *n_nodes, uint32_t *n_edges) {
 	node_2 distance_to_node_2
 	...
 */
-void dump_solution(const uint32_t n_nodes, const uint32_t source, const float *const dist) {
+void dump_solution(const uint32_t n_nodes, const uint32_t source, const uint32_t *const dist) {
+	printf("%u\n%u\n", n_nodes, source);
+
+	for (uint32_t i = 0; i < n_nodes; i++) {
+		printf("%u %u\n", i, dist[i]);
+	}
+}
+
+/*
+	Dumps the solution on stdout.
+
+	Output is formatted as follows:
+
+	number_of_nodes
+	source_node
+	node_0 distance_to_node_0
+	node_1 distance_to_node_1
+	node_2 distance_to_node_2
+	...
+*/
+void dump_solution_f(const uint32_t n_nodes, const uint32_t source, const float *const dist) {
 	printf("%u\n%u\n", n_nodes, source);
 
 	for (uint32_t i = 0; i < n_nodes; i++) {
@@ -169,7 +336,7 @@ void dump_solution(const uint32_t n_nodes, const uint32_t source, const float *c
 /*
 	Prints correctly the amount of RAM used.
 */
-void print_ram_usage(const uint32_t nbytes) {
+void print_ram_usage(const uint64_t nbytes) {
 	const double ram_usage = (double)nbytes;
 	if (ram_usage < 1000.0) {
 		fprintf(stderr, " %.3f bytes of RAM used\n\n", ram_usage);

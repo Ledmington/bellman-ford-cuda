@@ -21,13 +21,13 @@
 	CUDA kernel of Bellman-Ford's algorithm.
 	Each thread executes a relax on a single edge in each kernel call.
 */
-__global__ void cuda_bellman_ford(uint32_t n_edges, Edge *graph, float *distances) {
+__global__ void cuda_bellman_ford(uint32_t n_edges, Edge_f *graph, float *distances) {
 	union {
 		float vf;
 		int vi;
 	} oldval, newval;
 
-	__shared__ Edge buffer[BLKDIM];
+	__shared__ Edge_f buffer[BLKDIM];
 	uint32_t g_idx = blockIdx.x * blockDim.x + threadIdx.x;
 	uint32_t l_idx = threadIdx.x;
 
@@ -58,18 +58,20 @@ __global__ void cuda_bellman_ford(uint32_t n_edges, Edge *graph, float *distance
 	each element of index |i| contains the shortest path distance from node
 	|source| to node |i|.
 */
-float *bellman_ford(Edge *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
-	if (h_graph == NULL)
+float *bellman_ford(Edge_f *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
+	if (h_graph == NULL) {
 		return NULL;
+	}
+
 	if (source >= n_nodes) {
 		fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
 		exit(EXIT_FAILURE);
 	}
 
 	const size_t sz_distances = n_nodes * sizeof(float);
-	const size_t sz_graph = n_edges * sizeof(Edge);
+	const size_t sz_graph = n_edges * sizeof(Edge_f);
 
-	Edge *d_graph;
+	Edge_f *d_graph;
 
 	float *d_distances;
 	float *h_distances = (float *)malloc(sz_distances);
@@ -104,7 +106,7 @@ float *bellman_ford(Edge *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t 
 }
 
 int main(void) {
-	Edge *graph;
+	Edge_f *graph;
 	uint32_t nodes, edges;
 	float *result;
 
@@ -113,14 +115,14 @@ int main(void) {
 	program_start = clock();
 
 	fprintf(stderr, "Reading input graph...");
-	graph = read_graph(&nodes, &edges);
+	graph = read_graph_f(&nodes, &edges);
 	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "\nGraph data:\n");
 	fprintf(stderr, " %7u nodes\n", nodes);
 	fprintf(stderr, " %7u arcs\n", edges);
 
-	print_ram_usage(sizeof(Edge) * edges);
+	print_ram_usage(sizeof(Edge_f) * edges);
 
 	fprintf(stderr, "Computing Bellman-Ford...");
 	compute_start = clock();
@@ -129,7 +131,7 @@ int main(void) {
 	fprintf(stderr, "done\n\n");
 
 	fprintf(stderr, "Dumping solution...");
-	dump_solution(nodes, 0, result);
+	dump_solution_f(nodes, 0, result);
 	fprintf(stderr, "done\n");
 
 	free(graph);

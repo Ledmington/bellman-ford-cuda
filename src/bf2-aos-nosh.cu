@@ -42,8 +42,10 @@ __global__ void cuda_bellman_ford(uint32_t n_nodes, Node *graph, uint32_t *dista
 */
 __global__ void connect_pointers(Node *node, uint32_t *new_neighbors, uint32_t *new_weights) {
 	const uint32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	if (idx != 0)
+	if (idx != 0) {
 		return;
+	}
+
 	node->neighbors = new_neighbors;
 	node->weights = new_weights;
 }
@@ -55,8 +57,10 @@ __global__ void connect_pointers(Node *node, uint32_t *new_neighbors, uint32_t *
 	|source| to node |i|.
 */
 uint32_t *bellman_ford(Node *h_graph, uint32_t n_nodes, uint32_t source) {
-	if (h_graph == NULL)
+	if (h_graph == NULL) {
 		return NULL;
+	}
+
 	if (source >= n_nodes) {
 		fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
 		exit(EXIT_FAILURE);

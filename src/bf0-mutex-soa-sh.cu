@@ -61,9 +61,11 @@ __global__ void cuda_bellman_ford(uint32_t n_edges, uint32_t *start_nodes, uint3
 	each element of index |i| contains the shortest path distance from node
 	|source| to node |i|.
 */
-float *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
-	if (h_graph == NULL)
+float *bellman_ford(Graph_f *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
+	if (h_graph == NULL) {
 		return NULL;
+	}
+
 	if (source >= n_nodes) {
 		fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
 		exit(EXIT_FAILURE);
@@ -116,7 +118,7 @@ float *bellman_ford(Graph *h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t
 }
 
 int main(void) {
-	Graph *graph;
+	Graph_f *graph;
 	uint32_t nodes, edges;
 	float *result;
 
@@ -125,7 +127,7 @@ int main(void) {
 	program_start = clock();
 
 	fprintf(stderr, "Reading input graph...");
-	graph = read_graph(&nodes, &edges);
+	graph = read_graph_soa_f(&nodes, &edges);
 	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "\nGraph data:\n");
@@ -141,7 +143,7 @@ int main(void) {
 	fprintf(stderr, "done\n\n");
 
 	fprintf(stderr, "Dumping solution...");
-	dump_solution(nodes, 0, result);
+	dump_solution_f(nodes, 0, result);
 	fprintf(stderr, "done\n");
 
 	free(graph);

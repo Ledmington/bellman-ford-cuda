@@ -43,8 +43,10 @@ __global__ void cuda_bellman_ford(uint32_t n_edges, uint32_t* start_nodes, uint3
 	|source| to node |i|.
 */
 uint32_t* bellman_ford(Graph* h_graph, uint32_t n_nodes, uint32_t n_edges, uint32_t source) {
-	if (h_graph == NULL)
+	if (h_graph == NULL) {
 		return NULL;
+	}
+
 	if (source >= n_nodes) {
 		fprintf(stderr, "ERROR: source node %u does not exist\n\n", source);
 		exit(EXIT_FAILURE);
@@ -106,7 +108,7 @@ int main(void) {
 	program_start = clock();
 
 	fprintf(stderr, "Reading input graph...");
-	graph = read_graph(&nodes, &edges);
+	graph = read_graph_soa(&nodes, &edges);
 	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "\nGraph data:\n");
