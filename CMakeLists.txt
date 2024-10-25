@@ -16,7 +16,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 enable_language(CUDA)
 
 # Default C flags
-set(BMCU_FLAGS -Wall -Wextra -Wpedantic -Wsign-conversion -Wfloat-conversion)
+set(BMCU_FLAGS -Wall -Wextra -Wsign-conversion -Wfloat-conversion)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     list(APPEND BMCU_FLAGS -O3 -DNDEBUG -march=native -mtune=native)
@@ -32,9 +32,9 @@ set(TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/test")
 enable_testing()
 
 add_executable(bf-serial "${SRC_DIR}/bf-serial.c")
-target_compile_options(bf-serial PRIVATE ${BMCU_FLAGS} -Werror)
+target_compile_options(bf-serial PRIVATE ${BMCU_FLAGS} -Wpedantic -Werror)
 add_executable(graphgen "${SRC_DIR}/graphgen.c")
-target_compile_options(graphgen PRIVATE ${BMCU_FLAGS} -Werror)
+target_compile_options(graphgen PRIVATE ${BMCU_FLAGS} -Wpedantic -Werror)
 
 foreach(version 0-mutex 0-none 1 2)
     foreach(structure aos soa)
