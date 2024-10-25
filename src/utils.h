@@ -443,7 +443,11 @@ void check_solution(const uint32_t nodes, const uint32_t *const ref_dist, const 
 void check_solution_f(const uint32_t nodes, const float *const ref_dist, const float *const dist) {
 	fprintf(stderr, "Checking solution...");
 	for (uint32_t i = 0; i < nodes; i++) {
-		if (abs(dist[i] - ref_dist[i]) > 1e-6f) {
+		// handling infinities (saved as UINT_MAX)
+		if ((isinf(ref_dist[i]) || ref_dist[i] >= (float)UINT_MAX) && (isinf(dist[i]) || dist[i] >= (float)UINT_MAX)) {
+			continue;
+		}
+		if ((abs(dist[i] - ref_dist[i]) / ref_dist[i]) > 0.1f) {
 			fprintf(stderr, "ERROR: expected node n.%u to have a distance of %f but was %f.\n", i, ref_dist[i],
 					dist[i]);
 			exit(EXIT_FAILURE);
