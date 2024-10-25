@@ -28,7 +28,7 @@ The main document of this project is a `tex` file inside the `doc` folder.
 You can create the `.pdf` file running
 ```bash
 biber "tesi"
-pdflatex.exe -synctex=1 -interaction=nonstopmode "tesi".tex
+pdflatex -synctex=1 -interaction=nonstopmode "tesi".tex
 ```
 
 ## License
